@@ -29,3 +29,6 @@ _ReSharper*/
 
 # NuGet Packages Directory
 packages/*
+
+# Mac OS X makes this stupid files somehow
+/._*.sln
