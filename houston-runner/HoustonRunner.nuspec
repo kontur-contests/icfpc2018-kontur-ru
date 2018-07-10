@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>ICFPC2018.KonturRu.HoustonRunner</id>
+    <version>1.0.0</version>
+    <title>ICFPC2018.KonturRu.HoustonRunner</title>
+    <authors>Kontur.Ru ICFPC 2018 team</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Kontur.Ru team runner for ICFPC 2018</description>
+  </metadata>
+  <files>
+    <file src="bin/Debug/net471/*" />
+  </files>
+</package>
