@@ -1,5 +1,7 @@
 using FluentAssertions;
 
+using lib;
+
 using NUnit.Framework;
 
 namespace tests
@@ -23,6 +25,12 @@ namespace tests
         public void FluentAssertion()
         {
             "The quick brown fox...".Should().StartWith("The");
+        }
+
+        [Test]
+        public void Logging()
+        {
+            Log.For(this).Info("Sample test log");
         }
     }
 }

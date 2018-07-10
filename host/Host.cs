@@ -42,7 +42,7 @@ namespace host
 
         private void HandleTick()
         {
-            log.Debug("Tick");
+            log.Info("Tick");
         }
     }
 }
