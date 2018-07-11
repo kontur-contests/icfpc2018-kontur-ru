@@ -9,6 +9,6 @@
     <description>Kontur.Ru team runner for ICFPC 2018</description>
   </metadata>
   <files>
-    <file src="bin/Release/net471/*" />
+    <file src="bin\Release\net471\*" />
   </files>
 </package>
