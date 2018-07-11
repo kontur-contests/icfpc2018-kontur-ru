@@ -1,12 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net471</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\lib\lib.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Kontur.Houston.Plugin" Version="1.0.159" />
   </ItemGroup>
+
 </Project>
