@@ -28,8 +28,14 @@ public class HoustonRunner : IPlugin<HoustonRunnerProperties>
            
             // using elastic response
             var response = client.Get<Message>("1");
-            context.Log.Info(response.Source.Text);
- 
+            if (response.Source != null)
+                context.Log.Info(response.Source.Text);
+            else
+            {
+                context.Log.Info("Failed to fetch message from Elastic");
+                context.Log.Info(response.DebugInformation);
+            }
+
             Thread.Sleep(10000);
         }
  
