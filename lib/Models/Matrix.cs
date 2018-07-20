@@ -71,6 +71,16 @@ namespace lib.Models
             return content;
         }
 
+        public bool IsVoidVoxel([NotNull] Vec vec)
+        {
+            return this[vec] == false;
+        }
+
+        public void Fill([NotNull] Vec vec)
+        {
+            this[vec] = true;
+        }
+
         public bool this[[NotNull] Vec coord] { get => voxels[coord.X, coord.Y, coord.Z]; set => voxels[coord.X, coord.Y, coord.Z] = value; }
 
         public bool this[int x, int y, int z] { get => voxels[x, y, z]; set => voxels[x, y, z] = value; }

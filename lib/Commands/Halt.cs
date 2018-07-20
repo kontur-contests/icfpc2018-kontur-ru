@@ -13,5 +13,10 @@ namespace lib.Commands
         {
             return new byte[] {0b11111111};
         }
+
+        public override void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        {
+            mutableState.Bots.Clear();
+        }
     }
 }
