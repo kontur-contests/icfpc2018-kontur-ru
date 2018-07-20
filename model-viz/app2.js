@@ -24,7 +24,7 @@
         await page.goto(x);
         await page.click('button._cookie-banner-btn').catch(() => {})
         await page
-            .waitForSelector('img.thing-img')
+            .$('img.thing-img')
             .then(x => x.boundingBox())
             .then(x => page.screenshot({
                 path: `${output}${i}.png`,
