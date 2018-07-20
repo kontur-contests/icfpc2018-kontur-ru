@@ -4,14 +4,14 @@ namespace lib.Utils
 {
     public class ThrowableHelper
     {
-        private readonly Matrix matrix;
+        private readonly Matrix toFill;
         private readonly Matrix filled;
         private readonly int n;
 
-        public ThrowableHelper(Matrix matrix)
+        public ThrowableHelper(Matrix toFill)
         {
-            this.matrix = matrix;
-            n = matrix.N;
+            this.toFill = toFill;
+            n = toFill.N;
             filled = new Matrix();
         }
 
@@ -20,7 +20,17 @@ namespace lib.Utils
             if (filled[cell] || filled[bot])
                 return false;
 
-            return true;
+            filled[cell] = true;
+            var result = Check();
+            if (!result)
+                filled[cell] = false;
+
+            return result;
+        }
+
+        private bool Check()
+        {
+            
         }
     }
 }
