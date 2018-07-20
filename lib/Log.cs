@@ -5,6 +5,7 @@ using System.Reflection;
 
 using log4net;
 using log4net.Config;
+using log4net.ElasticSearch;
 
 namespace lib
 {
@@ -38,6 +39,7 @@ namespace lib
 
             static LoggerRepository()
             {
+                Log4stashModule.Touch();
                 var logRepository = LogManager.GetRepository(thisAssembly);
                 using (var rs = thisAssembly.GetManifestResourceStream(typeof(Log), "log4net.config"))
                     XmlConfigurator.Configure(logRepository, rs);

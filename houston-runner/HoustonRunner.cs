@@ -3,42 +3,41 @@ using System.Threading;
 
 using Kontur.Houston.Plugin;
 
+using lib;
+
 using Nest;
 
-public class HoustonRunner : IPlugin<HoustonRunnerProperties>
+namespace houston
 {
-    class Message
+    public class HoustonRunner : IPlugin<HoustonRunnerProperties>
     {
-        public string Text;
-    }
-    
-    public void Run(IPluginContext<HoustonRunnerProperties> context)
-    {
-        var settings = new ConnectionSettings(new Uri("http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io"))
-            .DefaultIndex("test");
-
-        var client = new ElasticClient(settings);
-        
-        while (!context.CancellationToken.IsCancellationRequested)
+        public void Run(IPluginContext<HoustonRunnerProperties> context)
         {
-            // using houston-provided properties
-            context.Log.Info(context.Properties.message);
+            var client = new ElasticClient(new ConnectionSettings(new Uri("http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io")).DefaultIndex("test"));
 
-            Thread.Sleep(10000);
-           
-            // using elastic response
-            var response = client.Get<Message>("1");
-            if (response.Source != null)
-                context.Log.Info(response.Source.Text);
-            else
+            while (!context.CancellationToken.IsCancellationRequested)
             {
-                context.Log.Info("Failed to fetch message from Elastic");
-                context.Log.Info(response.DebugInformation);
+                // using houston-provided properties
+                context.Log.Info(context.Properties.message);
+
+                Log.For(this).Info("Hello via log4stash");
+
+                Thread.Sleep(10000);
+
+                // using elastic response
+                var response = client.Get<TestMessage>("1");
+                if (response.Source != null)
+                    context.Log.Info(response.Source.Text);
+                else
+                {
+                    context.Log.Info("Failed to fetch message from Elastic");
+                    context.Log.Info(response.DebugInformation);
+                }
+
+                Thread.Sleep(10000);
             }
 
-            Thread.Sleep(10000);
+            context.Log.Info("Bye!");
         }
- 
-        context.Log.Info("Bye!");
     }
 }

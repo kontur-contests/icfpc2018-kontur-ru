@@ -1,4 +1,7 @@
-public class HoustonRunnerProperties
+namespace houston
 {
-    public string message = "Hi, i'm houston runner for ICFPC 2018";
+    public class HoustonRunnerProperties
+    {
+        public string message = "Hi, i'm houston runner for ICFPC 2018";
+    }
 }

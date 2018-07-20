@@ -10,4 +10,3 @@
     <file src="net471/**" target="lib/net471" />
   </files>
 </package>
-

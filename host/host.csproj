@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
-<ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\lib\lib.csproj" />
   </ItemGroup>
 
