@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
-using lib.Commands;
 using lib.Utils;
 
 namespace lib.Primitives
@@ -22,6 +21,22 @@ namespace lib.Primitives
             this.Shift = shift;
         }
 
+        protected LinearDistance(int a, int i, int maxLength)
+        {
+            MaxLength = maxLength;
+            var shift = i - maxLength;
+            if (shift.Abs() > maxLength)
+                throw new ArgumentException($"shift parameter must be in range [{-maxLength}, {maxLength}], but was {shift}");
+            if (a == 0b01)
+                Shift = new Vec(shift, 0, 0);
+            else if (a == 0b10)
+                Shift = new Vec(0, shift, 0);
+            else if (a == 0b11)
+                Shift = new Vec(0, 0, shift);
+            else
+                throw new ArgumentException("invalid 'a' parameter");
+        }
+
         public (int A, int I) GetParameters()
         {
             if (Shift.X != 0)
@@ -31,21 +46,6 @@ namespace lib.Primitives
             if (Shift.Z != 0)
                 return (0b11, Shift.Z + MaxLength);
             throw new Exception($"Invalid {nameof(LongLinearDistance)}");
-        }
-
-        [NotNull]
-        private static LinearDistance ParseFromParameters(int a, int i, int maxLength)
-        {
-            var shift = i - maxLength;
-            if (shift.Abs() <= maxLength)
-
-            if (a == 0b01)
-                return new LinearDistance(new Vec(shift, 0, 0), maxLength);
-            if (a == 0b10)
-                return new LinearDistance(new Vec(0, shift, 0), maxLength);
-            if (a == 0b11)
-                return new LinearDistance(new Vec(0, 0, shift), maxLength);
-            throw new ArgumentException("invalid 'a' parameter");
         }
 
         public static implicit operator Vec([NotNull] LinearDistance linearDistance)

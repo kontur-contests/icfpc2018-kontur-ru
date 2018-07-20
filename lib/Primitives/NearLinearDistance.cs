@@ -19,19 +19,16 @@ namespace lib.Primitives
             this.Shift = shift;
         }
 
+        public NearLinearDistance(int parameter)
+            : this(new Vec(parameter / 9 - 1,
+                           (parameter / 3) % 3 - 1,
+                           parameter % 3 - 1))
+        {
+        }
+
         public int GetParameter()
         {
             return (Shift.X + 1) * 9 + (Shift.Y + 1) * 3 + Shift.Z + 1;
-        }
-
-        [NotNull]
-        public static NearLinearDistance ParseFromParameter(int parameter)
-        {
-            return new NearLinearDistance(
-                new Vec(
-                    parameter / 9 - 1,
-                    (parameter / 3) % 3 - 1,
-                    parameter % 3 - 1));
         }
 
         public static implicit operator Vec([NotNull] NearLinearDistance linearDistance)

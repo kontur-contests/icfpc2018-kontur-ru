@@ -10,5 +10,10 @@ namespace lib.Primitives
             : base(shift, 5)
         {
         }
+
+        public ShortLinearDistance(int a, int i)
+            : base(a, i, 5)
+        {
+        }
     }
 }
