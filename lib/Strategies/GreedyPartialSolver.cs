@@ -83,14 +83,14 @@ namespace lib.Strategies
             var pathFinder = new PathFinder(state, pos, target);
             var path = pathFinder.TryFindPath();
             if (path == null)
-                throw new InvalidOperationException($"Couldn't find path from {pos} to {target}");
+                throw new InvalidOperationException($"Couldn't find path from {pos} to {target}; {string.Join("; ", Commands)}");
             Commands.AddRange(path);
             pos = target;
         }
 
         private void Fill(Vec target)
         {
-            Commands.Add(new Fill(new NearLinearDistance(target - pos)));
+            Commands.Add(new Fill(new NearDifference(target - pos)));
             state.Set(target, true);
         }
 

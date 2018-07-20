@@ -7,11 +7,16 @@ using lib.Utils;
 
 namespace lib.Primitives
 {
-    public class LinearDistance
+    public class LinearDifference
     {
         public Vec Shift { get; }
 
-        protected LinearDistance([NotNull] Vec shift, int maxLength)
+        public override string ToString()
+        {
+            return Shift.ToString();
+        }
+
+        protected LinearDifference([NotNull] Vec shift, int maxLength)
         {
             MaxLength = maxLength;
             if (!shift.IsLinear())
@@ -21,7 +26,7 @@ namespace lib.Primitives
             this.Shift = shift;
         }
 
-        protected LinearDistance(int a, int i, int maxLength)
+        protected LinearDifference(int a, int i, int maxLength)
         {
             MaxLength = maxLength;
             var shift = i - maxLength;
@@ -45,12 +50,12 @@ namespace lib.Primitives
                 return (0b10, Shift.Y + MaxLength);
             if (Shift.Z != 0)
                 return (0b11, Shift.Z + MaxLength);
-            throw new Exception($"Invalid {nameof(LongLinearDistance)}");
+            throw new Exception($"Invalid {nameof(LongLinearDifference)}");
         }
 
-        public static implicit operator Vec([NotNull] LinearDistance linearDistance)
+        public static implicit operator Vec([NotNull] LinearDifference linearDifference)
         {
-            return linearDistance.Shift;
+            return linearDifference.Shift;
         }
 
         [NotNull]

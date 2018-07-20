@@ -78,7 +78,7 @@ namespace lib.Utils
                     var res = current + shift;
                     if (!res.IsInCuboid(R) || state.Get(res))
                         break;
-                    yield return (new SMove(new LongLinearDistance(shift)), res);
+                    yield return (new SMove(new LongLinearDifference(shift)), res);
                 }
             }
 
@@ -102,7 +102,7 @@ namespace lib.Utils
                                 var res = fres + sshift;
                                 if (!res.IsInCuboid(R) || state.Get(res))
                                     break;
-                                yield return (new LMove(new ShortLinearDistance(fshift), new ShortLinearDistance(sshift)), res);
+                                yield return (new LMove(new ShortLinearDifference(fshift), new ShortLinearDifference(sshift)), res);
                             }
                         }
                     }

@@ -10,11 +10,16 @@ namespace lib.Commands
 {
     public class SMove : BaseCommand
     {
-        private readonly LongLinearDistance shift;
+        private readonly LongLinearDifference shift;
 
-        public SMove(LongLinearDistance shift)
+        public SMove(LongLinearDifference shift)
         {
             this.shift = shift;
+        }
+
+        public override string ToString()
+        {
+            return $"SMove({shift})";
         }
 
         [NotNull]

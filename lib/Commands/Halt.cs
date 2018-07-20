@@ -13,6 +13,11 @@ namespace lib.Commands
             return new byte[] {0b11111111};
         }
 
+        public override string ToString()
+        {
+            return "Halt()";
+        }
+
         public override bool CanApply(MutableState state, Bot bot)
         {
             if (bot.Position.MLen() != 0)

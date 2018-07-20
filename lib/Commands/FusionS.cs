@@ -10,11 +10,16 @@ namespace lib.Commands
 {
     public class FusionS : BaseCommand
     {
-        private readonly NearLinearDistance shift;
+        private readonly NearDifference shift;
 
-        public FusionS(NearLinearDistance shift)
+        public FusionS(NearDifference shift)
         {
             this.shift = shift;
+        }
+
+        public override string ToString()
+        {
+            return $"FusionS({shift})";
         }
 
         [NotNull]

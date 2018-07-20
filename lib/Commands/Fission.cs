@@ -10,13 +10,18 @@ namespace lib.Commands
 {
     public class Fission : BaseCommand
     {
-        private readonly NearLinearDistance shift;
+        private readonly NearDifference shift;
         private readonly int m;
 
-        public Fission(NearLinearDistance shift, int m)
+        public Fission(NearDifference shift, int m)
         {
             this.shift = shift;
             this.m = m;
+        }
+
+        public override string ToString()
+        {
+            return $"Fission({shift}, {m})";
         }
 
         [NotNull]

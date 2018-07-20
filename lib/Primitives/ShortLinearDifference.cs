@@ -4,14 +4,14 @@ using lib.Utils;
 
 namespace lib.Primitives
 {
-    public class ShortLinearDistance : LinearDistance
+    public class ShortLinearDifference : LinearDifference
     {
-        public ShortLinearDistance([NotNull] Vec shift)
+        public ShortLinearDifference([NotNull] Vec shift)
             : base(shift, 5)
         {
         }
 
-        public ShortLinearDistance(int a, int i)
+        public ShortLinearDifference(int a, int i)
             : base(a, i, 5)
         {
         }

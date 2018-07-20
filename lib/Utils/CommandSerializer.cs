@@ -41,15 +41,15 @@ namespace lib.Utils
             if (firstByte.TryExtractMask("11111101", out _))
                 return new Flip();
             if (firstByte.TryExtractMask("*****111", out var fusionPNearDistance))
-                return new FusionP(new NearLinearDistance(fusionPNearDistance));
+                return new FusionP(new NearDifference(fusionPNearDistance));
             if (firstByte.TryExtractMask("*****110", out var fusionSNearDistance))
-                return new FusionP(new NearLinearDistance(fusionSNearDistance));
+                return new FusionP(new NearDifference(fusionSNearDistance));
             if (firstByte.TryExtractMask("*****011", out var fillNearDistance))
-                return new Fill(new NearLinearDistance(fillNearDistance));
+                return new Fill(new NearDifference(fillNearDistance));
             var secondByte = binaryReader.ReadByte();
             if (firstByte.TryExtractMask("00**0100", out var sMoveA) &&
                 secondByte.TryExtractMask("000*****", out var sMoveI))
-                return new SMove(new LongLinearDistance(sMoveA, sMoveI));
+                return new SMove(new LongLinearDifference(sMoveA, sMoveI));
             if (firstByte.TryExtractMask("****1100", out var lMoveFirstP) &&
                 secondByte.TryExtractMask("********", out var lMoveSecondP))
             {
@@ -57,12 +57,12 @@ namespace lib.Utils
                 var shortDistance1A = lMoveFirstP & 0b11;
                 var shortDistance2I = lMoveSecondP >> 4;
                 var shortDistance1I = lMoveSecondP & 0b1111;
-                return new LMove(new ShortLinearDistance(shortDistance1A, shortDistance1I),
-                                 new ShortLinearDistance(shortDistance2A, shortDistance2I));
+                return new LMove(new ShortLinearDifference(shortDistance1A, shortDistance1I),
+                                 new ShortLinearDifference(shortDistance2A, shortDistance2I));
             }
 
             if (firstByte.TryExtractMask("*****101", out var fissionNearDistance))
-                return new Fission(new NearLinearDistance(fissionNearDistance), secondByte);
+                return new Fission(new NearDifference(fissionNearDistance), secondByte);
             throw new Exception($"Can't parse command from the stream: [{firstByte}, {secondByte}, ...]");
         }
     }

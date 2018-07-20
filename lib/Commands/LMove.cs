@@ -10,12 +10,17 @@ namespace lib.Commands
 {
     public class LMove  : BaseCommand
     {
-        private readonly ShortLinearDistance firstShift, secondShift;
+        private readonly ShortLinearDifference firstShift, secondShift;
 
-        public LMove(ShortLinearDistance firstShift, ShortLinearDistance secondShift)
+        public LMove(ShortLinearDifference firstShift, ShortLinearDifference secondShift)
         {
             this.firstShift = firstShift;
             this.secondShift = secondShift;
+        }
+
+        public override string ToString()
+        {
+            return $"LMove({firstShift}, {secondShift})";
         }
 
         [NotNull]

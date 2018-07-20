@@ -12,6 +12,10 @@ namespace lib.Commands
         {
             return new byte[] {0b11111101};
         }
+        public override string ToString()
+        {
+            return "Flip()";
+        }
 
         public override bool CanApply(MutableState state, Bot bot)
         {

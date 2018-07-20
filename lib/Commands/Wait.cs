@@ -13,6 +13,11 @@ namespace lib.Commands
             return new byte[] {0b11111110};
         }
 
+        public override string ToString()
+        {
+            return "Wait()";
+        }
+
         public override bool CanApply(MutableState state, Bot bot)
         {
             return true;

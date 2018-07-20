@@ -8,11 +8,16 @@ namespace lib.Commands
 {
     public class Fill : BaseCommand
     {
-        private readonly NearLinearDistance shift;
+        private readonly NearDifference shift;
 
-        public Fill(NearLinearDistance shift)
+        public Fill(NearDifference shift)
         {
             this.shift = shift;
+        }
+
+        public override string ToString()
+        {
+            return $"Fill({shift})";
         }
 
         [NotNull]
