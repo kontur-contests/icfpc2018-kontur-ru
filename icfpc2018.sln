@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lib", "lib\lib.csproj", "{8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "tests", "tests\tests.csproj", "{5B3FD6AE-A20E-4345-B1B0-5B6CD5D3D558}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "host", "host\host.csproj", "{B4DBACFC-88A7-4F46-A1CA-1546F1CA2B0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "host", "host\host.csproj", "{B4DBACFC-88A7-4F46-A1CA-1546F1CA2B0F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "houston-runner", "houston-runner\houston-runner.csproj", "{FC6C7710-4E88-46E3-84F7-0995C1ECAE9F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "houston-runner", "houston-runner\houston-runner.csproj", "{FC6C7710-4E88-46E3-84F7-0995C1ECAE9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ui", "ui\ui.csproj", "{89E3A868-2C87-4715-94C2-E089289D4750}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{FC6C7710-4E88-46E3-84F7-0995C1ECAE9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC6C7710-4E88-46E3-84F7-0995C1ECAE9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC6C7710-4E88-46E3-84F7-0995C1ECAE9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89E3A868-2C87-4715-94C2-E089289D4750}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89E3A868-2C87-4715-94C2-E089289D4750}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89E3A868-2C87-4715-94C2-E089289D4750}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89E3A868-2C87-4715-94C2-E089289D4750}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
