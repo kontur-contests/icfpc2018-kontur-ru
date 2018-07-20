@@ -35,6 +35,14 @@ namespace lib.Models
         public int R { get; }
         public int N => R;
 
+        public bool IsInside(Vec v)
+        {
+            return
+                0 <= v.X && v.X < N &&
+                0 <= v.Y && v.Y < N &&
+                0 <= v.Z && v.Z < N;
+        }
+
         [NotNull]
         public static Matrix Load([NotNull] byte[] content)
         {
