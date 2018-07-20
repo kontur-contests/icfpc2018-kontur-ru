@@ -9,12 +9,10 @@ namespace lib.Commands
     public class Fill : BaseCommand
     {
         private readonly NearLinearDistance shift;
-        private readonly int m;
 
-        public Fill(NearLinearDistance shift, int m)
+        public Fill(NearLinearDistance shift)
         {
             this.shift = shift;
-            this.m = m;
         }
 
         [NotNull]
