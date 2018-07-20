@@ -21,7 +21,7 @@ namespace tests
         public void Solve()
         {
             var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsL");
-            var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/results");
+            var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/solutions");
             var allProblems = Directory.EnumerateFiles(problemsDir, "*.mdl");
             Parallel.ForEach(allProblems, p =>
                 {
@@ -45,7 +45,7 @@ namespace tests
                         return;*/
 
                     var bytes = CommandSerializer.Save(commands);
-                    File.WriteAllBytes(Path.Combine(resultsDir, $"{Path.GetFileNameWithoutExtension(p)}.nbt"), bytes);
+                    File.WriteAllBytes(Path.Combine(resultsDir, $"{Path.GetFileNameWithoutExtension(p).Split('_')[0]}.nbt"), bytes);
                 });
         }
 
