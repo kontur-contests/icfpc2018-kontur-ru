@@ -85,6 +85,7 @@ namespace lib.Strategies
             if (path == null)
                 throw new InvalidOperationException($"Couldn't find path from {pos} to {target}");
             Commands.AddRange(path);
+            pos = target;
         }
 
         private void Fill(Vec target)
