@@ -8,7 +8,7 @@ namespace lib.Primitives
 {
     public class NearLinearDistance
     {
-        private readonly Vec shift;
+        public Vec Shift { get; }
 
         protected NearLinearDistance([NotNull] Vec shift)
         {
@@ -16,12 +16,17 @@ namespace lib.Primitives
                 throw new ArgumentException("should has clen = 1", nameof(shift));
             if (shift.MLen() <= 0 || shift.MLen() > 2)
                 throw new ArgumentException("should has 0 < mlen <= 2", nameof(shift));
-            this.shift = shift;
+            this.Shift = shift;
         }
 
         public int GetParameter()
         {
-            return (shift.X + 1) * 9 + (shift.Y + 1) * 3 + shift.Z + 1;
+            return (Shift.X + 1) * 9 + (Shift.Y + 1) * 3 + Shift.Z + 1;
+        }
+
+        public static implicit operator Vec([NotNull] NearLinearDistance linearDistance)
+        {
+            return linearDistance.Shift;
         }
     }
 }

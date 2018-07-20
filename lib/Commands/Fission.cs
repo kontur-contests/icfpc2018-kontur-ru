@@ -1,5 +1,8 @@
+using System.Linq;
+
 using JetBrains.Annotations;
 
+using lib.Models;
 using lib.Primitives;
 
 namespace lib.Commands
@@ -19,6 +22,21 @@ namespace lib.Commands
         public override byte[] Encode()
         {
             return new [] {(byte)((shift.GetParameter() << 3) | 0b101), (byte)m};
+        }
+
+        public override void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        {
+            var bids = bot.Seeds.Take(m + 1).ToArray();
+
+            bot.Seeds = bot.Seeds.Skip(m + 1).ToList();
+            var newBot = new Bot
+                {
+                    Bid = bids.First(),
+                    Position = bot.Position + shift,
+                    Seeds = bids.Skip(1).ToList(),
+                };
+            mutableState.Bots.Add(newBot);
+            mutableState.Energy += 24;
         }
     }
 }

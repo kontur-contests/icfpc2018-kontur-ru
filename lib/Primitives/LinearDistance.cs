@@ -9,7 +9,7 @@ namespace lib.Primitives
 {
     public abstract class LinearDistance
     {
-        private readonly Vec shift;
+        public Vec Shift { get; }
 
         protected LinearDistance([NotNull] Vec shift, int maxLength)
         {
@@ -18,18 +18,23 @@ namespace lib.Primitives
                 throw new ArgumentException("should be linear", nameof(shift));
             if (shift.MLen() > MaxLength)
                 throw new ArgumentException($"should be not mlonger than {MaxLength}", nameof(shift));
-            this.shift = shift;
+            this.Shift = shift;
         }
 
         public (int A, int I) GetParameters()
         {
-            if (shift.X != 0)
-                return (0b01, shift.X + MaxLength);
-            if (shift.Y != 0)
-                return (0b10, shift.Y + MaxLength);
-            if (shift.Z != 0)
-                return (0b11, shift.Z + MaxLength);
+            if (Shift.X != 0)
+                return (0b01, Shift.X + MaxLength);
+            if (Shift.Y != 0)
+                return (0b10, Shift.Y + MaxLength);
+            if (Shift.Z != 0)
+                return (0b11, Shift.Z + MaxLength);
             throw new Exception($"Invalid {nameof(LongLinearDistance)}");
+        }
+
+        public static implicit operator Vec([NotNull] LinearDistance linearDistance)
+        {
+            return linearDistance.Shift;
         }
 
         protected int MaxLength { get; }
