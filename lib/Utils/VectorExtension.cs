@@ -21,16 +21,27 @@ namespace lib.Utils
         public static List<Vec> GetNeighbors(this Vec vec)
         {
             var deltas = new List<Vec>
-            {
-                new Vec(0, 0, 1),
-                new Vec(0, 0, -1),
-                new Vec(0, 1, 0),
-                new Vec(0, -1, 0),
-                new Vec(1, 0, 0),
-                new Vec(-1, 0, 0),
-            };
+                {
+                    new Vec(0, 0, 1),
+                    new Vec(0, 0, -1),
+                    new Vec(0, 1, 0),
+                    new Vec(0, -1, 0),
+                    new Vec(1, 0, 0),
+                    new Vec(-1, 0, 0),
+                };
 
             return deltas.Select(d => d + vec).ToList();
+        }
+
+        public static T Get<T>(this T[,,] matrix, Vec vec)
+        {
+            return matrix[vec.X, vec.Y, vec.Z];
+        }
+
+
+        public static void Set<T>(this T[,,] matrix, Vec vec, T value)
+        {
+            matrix[vec.X, vec.Y, vec.Z] = value;
         }
     }
 }

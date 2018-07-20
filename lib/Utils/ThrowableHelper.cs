@@ -1,9 +1,8 @@
-using lib.Commands;
 using lib.Models;
 
 namespace lib.Utils
 {
-    public class ThrowableHelper
+    public class ThrowableHelper : IOracle
     {
         private readonly Matrix toFill;
         private readonly Matrix filled;

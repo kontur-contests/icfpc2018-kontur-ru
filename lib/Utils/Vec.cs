@@ -127,6 +127,13 @@ namespace lib.Utils
             return new Vec(a.x * k, a.y * k, a.z * k);
         }
 
+        [Pure]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int operator *(Vec a, Vec b)
+        {
+            return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
+        }
+
         public int MDistTo(Vec other)
         {
             return (this - other).MLen();
@@ -136,5 +143,14 @@ namespace lib.Utils
         {
             return (this - other).CLen();
         }
+
+        public bool IsInCuboid(int r)
+        {
+            return x >= 0 && x < r
+                   && y >= 0 && y < r
+                   && z >= 0 && z < r;
+        }
+
+        public static Vec Zero { get; } = new Vec(0, 0, 0);
     }
 }
