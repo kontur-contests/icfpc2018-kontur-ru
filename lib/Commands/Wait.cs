@@ -1,5 +1,7 @@
 using JetBrains.Annotations;
 
+using lib.Models;
+
 namespace lib.Commands
 {
     public class Wait : BaseCommand
@@ -8,6 +10,11 @@ namespace lib.Commands
         public override byte[] Encode()
         {
             return new byte[] {0b11111110};
+        }
+
+        public override void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        {
+            
         }
     }
 }

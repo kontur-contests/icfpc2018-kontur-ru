@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 
+using lib.Models;
 using lib.Primitives;
 
 namespace lib.Commands
@@ -19,6 +20,20 @@ namespace lib.Commands
         public override byte[] Encode()
         {
             return new [] {(byte)((shift.GetParameter() << 3) | 0b011)};
+        }
+
+        public override void Apply(MutableState mutableState, Bot bot)
+        {
+            var pos = bot.Position + shift;
+            if (mutableState.Matrix.IsVoidVoxel(pos))
+            {
+                mutableState.Energy += 12;
+                mutableState.Matrix.Fill(pos);
+            }
+            else
+            {
+                mutableState.Energy += 6;
+            }
         }
     }
 }

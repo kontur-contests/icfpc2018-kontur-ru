@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 
+using lib.Models;
 using lib.Primitives;
 
 namespace lib.Commands
@@ -20,6 +21,12 @@ namespace lib.Commands
             byte firstByte = (byte)((a << 4) | 0b0100);
             byte secondByte = (byte)i;
             return new[] {firstByte, secondByte};
+        }
+
+        public override void Apply(MutableState mutableState, Bot bot)
+        {
+            bot.Position = bot.Position + shift;
+            mutableState.Energy += 2 * shift.Shift.MLen();
         }
     }
 }
