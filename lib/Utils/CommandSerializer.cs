@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 
 using JetBrains.Annotations;
 
@@ -10,6 +11,12 @@ namespace lib.Utils
 {
     public static class CommandSerializer
     {
+        [NotNull]
+        public static byte[] Save([NotNull] ICommand[] commands)
+        {
+            return commands.SelectMany(x => x.Encode()).ToArray();
+        }
+
         public static ICommand[] Load([NotNull] byte[] content)
         {
             throw new NotImplementedException();
