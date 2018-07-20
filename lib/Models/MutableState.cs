@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Input;
 
 using JetBrains.Annotations;
@@ -15,16 +17,6 @@ namespace lib.Models
         public void Tick(Queue<ICommand> trace)
         {
 
-        }
-
-        [NotNull]
-        public ApplyingState ToAppying(ICommand[] commands)
-        {
-            return new ApplyingState
-                {
-                    State = this,
-                    Commands = commands,
-                };
         }
     }
 }

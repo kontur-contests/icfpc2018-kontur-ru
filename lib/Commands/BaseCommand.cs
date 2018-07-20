@@ -3,6 +3,7 @@ using System;
 using JetBrains.Annotations;
 
 using lib.Models;
+using lib.Utils;
 
 namespace lib.Commands
 {
@@ -11,6 +12,8 @@ namespace lib.Commands
         [NotNull]
         public abstract byte[] Encode();
         public abstract void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot);
+        [NotNull]
+        public abstract Vec[] GetVolatileCells(MutableState mutableState, Bot bot);
 
         /*
         public void Apply(ApplyingState mutableState)
