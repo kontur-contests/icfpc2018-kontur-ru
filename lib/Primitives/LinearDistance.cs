@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
@@ -35,6 +36,26 @@ namespace lib.Primitives
         public static implicit operator Vec([NotNull] LinearDistance linearDistance)
         {
             return linearDistance.Shift;
+        }
+
+        [NotNull]
+        public Vec[] GetTrace([NotNull] Vec from)
+        {
+            var dir = GetDirection();
+            var curr = from;
+            var trace = new List<Vec> {curr};
+            for (int i = 0; i < Shift.MLen(); i++)
+            {
+                curr += dir;
+                trace.Add(curr);
+            }
+            return trace.ToArray();
+        }
+
+        [NotNull]
+        private Vec GetDirection()
+        {
+            return new Vec(Shift.X.Sign(), Shift.Y.Sign(), Shift.Z.Sign());
         }
 
         protected int MaxLength { get; }

@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 
 using lib.Models;
+using lib.Utils;
 
 namespace lib.Commands
 {
@@ -15,6 +16,12 @@ namespace lib.Commands
         public override void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
         {
             mutableState.Harmonics = mutableState.Harmonics == Harmonics.High ? Harmonics.Low : Harmonics.High;
+        }
+
+        [NotNull]
+        public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        {
+            return new[] {bot.Position};
         }
     }
 }
