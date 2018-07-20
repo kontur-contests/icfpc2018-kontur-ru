@@ -36,7 +36,7 @@ namespace lib.Utils
                     for (int z = 0; z < n; z++)
                     {
                         var v = new Vec(x, y, z);
-                        if (used[v])
+                        if (!used.IsInside(v) || used[v])
                             continue;
                         if (!filled[v] && toFill[v] || v == bot)
                             result = false;
