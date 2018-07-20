@@ -16,12 +16,12 @@ namespace lib.Utils
         {
             this.toFill = toFill;
             n = toFill.N;
-            filled = new Matrix();
+            filled = new Matrix(n);
         }
 
         public bool TryFill(Vec cell, Vec bot)
         {
-            if (filled[cell] || filled[bot] || !toFill[cell])
+            if (filled[cell] || filled[bot])
                 return false;
 
             filled[cell] = true;
@@ -36,7 +36,7 @@ namespace lib.Utils
                     for (int z = 0; z < n; z++)
                     {
                         var v = new Vec(x, y, z);
-                        if (!used.IsInside(v) || used[v])
+                        if (used[v])
                             continue;
                         if (!filled[v] && toFill[v] || v == bot)
                             result = false;
@@ -65,7 +65,7 @@ namespace lib.Utils
 
                 foreach (var u in v.GetNeighbors())
                 {
-                    if (!used[u])
+                    if (used.IsInside(u) && !used[u] && !filled[u])
                     {
                         used[u] = true;
                         queue[qr++] = u;
