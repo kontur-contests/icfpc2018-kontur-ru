@@ -10,7 +10,7 @@ namespace lib.Primitives
     {
         public Vec Shift { get; }
 
-        protected NearLinearDistance([NotNull] Vec shift)
+        public NearLinearDistance([NotNull] Vec shift)
         {
             if (shift.CLen() != 1)
                 throw new ArgumentException("should has clen = 1", nameof(shift));
