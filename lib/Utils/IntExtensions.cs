@@ -8,5 +8,10 @@ namespace lib.Utils
         {
             return Math.Sign(x);
         }
+
+        public static int Abs(this int x)
+        {
+            return Math.Abs(x);
+        }
     }
 }

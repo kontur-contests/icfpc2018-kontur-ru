@@ -3,9 +3,7 @@ using System.Linq;
 
 using JetBrains.Annotations;
 
-using lib.Utils;
-
-namespace lib.Commands
+namespace lib.Utils
 {
     public static class VectorExtension
     {

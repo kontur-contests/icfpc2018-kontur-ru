@@ -9,12 +9,10 @@ namespace lib.Commands
     public class Fill : BaseCommand
     {
         private readonly NearLinearDistance shift;
-        private readonly int m;
 
-        public Fill(NearLinearDistance shift, int m)
+        public Fill(NearLinearDistance shift)
         {
             this.shift = shift;
-            this.m = m;
         }
 
         [NotNull]
@@ -23,7 +21,12 @@ namespace lib.Commands
             return new [] {(byte)((shift.GetParameter() << 3) | 0b011)};
         }
 
-        public override void Apply(MutableState mutableState, Bot bot)
+        public override bool CanApply(MutableState state, Bot bot)
+        {
+            return state.Matrix.IsInside(GetPosition(bot));
+        }
+
+        protected override void DoApply(MutableState mutableState, Bot bot)
         {
             var pos = GetPosition(bot);
             if (mutableState.Matrix.IsVoidVoxel(pos))

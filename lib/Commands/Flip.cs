@@ -13,7 +13,12 @@ namespace lib.Commands
             return new byte[] {0b11111101};
         }
 
-        public override void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override bool CanApply(MutableState state, Bot bot)
+        {
+            return true;
+        }
+
+        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
         {
             mutableState.Harmonics = mutableState.Harmonics == Harmonics.High ? Harmonics.Low : Harmonics.High;
         }

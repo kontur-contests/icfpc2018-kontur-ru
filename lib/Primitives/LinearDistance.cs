@@ -8,7 +8,7 @@ using lib.Utils;
 
 namespace lib.Primitives
 {
-    public abstract class LinearDistance
+    public class LinearDistance
     {
         public Vec Shift { get; }
 
@@ -31,6 +31,21 @@ namespace lib.Primitives
             if (Shift.Z != 0)
                 return (0b11, Shift.Z + MaxLength);
             throw new Exception($"Invalid {nameof(LongLinearDistance)}");
+        }
+
+        [NotNull]
+        private static LinearDistance ParseFromParameters(int a, int i, int maxLength)
+        {
+            var shift = i - maxLength;
+            if (shift.Abs() <= maxLength)
+
+            if (a == 0b01)
+                return new LinearDistance(new Vec(shift, 0, 0), maxLength);
+            if (a == 0b10)
+                return new LinearDistance(new Vec(0, shift, 0), maxLength);
+            if (a == 0b11)
+                return new LinearDistance(new Vec(0, 0, shift), maxLength);
+            throw new ArgumentException("invalid 'a' parameter");
         }
 
         public static implicit operator Vec([NotNull] LinearDistance linearDistance)

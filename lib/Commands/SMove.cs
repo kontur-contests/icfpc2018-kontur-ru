@@ -1,3 +1,5 @@
+using System.Linq;
+
 using JetBrains.Annotations;
 
 using lib.Models;
@@ -24,7 +26,14 @@ namespace lib.Commands
             return new[] {firstByte, secondByte};
         }
 
-        public override void Apply(MutableState mutableState, Bot bot)
+        public override bool CanApply(MutableState state, Bot bot)
+        {
+            if (!state.Matrix.IsInside(bot.Position + shift))
+                return false;
+            return GetCellsOnPath(bot).All(x => state.Matrix.IsVoidVoxel(x));
+        }
+
+        protected override void DoApply(MutableState mutableState, Bot bot)
         {
             bot.Position = bot.Position + shift;
             mutableState.Energy += 2 * shift.Shift.MLen();
@@ -32,6 +41,12 @@ namespace lib.Commands
 
         [NotNull]
         public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        {
+            return GetCellsOnPath(bot);
+        }
+
+        [NotNull]
+        private Vec[] GetCellsOnPath([NotNull] Bot bot)
         {
             return shift.GetTrace(bot.Position);
         }

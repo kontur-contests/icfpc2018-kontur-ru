@@ -29,13 +29,28 @@ namespace lib.Commands
             return new[] {firstByte, secondByte};
         }
 
-        public override void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override bool CanApply(MutableState state, Bot bot)
+        {
+            if (!state.Matrix.IsInside(bot.Position + firstShift))
+                return false;
+            if (!state.Matrix.IsInside(bot.Position + firstShift + secondShift))
+                return false;
+            return GetCellsOnPath(bot).All(x => state.Matrix.IsVoidVoxel(x));
+        }
+
+        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
         {
             bot.Position = bot.Position + firstShift + secondShift;
             mutableState.Energy += 2 * (firstShift.Shift.MLen() + 2 + secondShift.Shift.MLen());
         }
 
         public override Vec[] GetVolatileCells(MutableState mutableState, Bot bot)
+        {
+            return GetCellsOnPath(bot);
+        }
+
+        [NotNull]
+        private Vec[] GetCellsOnPath([NotNull] Bot bot)
         {
             return firstShift.GetTrace(bot.Position).Concat(secondShift.GetTrace(bot.Position + firstShift).Skip(1)).ToArray();
         }
