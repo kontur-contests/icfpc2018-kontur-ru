@@ -4,17 +4,17 @@ using lib.Utils;
 
 namespace lib.Models
 {
-    public class Model
+    public class Matrix
     {
         private readonly bool[,,] voxels;
 
-        public Model([NotNull] bool[,,] voxels)
+        public Matrix([NotNull] bool[,,] voxels)
         {
             this.voxels = voxels;
             R = voxels.GetLength(0);
         }
 
-        public Model([NotNull] params string[] zLayers)
+        public Matrix([NotNull] params string[] zLayers)
         {
             R = zLayers.Length;
             voxels = new bool[R, R, R];
@@ -30,7 +30,7 @@ namespace lib.Models
         public int R { get; }
 
         [NotNull]
-        public static Model Load([NotNull] byte[] content)
+        public static Matrix Load([NotNull] byte[] content)
         {
             var r = content[0];
             var voxels = new bool[r, r, r];
@@ -44,7 +44,7 @@ namespace lib.Models
                         voxels[x, y, z] = isFull;
                         bit++;
                     }
-            return new Model(voxels);
+            return new Matrix(voxels);
         }
 
         [NotNull]

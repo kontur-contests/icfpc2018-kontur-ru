@@ -16,7 +16,7 @@ namespace tests
         [Test]
         public void SaveModel()
         {
-            var model = new Model("01|00", "10|11");
+            var model = new Matrix("01|00", "10|11");
             Assert.IsTrue(model[1, 0, 0]);
             Assert.IsTrue(model[0, 0, 1]);
             Assert.IsTrue(model[0, 1, 1]);
@@ -30,7 +30,7 @@ namespace tests
         {
             Console.WriteLine(filename);
             var content = File.ReadAllBytes(filename);
-            var model = Model.Load(content);
+            var model = Matrix.Load(content);
             var newContent = model.Save();
             Assert.AreEqual(newContent, content);
         }
