@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using lib;
+using lib.Models;
 
 using NUnit.Framework;
 
