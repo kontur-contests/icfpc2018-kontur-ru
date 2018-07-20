@@ -13,7 +13,12 @@ namespace lib.Commands
             return new byte[] {0b11111110};
         }
 
-        public override void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override bool CanApply(MutableState state, Bot bot)
+        {
+            return true;
+        }
+
+        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
         {
             // Just wait
         }

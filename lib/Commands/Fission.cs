@@ -25,7 +25,18 @@ namespace lib.Commands
             return new [] {(byte)((shift.GetParameter() << 3) | 0b101), (byte)m};
         }
 
-        public override void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override bool CanApply(MutableState state, Bot bot)
+        {
+            if (bot.Seeds.Count < m + 1)
+                return false;
+            if (!state.Matrix.IsInside(bot.Position + shift))
+                return false;
+            if (!state.Matrix.IsVoidVoxel(bot.Position + shift))
+                return false;
+            return true;
+        }
+
+        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
         {
             var bids = bot.Seeds.Take(m + 1).ToArray();
 

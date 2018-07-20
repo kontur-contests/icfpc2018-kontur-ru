@@ -13,7 +13,18 @@ namespace lib.Commands
             return new byte[] {0b11111111};
         }
 
-        public override void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override bool CanApply(MutableState state, Bot bot)
+        {
+            if (bot.Position.MLen() != 0)
+                return false;
+            if (state.Bots.Count > 0)
+                return false;
+            if (state.Harmonics != Harmonics.Low)
+                return false;
+            return true;
+        }
+
+        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
         {
             mutableState.Bots.Clear();
         }

@@ -11,20 +11,18 @@ namespace lib.Commands
     {
         [NotNull]
         public abstract byte[] Encode();
-        public abstract void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot);
         [NotNull]
         public abstract Vec[] GetVolatileCells(MutableState mutableState, Bot bot);
 
-        /*
-        public void Apply(ApplyingState mutableState)
+        public void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
         {
-            if (!CanApply(mutableState))
+            if (!CanApply(mutableState, bot))
                 throw new Exception("Can't apply command");
-            DoApply(mutableState);
+            DoApply(mutableState, bot);
         }
 
-        public abstract bool CanApply(ApplyingState state);
+        public abstract bool CanApply([NotNull] MutableState state, [NotNull] Bot bot);
 
-        protected abstract void DoApply(ApplyingState mutableState);*/
+        protected abstract void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot);
     }
 }
