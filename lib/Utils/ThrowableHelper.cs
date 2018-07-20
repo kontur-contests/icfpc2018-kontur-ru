@@ -62,7 +62,7 @@ namespace lib.Utils
             {
                 v = queue[ql++];
 
-                foreach (var u in v.GetNeighbors())
+                foreach (var u in v.GetMNeighbours())
                 {
                     if (used.IsInside(u) && !used[u] && !filled[u])
                     {

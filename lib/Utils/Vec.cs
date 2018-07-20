@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 
@@ -142,6 +143,16 @@ namespace lib.Utils
         public int CDistTo(Vec other)
         {
             return (this - other).CLen();
+        }
+
+        public IEnumerable<Vec> GetMNeighbours()
+        {
+            yield return new Vec(x, y, z - 1);
+            yield return new Vec(x, y, z + 1);
+            yield return new Vec(x - 1, y, z);
+            yield return new Vec(x + 1, y, z);
+            yield return new Vec(x, y - 1, z);
+            yield return new Vec(x, y + 1, z);
         }
 
         public bool IsInCuboid(int r)

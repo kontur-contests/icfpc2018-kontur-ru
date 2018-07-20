@@ -4,19 +4,21 @@ using lib.Utils;
 
 namespace lib.Models
 {
-    public class Matrix
+    public class Matrix : IMatrix
     {
         private readonly bool[,,] voxels;
-        
+
         public Matrix(int n)
             : this(new bool[n, n, n])
         {
         }
 
+
         public Matrix([NotNull] bool[,,] voxels)
         {
             this.voxels = voxels;
             R = voxels.GetLength(0);
+
         }
 
         public Matrix([NotNull] params string[] zLayers)
@@ -34,14 +36,6 @@ namespace lib.Models
 
         public int R { get; }
         public int N => R;
-
-        public bool IsInside(Vec v)
-        {
-            return
-                0 <= v.X && v.X < N &&
-                0 <= v.Y && v.Y < N &&
-                0 <= v.Z && v.Z < N;
-        }
 
         [NotNull]
         public static Matrix Load([NotNull] byte[] content)
@@ -77,16 +71,6 @@ namespace lib.Models
                         bit++;
                     }
             return content;
-        }
-
-        public bool IsVoidVoxel([NotNull] Vec vec)
-        {
-            return this[vec] == false;
-        }
-
-        public void Fill([NotNull] Vec vec)
-        {
-            this[vec] = true;
         }
 
         public bool this[[NotNull] Vec coord] { get => voxels[coord.X, coord.Y, coord.Z]; set => voxels[coord.X, coord.Y, coord.Z] = value; }
