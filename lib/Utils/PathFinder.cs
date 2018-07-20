@@ -37,7 +37,10 @@ namespace lib.Utils
                 {
                     var result = new List<ICommand>();
                     for (var v = target; v != null; v = used[v].prev)
-                        result.Add(used[v].command);
+                    {
+                        if (used[v].command != null)
+                            result.Add(used[v].command);
+                    }
                     result.Reverse();
                     return result;
                 }
