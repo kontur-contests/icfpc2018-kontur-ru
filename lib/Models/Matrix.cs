@@ -78,5 +78,10 @@ namespace lib.Models
         public bool this[int x, int y, int z] { get => voxels[x, y, z]; set => voxels[x, y, z] = value; }
         
         public bool[,,] Voxels => this.voxels;
+
+        public Matrix Clone()
+        {
+            return new Matrix((bool[,,])voxels.Clone());
+        }
     }
 }

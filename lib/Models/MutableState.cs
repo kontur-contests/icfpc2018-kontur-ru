@@ -2,16 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using JetBrains.Annotations;
-
 using lib.Commands;
-
-using MoreLinq;
+using lib.Utils;
 
 namespace lib.Models
 {
     public class MutableState
     {
+        public MutableState()
+        {
+        }
+
+        public MutableState(Matrix problem)
+        {
+            Bots = new List<Bot> {new Bot {Bid = 1, Position = Vec.Zero, Seeds = Enumerable.Range(2, 19).ToList()}};
+            Energy = 0;
+            Harmonics = Harmonics.Low;
+            Matrix = new ComponentTrackingMatrix(problem);
+        }
+
         public long Energy { get; set; }
         public Harmonics Harmonics { get; set; }
         public ComponentTrackingMatrix Matrix { get; set; }
@@ -20,7 +29,7 @@ namespace lib.Models
         public void Tick(Queue<ICommand> trace)
         {
             var botCommands
-                = Bots.OrderBy(b => b.Bid).Select(bot => new { bot, command = trace.Dequeue() }).ToList();
+                = Bots.OrderBy(b => b.Bid).Select(bot => new {bot, command = trace.Dequeue()}).ToList();
             var volitileCells =
                 from bc in botCommands
                 from cell in bc.command.GetVolatileCells(this, bc.bot)
@@ -38,6 +47,12 @@ namespace lib.Models
                 botCommand.command.Apply(this, botCommand.bot);
             }
             EnsureWellFormed();
+        }
+
+        public void EnsureIsFinal()
+        {
+            if (Bots.Any())
+                throw new InvalidOperationException($"State is not final");
         }
 
         public void EnsureWellFormed()
