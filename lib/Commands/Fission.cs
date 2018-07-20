@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 
 using lib.Models;
 using lib.Primitives;
+using lib.Utils;
 
 namespace lib.Commands
 {
@@ -37,6 +38,12 @@ namespace lib.Commands
                 };
             mutableState.Bots.Add(newBot);
             mutableState.Energy += 24;
+        }
+
+        [NotNull]
+        public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        {
+            return new[] {bot.Position, bot.Position + shift};
         }
     }
 }
