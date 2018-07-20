@@ -13,7 +13,7 @@ namespace houston
     {
         public void Run(IPluginContext<HoustonRunnerProperties> context)
         {
-            var client = new ElasticClient(new ConnectionSettings(new Uri("http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io")).DefaultIndex("test"));
+            var client = new ElasticClient(new ConnectionSettings(new Uri("http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io")).DefaultIndex("test2"));
 
             while (!context.CancellationToken.IsCancellationRequested)
             {
