@@ -2,21 +2,30 @@ import React, { Component } from "react";
 import { Visualizer } from "./modules/visualizer";
 
 const steps = [
-  [
-    [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
-    [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
-    [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-  ],
-  [
-    [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
-    [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
-    [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-  ],
-  [
-    [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
-    [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
-    [[0, 1, 0], [0, 1, 0], [0, 1, 0]]
-  ]
+  {
+    model: [
+      [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
+      [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+      [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    ],
+    bots: [[1, 1, 1]]
+  },
+  {
+    model: [
+      [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
+      [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
+      [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    ],
+    bots: [[0, 0, 0], [2, 2, 2]]
+  },
+  {
+    model: [
+      [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
+      [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
+      [[0, 1, 0], [0, 1, 0], [0, 1, 0]]
+    ],
+    bots: [[1, 1, 1], [2, 2, 2]]
+  }
 ];
 
 export default class App extends Component {
@@ -25,9 +34,10 @@ export default class App extends Component {
   };
 
   render() {
+    const stepData = steps[this.state.step];
     return (
       <div style={{ maxWidth: "800px", margin: "auto" }}>
-        <Visualizer data={steps[this.state.step]} />
+        <Visualizer model={stepData.model} bots={stepData.bots} />
         <hr />
         <input
           style={{ width: "100%" }}

@@ -6,9 +6,10 @@ import "./Visualizer.css";
 
 export class Visualizer extends React.Component {
   static propTypes = {
-    data: PropTypes.arrayOf(
+    model: PropTypes.arrayOf(
       PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number))
-    )
+    ),
+    bots: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number))
   };
 
   /**
@@ -22,6 +23,8 @@ export class Visualizer extends React.Component {
   canvasContainer = null;
 
   visualizer = null;
+
+  botsCache = [];
 
   componentDidMount() {
     this.visualizer = initVisualizer(
@@ -47,10 +50,19 @@ export class Visualizer extends React.Component {
   }
 
   doImperativeStuff() {
-    const { data } = this.props;
-    if (data) {
-      this.visualizer.setSize(data.length, data[0].length, data[0][0].length);
-      this.visualizer.setMatrixFn(([x, y, z]) => data[x][y][z]);
+    const { model, bots } = this.props;
+    if (model) {
+      this.visualizer.setSize(
+        model.length,
+        model[0].length,
+        model[0][0].length
+      );
+      this.visualizer.setMatrixFn(([x, y, z]) => model[x][y][z]);
+    }
+    if (bots) {
+      this.botsCache.forEach(x => this.visualizer.botRem(x));
+      this.botsCache.length = 0;
+      this.botsCache = bots.map(x => this.visualizer.botAdd(...x));
     }
   }
 
