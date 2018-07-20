@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace lib
+namespace lib.Utils
 {
     public interface IVec
     {
@@ -15,7 +13,7 @@ namespace lib
 
     public class Vec : IVec, IEquatable<Vec>, IFormattable
     {
-        public readonly int x, y, z;
+        private readonly int x, y, z;
         public int X => x;
         public int Y => y;
         public int Z => z;

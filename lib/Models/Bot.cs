@@ -1,3 +1,5 @@
+using lib.Utils;
+
 namespace lib.Models
 {
     public class Bot

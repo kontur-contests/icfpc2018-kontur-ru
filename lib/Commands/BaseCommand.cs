@@ -7,16 +7,16 @@ namespace lib.Commands
     public abstract class BaseCommand : ICommand
     {
         public abstract byte[] Encode();
-
-        public void Apply(MutableState mutableState)
+        /*
+        public void Apply(ApplyingState mutableState)
         {
             if (!CanApply(mutableState))
                 throw new Exception("Can't apply command");
             DoApply(mutableState);
         }
 
-        public abstract bool CanApply(MutableState state);
+        public abstract bool CanApply(ApplyingState state);
 
-        protected abstract void DoApply(MutableState mutableState);
+        protected abstract void DoApply(ApplyingState mutableState);*/
     }
 }

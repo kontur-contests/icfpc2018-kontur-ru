@@ -5,7 +5,8 @@ namespace lib.Commands
     public interface ICommand
     {
         byte[] Encode();
-        void Apply(MutableState mutableState);
-        bool CanApply(MutableState state);
+        //void Apply(ApplyingState mutableState);
+        //bool CanApply(ApplyingState state, Bot bot);
+        //Vec[] GetVolatileCells(ApplyingState state);
     }
 }

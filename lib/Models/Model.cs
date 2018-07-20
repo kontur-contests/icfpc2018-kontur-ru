@@ -1,5 +1,7 @@
 using JetBrains.Annotations;
 
+using lib.Utils;
+
 namespace lib.Models
 {
     public class Model
