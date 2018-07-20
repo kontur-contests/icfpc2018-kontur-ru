@@ -1,3 +1,5 @@
+using System.Linq;
+
 using JetBrains.Annotations;
 
 using lib.Models;
@@ -21,7 +23,19 @@ namespace lib.Commands
             return new[] {(byte)((shift.GetParameter() << 3) | 0b110)};
         }
 
-        public override void Apply(MutableState mutableState, Bot bot)
+        public override bool CanApply(MutableState state, Bot bot)
+        {
+            var pos = bot.Position + shift;
+            if (!state.Matrix.IsInside(bot.Position))
+                return false;
+            if (!state.Matrix.IsInside(pos))
+                return false;
+
+            var secondaryBot = state.Bots.SingleOrDefault(x => x.Position == pos);
+            return secondaryBot != null;
+        }
+
+        protected override void DoApply(MutableState mutableState, Bot bot)
         {
             // The whole work is done in FusionP
         }

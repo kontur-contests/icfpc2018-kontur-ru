@@ -9,7 +9,7 @@ namespace lib.Commands
     {
         byte[] Encode();
         void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot);
-        //bool CanApply(ApplyingState state, Bot bot);
+        bool CanApply([NotNull] MutableState state, [NotNull] Bot bot);
         [NotNull]
         Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot);
     }
