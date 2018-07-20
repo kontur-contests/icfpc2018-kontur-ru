@@ -7,6 +7,11 @@ namespace lib.Models
     public class Matrix
     {
         private readonly bool[,,] voxels;
+        
+        public Matrix(int n)
+            : this(new bool[n, n, n])
+        {
+        }
 
         public Matrix([NotNull] bool[,,] voxels)
         {
@@ -28,6 +33,7 @@ namespace lib.Models
         }
 
         public int R { get; }
+        public int N => R;
 
         [NotNull]
         public static Matrix Load([NotNull] byte[] content)
