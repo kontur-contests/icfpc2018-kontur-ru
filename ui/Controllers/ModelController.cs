@@ -59,11 +59,12 @@ namespace ui.Controllers
 
             try
             {
-                while (queue.Any())
+                var newFilledVoxels = new List<Vec>();
+                var tickIndex = 0;
+                while (queue.Any() && tickIndex < startTick + count)
                 {
                     state.Tick(queue);
 
-                    var newFilledVoxels = new List<Vec>();
 
                     foreach (var vec in state.LastChangedCells)
                         if (state.BuildingMatrix[vec] && !filledVoxels.Contains(vec))
@@ -71,14 +72,19 @@ namespace ui.Controllers
                             newFilledVoxels.Add(vec);
                             filledVoxels.Add(vec);
                         }
-                    results.Add(new TickResult
-                        {
-                            changes = newFilledVoxels.Select(v => new[] {v.X, v.Y, v.Z}).ToArray(),
-                            bots = state.Bots
-                                        .Select(x => new[] {x.Position.X, x.Position.Y, x.Position.Z})
-                                        .ToArray(),
-                            energy = state.Energy
-                        });
+                    if (tickIndex >= startTick)
+                    {
+                        results.Add(new TickResult
+                            {
+                                changes = newFilledVoxels.Select(v => new[] {v.X, v.Y, v.Z}).ToArray(),
+                                bots = state.Bots
+                                            .Select(x => new[] {x.Position.X, x.Position.Y, x.Position.Z})
+                                            .ToArray(),
+                                energy = state.Energy
+                            });
+                        newFilledVoxels.Clear();
+                    }
+                    tickIndex++;
                 }
             }
             catch (Exception)
@@ -86,7 +92,7 @@ namespace ui.Controllers
                 // Ignore failed simulation
             }
 
-            var ticks = results.Skip(startTick).Take(count).ToArray();
+            var ticks = results.ToArray();
             return new TraceResult
                 {
                     R = problem.R,
