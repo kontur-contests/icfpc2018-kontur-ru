@@ -54,16 +54,17 @@ namespace ui.Controllers
         }
 
         [HttpGet("[action]")]
-        public ArrayList Trace(string file)
+        public List<TickResult> Trace(string file)
         {
-            var problem = Matrix.Load(System.IO.File.ReadAllBytes($"../data/problemsL/{file}_tgt.mdl"));
+            var problemName = file.Split("-")[0];
+            var problem = Matrix.Load(System.IO.File.ReadAllBytes($"../data/problemsL/{problemName}_tgt.mdl"));
             var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"../data/solutions/{file}.nbt"));
             
             var state = new MutableState(new Matrix(problem.R));
             var queue = new Queue<ICommand>(solution);
 
-            var results = new ArrayList();
-            var filledVoxels = new ArrayList();
+            var results = new List<TickResult>();
+            var filledVoxels = new HashSet<Vec>();
 
             try
             {
@@ -71,20 +72,16 @@ namespace ui.Controllers
                 {
                     state.Tick(queue);
 
-                    var newFilledVoxels = new ArrayList();
-                    
-                    for (var x = 0; x < state.BuildingMatrix.R; ++x)
-                    for (var y = 0; y < state.BuildingMatrix.R; ++y)
-                    for (var z = 0; z < state.BuildingMatrix.R; ++z)
+                    var newFilledVoxels = new List<Vec>();
+
+                    foreach (var vec in state.LastChangedCells)
                     {
-                        var vec = new Vec(x, y, z);
-                        if (state.BuildingMatrix[x, y, z] && !filledVoxels.Contains(vec))
+                        if (state.BuildingMatrix[vec] && !filledVoxels.Contains(vec))
                         {
                             newFilledVoxels.Add(vec);
                             filledVoxels.Add(vec);
                         }
                     }
-
                     results.Add(new TickResult
                         {
                             R = state.BuildingMatrix.R,
@@ -108,7 +105,7 @@ namespace ui.Controllers
     public struct TickResult
     {
         public int R;
-        public ArrayList change;
+        public List<Vec> change;
         public Tuple<int, int, int>[] bots;
         public long energy;
     }
