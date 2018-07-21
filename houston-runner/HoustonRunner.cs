@@ -44,7 +44,7 @@ namespace houston
 
                     //TODO fill IsSuccess, EnergySpent
 
-                    testResult.Solution = Convert.ToBase64String(CommandSerializer.Save(solver.Commands.ToArray()));
+                    testResult.Solution = Convert.ToBase64String(CommandSerializer.Save(solver.Commands.ToArray()).Compress());
                 }
                 catch (Exception e)
                 {
