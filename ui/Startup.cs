@@ -1,3 +1,5 @@
+using AspNetCore.Proxy;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -42,6 +44,8 @@ namespace ui
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
+
+            app.UseProxy("api/elastic", async (args) => "http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io/testruns/_search");
 
             app.UseMvc(routes =>
                 {

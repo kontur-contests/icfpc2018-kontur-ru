@@ -8,6 +8,7 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="AspNetCore.Proxy" Version="1.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
