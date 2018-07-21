@@ -1,23 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net471</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>houston</RootNamespace>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\lib\lib.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Kontur.Houston.Plugin" Version="1.0.159" />
   </ItemGroup>
-
   <ItemGroup>
     <Reference Include="log4stash">
       <HintPath>..\Assemblies\log4stash\log4stash.dll</HintPath>
     </Reference>
   </ItemGroup>
-
 </Project>
