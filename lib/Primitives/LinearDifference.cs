@@ -75,7 +75,7 @@ namespace lib.Primitives
         [NotNull]
         private Vec GetDirection()
         {
-            return new Vec(Shift.X.Sign(), Shift.Y.Sign(), Shift.Z.Sign());
+            return Shift.Sign();
         }
 
         protected int MaxLength { get; }

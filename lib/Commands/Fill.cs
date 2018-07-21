@@ -8,22 +8,22 @@ namespace lib.Commands
 {
     public class Fill : BaseCommand
     {
-        private readonly NearDifference shift;
+        public NearDifference Shift { get; }
 
         public Fill(NearDifference shift)
         {
-            this.shift = shift;
+            this.Shift = shift;
         }
 
         public override string ToString()
         {
-            return $"Fill({shift})";
+            return $"Fill({Shift})";
         }
 
         [NotNull]
         public override byte[] Encode()
         {
-            return new [] {(byte)((shift.GetParameter() << 3) | 0b011)};
+            return new [] {(byte)((Shift.GetParameter() << 3) | 0b011)};
         }
 
         public override bool CanApply(MutableState state, Bot bot)
@@ -54,7 +54,7 @@ namespace lib.Commands
         [NotNull]
         private Vec GetPosition([NotNull] Bot bot)
         {
-            return bot.Position + shift;
+            return bot.Position + Shift;
         }
     }
 }

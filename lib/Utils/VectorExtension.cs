@@ -43,5 +43,11 @@ namespace lib.Utils
         {
             matrix[vec.X, vec.Y, vec.Z] = value;
         }
+
+        [NotNull]
+        public static Vec Sign([NotNull] this Vec vec)
+        {
+            return new Vec(vec.X.Sign(), vec.Y.Sign(), vec.Z.Sign());
+        }
     }
 }

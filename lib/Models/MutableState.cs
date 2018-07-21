@@ -30,17 +30,21 @@ namespace lib.Models
         public ComponentTrackingMatrix BuildingMatrix { get; set; }
         public List<Bot> Bots { get; set; }
 
+        [NotNull]
+        public List<Bot> GetOrderedBots()
+        {
+            return Bots.OrderBy(b => b.Bid).ToList();
+        }
+
         public void Tick(Queue<ICommand> trace)
         {
-            var botCommands
-                = Bots.OrderBy(b => b.Bid).Select(bot => new { bot, command = trace.Dequeue() }).ToList();
+            var botCommands = GetOrderedBots().Select(bot => new { bot, command = trace.Dequeue() }).ToList();
 
             Energy += Harmonics == Harmonics.High
                           ? 30 * targetMatrix.R * targetMatrix.R * targetMatrix.R
                           : 3 * targetMatrix.R * targetMatrix.R * targetMatrix.R;
             Energy += 20 * Bots.Count;
-
-
+            
             var volitileCells =
                 from bc in botCommands
                 from cell in bc.command.GetVolatileCells(this, bc.bot)
