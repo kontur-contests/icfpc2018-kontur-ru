@@ -74,10 +74,12 @@ namespace lib.Strategies
                     return false;
                 }
                 var candidatesAndPositions = OrderCandidates(candidates);
+                var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
                 {
                     if (Move(nearPosition))
                     {
+                        any = true;
                         Fill(candidate);
                         filledCount++;
                         candidates.Remove(candidate);
@@ -92,6 +94,9 @@ namespace lib.Strategies
                         break;
                     }
                 }
+
+                if (!any)
+                    throw new Exception("Can't move");
             }
             Move(Vec.Zero);
             Commands.Add(new Halt());
