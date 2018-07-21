@@ -25,28 +25,44 @@ namespace tests
             var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsL");
             var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/solutions");
             var allProblems = Directory.EnumerateFiles(problemsDir, "*.mdl");
-            Parallel.ForEach(allProblems, p =>
+            var problems = allProblems.Where(p => !File.Exists(GetSolutionPath(resultsDir, p))).Select(p =>
                 {
-                    var mtrx = Matrix.Load(File.ReadAllBytes(p));
-                    var problem = mtrx.Clone();
-                    var R = mtrx.N;
-                    var solver = new GreedyPartialSolver(mtrx.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(mtrx));
+                    var matrix = Matrix.Load(File.ReadAllBytes(p));
+                    return new {m = matrix, p, weight = matrix.Voxels.Cast<bool>().Count(b => b)};
+                }).ToList();
+            problems.Sort((p1, p2) => p1.weight.CompareTo(p2.weight));
+            Log.For(this).Info(string.Join("\r\n", problems.Select(p => p.p)));
+            Parallel.ForEach(problems, p =>
+                {
+                    var problem = p.m.Clone();
+                    var R = p.m.N;
+                    var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(p.m));
                     try
                     {
                         solver.Solve();
                     }
                     catch (Exception e)
                     {
-                        Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(p)}", e);
+                        Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(p.p)}", e);
                         return;
                     }
                     var commands = solver.Commands.ToArray();
 
-                    TryValidate(problem, commands, p);
+                    TryValidate(problem, commands, p.p);
 
                     var bytes = CommandSerializer.Save(commands);
-                    File.WriteAllBytes(Path.Combine(resultsDir, $"{Path.GetFileNameWithoutExtension(p).Split('_')[0]}.nbt"), bytes);
+                    File.WriteAllBytes(GetSolutionPath(resultsDir, p.p), bytes);
                 });
+        }
+
+        private static string GetSolutionPath(string resultsDir, string p)
+        {
+            return Path.Combine(resultsDir, GetSolutionFilename(p));
+        }
+
+        private static string GetSolutionFilename(string p)
+        {
+            return $"{Path.GetFileNameWithoutExtension(p).Split('_')[0]}.nbt";
         }
 
         private void TryValidate(Matrix problem, ICommand[] commands, string p)
