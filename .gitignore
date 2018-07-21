@@ -326,3 +326,4 @@ ASALocalRun/
 
 # Ignore submit/ directory
 submit/
+data/solutions/

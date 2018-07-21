@@ -38,43 +38,43 @@ namespace lib.Utils
                 .ToArray();
         }
 
-        private static Func<Solution>[] GetSolutions(Problem problem)
+        private static Solution[] GetSolutions(Problem problem)
         {
             var R = problem.Matrix.R;
 
-            Func<Solution> s1 = () => new Solution
+            var s1 = new Solution
             {
                 Name = "GS + TH",
-                Solver = new GreedyPartialSolver(
+                Solver = () => new GreedyPartialSolver(
                                           problem.Matrix.Voxels,
                                           new bool[R, R, R],
                                           new Vec(0, 0, 0),
                                           new ThrowableHelper(problem.Matrix))
             };
 
-            Func<Solution> s2 = () => new Solution
+            var s2 = new Solution
             {
                 Name = "GS + TH Fast",
-                Solver = new GreedyPartialSolver(
+                Solver = () => new GreedyPartialSolver(
                                           problem.Matrix.Voxels,
                                           new bool[R, R, R],
                                           new Vec(0, 0, 0),
                                           new ThrowableHelperFast(problem.Matrix))
             };
 
-            Func<Solution> s3 = () => new Solution
+            var s3 = new Solution
             {
                 Name = "GS + TH AStar",
-                Solver = new GreedyPartialSolver(
+                Solver = () => new GreedyPartialSolver(
                                           problem.Matrix.Voxels,
                                           new bool[R, R, R],
                                           new Vec(0, 0, 0),
                                           new ThrowableHelperAStar(R))
             };
-            Func<Solution> s4 = () => new Solution
+            var s4 = new Solution
             {
                 Name = "GS + Layers",
-                Solver = new GreedyPartialSolver(
+                Solver = () => new GreedyPartialSolver(
                                           problem.Matrix.Voxels,
                                           new bool[R, R, R],
                                           new Vec(0, 0, 0),
@@ -82,10 +82,10 @@ namespace lib.Utils
                                           new BottomToTopBuildingAround())
             };
 
-            Func<Solution> s5 = () => new Solution
+            var s5 = new Solution
             {
                 Name = "Columns",
-                Solver = new DivideAndConquer(problem.Matrix)
+                Solver = () => new DivideAndConquer(problem.Matrix)
             };
 
             return new[]
@@ -109,12 +109,12 @@ namespace lib.Utils
     public class Solution
     {
         public string Name { get; set; }
-        public IAmSolver Solver { get; set; }
+        public Func<IAmSolver> Solver { get; set; }
     }
 
     public class ProblemSolutionPair
     {
         public Problem Problem { get; set; }
-        public Func<Solution> Solution { get; set; }
+        public Solution Solution { get; set; }
     }
 }
