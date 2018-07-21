@@ -53,7 +53,7 @@ namespace ui.Controllers
 
             var state = new MutableState(new Matrix(problem.R));
             var queue = new Queue<ICommand>(solution);
-
+            var totalTicks = queue.Count;
             var results = new List<TickResult>();
             var filledVoxels = new HashSet<Vec>();
 
@@ -64,7 +64,6 @@ namespace ui.Controllers
                 while (queue.Any() && tickIndex < startTick + count)
                 {
                     state.Tick(queue);
-
 
                     foreach (var vec in state.LastChangedCells)
                         if (state.BuildingMatrix[vec] && !filledVoxels.Contains(vec))
@@ -80,7 +79,7 @@ namespace ui.Controllers
                                 bots = state.Bots
                                             .Select(x => new[] {x.Position.X, x.Position.Y, x.Position.Z})
                                             .ToArray(),
-                                energy = state.Energy
+                                tickIndex = tickIndex
                             });
                         newFilledVoxels.Clear();
                     }
@@ -97,7 +96,7 @@ namespace ui.Controllers
                 {
                     R = problem.R,
                     startTick = startTick,
-                    totalTicks = results.Count,
+                    totalTicks = totalTicks,
                     Ticks = ticks
                 };
         }
@@ -115,6 +114,6 @@ namespace ui.Controllers
     {
         public int[][] changes;
         public int[][] bots;
-        public long energy;
+        public int tickIndex;
     }
 }

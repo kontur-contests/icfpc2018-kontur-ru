@@ -25,21 +25,21 @@ namespace lib.Strategies
         {
             this.targetMatrix = targetMatrix;
             this.useBoundingBox = useBoundingBox;
-            this.buildingMatrix = new Matrix(targetMatrix.N);
+            this.buildingMatrix = new Matrix(targetMatrix.R);
             CalcBoundingBox();
         }
 
-        public MutableState State { get; private set; }
+        public DeluxeState State { get; private set; }
 
         private List<ICommand> Commands { get; } = new List<ICommand>();
 
         private void CalcBoundingBox()
         {
-            for (int x = 0; x < targetMatrix.N; x++)
+            for (int x = 0; x < targetMatrix.R; x++)
             {
-                for (int y = 0; y < targetMatrix.N; y++)
+                for (int y = 0; y < targetMatrix.R; y++)
                 {
-                    for (int z = 0; z < targetMatrix.N; z++)
+                    for (int z = 0; z < targetMatrix.R; z++)
                     {
                         if (targetMatrix[x, y, z])
                         {
@@ -56,8 +56,8 @@ namespace lib.Strategies
             {
                 minX = 0;
                 minZ = 0;
-                maxX = targetMatrix.N - 1;
-                maxZ = targetMatrix.N - 1;
+                maxX = targetMatrix.R - 1;
+                maxZ = targetMatrix.R - 1;
             }
 
             highestPoint++;
@@ -67,7 +67,7 @@ namespace lib.Strategies
 
         public IEnumerable<ICommand> Solve()
         {
-            State = new MutableState(targetMatrix);
+            State = new DeluxeState(null, targetMatrix);
             Commands.Clear();
             Clone(State);
             foreach (var command in Commands)
@@ -84,7 +84,7 @@ namespace lib.Strategies
             var queues = GetColumns()
                          .GroupBy(GetColumnBatchId)
                          .OrderBy(x => x.Key)
-                         .Zip(State.GetOrderedBots(), (columns, bot) => (columns, bot))
+                         .Zip(State.Bots.OrderBy(x => x.Bid), (columns, bot) => (columns, bot))
                          .Select(x => (new Queue<ICommand>(GenerateCommandsForColumns(x.columns.Where(y => y.To.Y >= 0).ToList(), x.bot)), x.bot))
                          .ToList();
             while (queues.Any(x => x.Item1.Count > 0))
@@ -121,7 +121,7 @@ namespace lib.Strategies
                 {
                     yield return command;
                 }
-                State.Tick(new Queue<ICommand>(commands));
+                new Interpreter(State).Tick(new Queue<ICommand>(commands));
             }
             Commands.Clear();
             GoHome(State);
@@ -131,10 +131,10 @@ namespace lib.Strategies
                 yield return command;
             }
             Commands.Clear();
-            State.EnsureIsFinal();
+            new Interpreter(State).EnsureIsFinal();
         }
 
-        private void Clone([NotNull] MutableState state)
+        private void Clone([NotNull] DeluxeState state)
         {
             for (int i = 0; i < N - 1; i++)
             {
@@ -152,11 +152,11 @@ namespace lib.Strategies
             }
         }
 
-        private void GoHome([NotNull] MutableState state)
+        private void GoHome([NotNull] DeluxeState state)
         {
             for (int i = 0; i < N; i++)
             {
-                var currVec = state.GetOrderedBots()[i].Position;
+                var currVec = state.Bots.OrderBy(b => b.Bid).ToList()[i].Position;
                 var commands = new List<ICommand>();
                 if (currVec.Y == 0)
                 {
@@ -177,17 +177,17 @@ namespace lib.Strategies
             }
         }
 
-        private void ApplyCommand([NotNull] MutableState state, [NotNull] params ICommand[] commands)
+        private void ApplyCommand([NotNull] DeluxeState state, [NotNull] params ICommand[] commands)
         {
             if (state.Bots.Count != commands.Length)
                 throw new ArgumentException();
-            state.Tick(new Queue<ICommand>(commands));
+            new Interpreter(state).Tick(new Queue<ICommand>(commands));
             Commands.AddRange(commands);
         }
 
-        private bool CanFill([NotNull] MutableState state, [NotNull] Vec vec)
+        private bool CanFill([NotNull] DeluxeState state, [NotNull] Vec vec)
         {
-            return vec.Y == 0 || vec.GetMNeighbours().Where(x => x.IsInCuboid(state.BuildingMatrix.R)).Any(x => !state.BuildingMatrix.IsVoidVoxel(x));
+            return vec.Y == 0 || vec.GetMNeighbours().Where(x => x.IsInCuboid(state.Matrix.R)).Any(x => !state.Matrix.IsVoidVoxel(x));
         }
 
         [NotNull]
@@ -265,9 +265,9 @@ namespace lib.Strategies
         private List<(Vec From, Vec To)> GetColumns()
         {
             var columns = new List<(Vec From, Vec To)>();
-            for (int x = 0; x < targetMatrix.N; x++)
+            for (int x = 0; x < targetMatrix.R; x++)
             {
-                for (int z = 0; z < targetMatrix.N; z++)
+                for (int z = 0; z < targetMatrix.R; z++)
                 {
                     columns.AddRange(GetColumnsAbove(x, z));
                 }
@@ -306,7 +306,7 @@ namespace lib.Strategies
         {
             var res = new List<(Vec, Vec)>();
             Vec currStart = null;
-            for (int y = 0; y < targetMatrix.N; y++)
+            for (int y = 0; y < targetMatrix.R; y++)
             {
                 if (targetMatrix[x, y, z] && currStart == null)
                 {

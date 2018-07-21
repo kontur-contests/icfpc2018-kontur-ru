@@ -9,22 +9,21 @@ export class StrategyDashboard extends React.Component {
   };
 
   componentDidMount() {
-    this.fetchData()
+    this.fetchData();
   }
 
   fetchData = async () => {
     try {
-      const data = await getSolutionResults()
+      const data = await getSolutionResults();
       this.setState({
         result: data.result,
         taskNames: data.taskNames,
         solverNames: data.solverNames
       });
-    } catch (e) {
-    }
-    
+    } catch (e) {}
+
     // await new Promise(resolve => setTimeout(resolve, 15000))
-    
+
     // this.fetchData()
   };
 
@@ -65,19 +64,14 @@ export class StrategyDashboard extends React.Component {
       );
     };
 
-    const bestSolver = getEnergySpent(
-      minBy(getEnergySpent, this.state.solverNames.filter(isFiniteValue))
-    );
-
-    const worstSolver = getEnergySpent(
-      maxBy(getEnergySpent, this.state.solverNames.filter(isFiniteValue))
-    );
-
     const isSolved = this.state.solverNames.some(isFiniteValue);
 
-    if (!isSolved) {
-      console.log(taskName);
-    }
+    const sorted = this.state.solverNames
+      .slice(0)
+      .filter(isFiniteValue)
+      .sort((a, b) => getEnergySpent(a) - getEnergySpent(b));
+
+    const getRating = solverName => sorted.indexOf(solverName);
 
     return (
       <tr key={taskName}>
@@ -85,9 +79,9 @@ export class StrategyDashboard extends React.Component {
         {this.state.solverNames.map(x => {
           const energySpent = getEnergySpent(x);
 
-          const pct = (energySpent - bestSolver) / (worstSolver - bestSolver);
+          const rating = getRating(x) / (sorted.length - 1);
 
-          const color = isFinite(energySpent) ? getColor(pct) : "black";
+          const color = isFinite(energySpent) ? getColor(rating) : "black";
 
           return (
             <td

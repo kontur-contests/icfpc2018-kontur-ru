@@ -1,19 +1,25 @@
+using System;
 using System.Collections.Generic;
-
-using JetBrains.Annotations;
 
 using lib.Utils;
 
 namespace lib.Models
 {
-    public class Bot
+    public class Bot : IEquatable<Bot>
     {
         public int Bid { get; set; }
         public Vec Position { get; set; }
         public List<int> Seeds { get; set; }
 
-        protected bool Equals([NotNull] Bot other)
+        public override string ToString()
         {
+            return $"{nameof(Bid)}: {Bid}, {nameof(Position)}: {Position}, {nameof(Seeds)}: [{string.Join(", ", Seeds)}]";
+        }
+
+        public bool Equals(Bot other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
             return Bid == other.Bid;
         }
 
@@ -28,6 +34,16 @@ namespace lib.Models
         public override int GetHashCode()
         {
             return Bid;
+        }
+
+        public static bool operator ==(Bot left, Bot right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(Bot left, Bot right)
+        {
+            return !Equals(left, right);
         }
     }
 }

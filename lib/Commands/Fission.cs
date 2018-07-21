@@ -30,18 +30,18 @@ namespace lib.Commands
             return new [] {(byte)((shift.GetParameter() << 3) | 0b101), (byte)m};
         }
 
-        public override bool CanApply(MutableState state, Bot bot)
+        public override bool AllPositionsAreValid([NotNull] IMatrix matrix, Bot bot)
         {
             if (bot.Seeds.Count < m + 1)
                 return false;
-            if (!state.BuildingMatrix.IsInside(bot.Position + shift))
+            if (!matrix.IsInside(bot.Position + shift))
                 return false;
-            if (!state.BuildingMatrix.IsVoidVoxel(bot.Position + shift))
+            if (!matrix.IsVoidVoxel(bot.Position + shift))
                 return false;
             return true;
         }
 
-        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override void Apply(DeluxeState state, Bot bot)
         {
             var bids = bot.Seeds.Take(m + 1).ToArray();
 
@@ -52,12 +52,12 @@ namespace lib.Commands
                     Position = bot.Position + shift,
                     Seeds = bids.Skip(1).ToList(),
                 };
-            mutableState.Bots.Add(newBot);
-            mutableState.Energy += 24;
+            state.Bots.Add(newBot);
+            state.Energy += 24;
         }
 
         [NotNull]
-        public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override Vec[] GetVolatileCells([NotNull] Bot bot)
         {
             return new[] {bot.Position, bot.Position + shift};
         }

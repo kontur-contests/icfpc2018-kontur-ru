@@ -23,7 +23,7 @@ namespace lib.Utils
         public ThrowableHelper(Matrix toFill)
         {
             this.toFill = toFill;
-            n = toFill.N;
+            n = toFill.R;
             filled = new Matrix(n);
             used = new Matrix<int>(n);
             queue = new Vec[n * n * n + 10];

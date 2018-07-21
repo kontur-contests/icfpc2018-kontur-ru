@@ -24,8 +24,40 @@ namespace tests
         [Test]
         [Explicit]
         //[Timeout(30000)]
+        public void Disassemble(
+            [Values(2)] int problemId
+            //[ValueSource(nameof(Problems))] int problemId
+            )
+        {
+            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsF");
+            var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/solutions");
+            var problemFile = Path.Combine(problemsDir, $"FD{problemId.ToString().PadLeft(3, '0')}_src.mdl");
+            var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
+            var R = matrix.R;
+            //var solver = new StupidDisassembler(matrix);
+            var assembler = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(matrix));
+            var solver = new InvertorDisassembler(assembler);
+            List<ICommand> commands = new List<ICommand>();
+            try
+            {
+                var sw = Stopwatch.StartNew();
+                commands.AddRange(solver.Solve());
+            }
+            catch (Exception e)
+            {
+                Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
+            }
+            finally
+            {
+                var bytes = CommandSerializer.Save(commands.ToArray());
+                File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
+            }
+        }
+        [Test]
+        [Explicit]
+        //[Timeout(30000)]
         public void SolveOne(
-            [Values(104)] int problemId
+            [Values(1)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
@@ -74,7 +106,7 @@ namespace tests
             Log.For(this).Info(string.Join("\r\n", problems.Select(p => p.p)));
             Parallel.ForEach(problems, p =>
                 {
-                    var R = p.m.N;
+                    var R = p.m.R;
                     //var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(p.m));
                     var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(p.m));
                     //var solver = new DivideAndConquer(p.m);
@@ -133,11 +165,8 @@ namespace tests
 
         private long Validate([NotNull] Matrix problem, [NotNull] ICommand[] solution)
         {
-            var state = new MutableState(problem);
-            var queue = new Queue<ICommand>(solution);
-            while (queue.Any())
-                state.Tick(queue);
-            state.EnsureIsFinal();
+            var state = new DeluxeState(null, problem);
+            new Interpreter(state).Run(solution);
             return state.Energy;
         }
     }

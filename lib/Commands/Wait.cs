@@ -18,18 +18,18 @@ namespace lib.Commands
             return "Wait()";
         }
 
-        public override bool CanApply(MutableState state, Bot bot)
-        {
-            return true;
-        }
-
-        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override void Apply(DeluxeState state, Bot bot)
         {
             // Just wait
         }
 
+        public override bool AllPositionsAreValid([NotNull] IMatrix matrix, Bot bot)
+        {
+            return true;
+        }
+
         [NotNull]
-        public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override Vec[] GetVolatileCells([NotNull] Bot bot)
         {
             return new[] {bot.Position};
         }

@@ -71,7 +71,7 @@ namespace tests
             var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsF");
             var p = Directory.EnumerateFiles(problemsDir, "*.mdl").Single(x => x.Contains("007"));
             var mtrx = Matrix.Load(File.ReadAllBytes(p));
-            var R = mtrx.N;
+            var R = mtrx.R;
             var solver = new GreedyPartialSolver(mtrx.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(mtrx));
             solver.Solve();
         }

@@ -73,7 +73,8 @@ namespace houston
                         var commands = new List<ICommand>();
                         var started = new ManualResetEvent(false);
                         ExceptionDispatchInfo exceptionDispatchInfo = null;
-                        var total = task.Problem.Matrix.Weight;
+                        //task.Problem.Type
+                        var total = (task.Problem.TargetMatrix?.Weight + task.Problem.SourceMatrix?.Weight) ?? 0;
                         int done = 0;
                         var timeout = Stopwatch.StartNew();
                         var runThread = new Thread(() =>
@@ -116,13 +117,8 @@ namespace houston
 
                         exceptionDispatchInfo?.Throw();
 
-                        var state = new MutableState(task.Problem.Matrix);
-                        var queue = new Queue<ICommand>(commands);
-                        while (queue.Any())
-                        {
-                            state.Tick(queue);
-                        }
-                        state.EnsureIsFinal();
+                        var state = new DeluxeState(task.Problem.SourceMatrix, task.Problem.TargetMatrix);
+                        new Interpreter(state).Run(commands);
 
                         result.SecondsSpent = (int)timer.Elapsed.TotalSeconds;
                         result.EnergySpent = state.Energy;
@@ -147,10 +143,14 @@ namespace houston
                     context.Log.Info($"Tasks complete: {completeTasksCounter} of {selectedTasks.Length} for this worker");
 
                     var indexingResult = client.IndexDocument(result);
-                    if (!indexingResult.IsValid)
+                    var tryCount = 1;
+                    while (!indexingResult.IsValid && tryCount < 5)
                     {
-                        context.Log.Error($"Failed to insert task {result.TaskName} into Elastic (success was {result.IsSuccess})");
+                        context.Log.Error($"Failed to insert task {result.TaskName} into Elastic on {tryCount} try (success was {result.IsSuccess})");
                         context.Log.Error(indexingResult.DebugInformation);
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        indexingResult = client.IndexDocument(result);
+                        tryCount++;
                     }
                 });
 

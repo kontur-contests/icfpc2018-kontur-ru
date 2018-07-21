@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Visualizer } from "../modules/visualizer";
-import { Plot2D } from "../modules/plot-2d/Plot2D";
+
+const ChunkSize = 250;
 
 export default class App extends Component {
   state = {
@@ -9,15 +10,33 @@ export default class App extends Component {
     steps: [],
     solutions: [],
     energy: [],
-    index: false
+    index: false,
+    page: -1,
+    loading: false,
+    totalSteps: 0
   };
 
   componentDidMount() {
-    this.requestMatrix007();
+    this.requestSolutions();
+    this.loadNextPage();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.step > (this.state.page + 1) * ChunkSize) {
+      this.loadNextPage();
+    }
+
+    if (this.state.step < this.state.page * ChunkSize) {
+      this.loadPrevPage();
+    }
   }
 
   render() {
-    const stepData = this.state.steps[this.state.step];
+    const stepData = this.state.steps[
+      this.state.page
+        ? this.state.step - (this.state.page - 1) * ChunkSize
+        : this.state.step
+    ];
 
     return (
       <div style={{ maxWidth: "1200px", margin: "auto" }}>
@@ -32,12 +51,10 @@ export default class App extends Component {
               onChange={this.handleStepChange}
               min={0}
               value={this.state.step}
-              max={this.state.steps.length - 1}
+              max={this.state.totalSteps}
+              disabled={this.state.loading}
             />
             <center>Step: {this.state.step}</center>
-            <hr />
-            <h2>Energy</h2>
-            <Plot2D data={this.state.energy} />
           </React.Fragment>
         )}
         <hr />
@@ -53,55 +70,82 @@ export default class App extends Component {
     );
   }
 
-  requestMatrix007 = () => {
-    const search = document.location.search;
-    if (!search.includes("file")) {
-      this.setState({ index: true });
-    } else {
-      fetch(`/api/matrix/trace${search}`)
-        .then(x => x.json())
-        .then(processData)
-        .then(x =>
-          this.setState({ steps: x.steps, step: 0, energy: x.energy })
-        );
-    }
+  async loadNextPage() {
+    const data = await this.requestPage(this.state.page + 1);
+    if (data) this.applyNextPageData(data);
+  }
 
+  applyNextPageData(data) {
+    const anchorStep = this.state.steps[this.state.page * ChunkSize];
+    const calculatedModels = applyChanges(
+      data,
+      anchorStep ? anchorStep.model : null
+    );
+    this.setState({
+      steps: calculatedModels.steps,
+      totalSteps: calculatedModels.totalCount
+    });
+  }
+
+  async loadPrevPage() {
+    const data = await this.requestPage(this.state.page - 1);
+    if (data) {
+    }
+  }
+
+  requestPage(page) {
+    const search = document.location.search;
+    if (!search.includes("file=")) {
+      return null;
+    }
+    const startTick = Math.max(0, (page - 1) * ChunkSize);
+    const q = `${search}&count=${ChunkSize * 3}&startTick=${startTick}`;
+    try {
+      this.setState({ page, loading: true });
+      return fetch(`/api/matrix/trace${q}`).then(x => x.json());
+    } catch (e) {
+    } finally {
+      this.setState({ loading: false });
+    }
+  }
+
+  requestSolutions() {
     fetch(`/api/matrix/solutions`)
       .then(x => x.json())
       .then(x => this.setState({ solutions: x }));
-  };
+  }
 
   handleStepChange = event => {
+    if (this.state.loading) {
+      return
+    }
     const step = parseInt(event.target.value);
     this.setState({ step });
   };
 }
 
-function processData(data) {
-  const r = data.r;
+function applyChanges(data, anchorModel) {
+  const model =
+    anchorModel ||
+    Array.from({ length: data.r }, () =>
+      Array.from({ length: data.r }, () => Array(data.r).fill(0))
+    );
 
   const steps = [];
-  const model = Array.from({ length: r }, () =>
-    Array.from({ length: r }, () => Array(r).fill(0))
-  );
 
   for (let i = 0; i < data.ticks.length; i++) {
-      const { changes, bots, energy } = data.ticks[i];
+    const { changes, bots, tickIndex } = data.ticks[i];
 
-    changes.forEach(([ x, y, z ]) => {
+    changes.forEach(([x, y, z]) => {
       model[x][y][z] = 1;
     });
 
     steps.push({
       model: model.map(x => x.map(y => y.slice(0))),
-      bots
+      bots,
+      stepIndex: tickIndex
     });
   }
 
-    const energy = data.ticks.map((step, x) => ({
-    y: step.energy,
-    x
-  }));
-
-  return { steps, energy };
+  return { steps, totalCount: data.totalTicks };
 }

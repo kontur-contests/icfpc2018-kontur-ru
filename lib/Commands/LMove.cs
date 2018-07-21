@@ -10,7 +10,7 @@ namespace lib.Commands
 {
     public class LMove  : BaseCommand
     {
-        private readonly ShortLinearDifference firstShift, secondShift;
+        public readonly ShortLinearDifference firstShift, secondShift;
 
         public LMove(ShortLinearDifference firstShift, ShortLinearDifference secondShift)
         {
@@ -34,22 +34,22 @@ namespace lib.Commands
             return new[] {firstByte, secondByte};
         }
 
-        public override bool CanApply(MutableState state, Bot bot)
+        public override bool AllPositionsAreValid([NotNull] IMatrix matrix, Bot bot)
         {
-            if (!state.BuildingMatrix.IsInside(bot.Position + firstShift))
+            if (!matrix.IsInside(bot.Position + firstShift))
                 return false;
-            if (!state.BuildingMatrix.IsInside(bot.Position + firstShift + secondShift))
+            if (!matrix.IsInside(bot.Position + firstShift + secondShift))
                 return false;
-            return GetCellsOnPath(bot.Position).All(x => state.BuildingMatrix.IsVoidVoxel(x));
+            return GetCellsOnPath(bot.Position).All(matrix.IsVoidVoxel);
         }
 
-        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override void Apply(DeluxeState state, Bot bot)
         {
             bot.Position = bot.Position + firstShift + secondShift;
-            mutableState.Energy += 2 * (firstShift.Shift.MLen() + 2 + secondShift.Shift.MLen());
+            state.Energy += 2 * (firstShift.Shift.MLen() + 2 + secondShift.Shift.MLen());
         }
 
-        public override Vec[] GetVolatileCells(MutableState mutableState, Bot bot)
+        public override Vec[] GetVolatileCells(Bot bot)
         {
             return GetCellsOnPath(bot.Position);
         }
