@@ -153,7 +153,7 @@ namespace houston
                     var indexingResult = client.IndexDocument(result);
                     if (!indexingResult.IsValid)
                     {
-                        context.Log.Error($"Failed to insert task {result.TaskName} into Elastic");
+                        context.Log.Error($"Failed to insert task {result.TaskName} into Elastic (success was {result.IsSuccess})");
                         context.Log.Error(indexingResult.DebugInformation);
                     }
                 });
