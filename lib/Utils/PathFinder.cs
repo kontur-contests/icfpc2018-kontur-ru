@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using lib.Commands;
+using lib.Models;
 using lib.Primitives;
 
 namespace lib.Utils
@@ -11,13 +12,17 @@ namespace lib.Utils
         private readonly bool[,,] state;
         private readonly Vec source;
         private readonly Vec target;
+        private readonly Matrix<int> blockedBefore;
+        private readonly int timer;
         private readonly int R;
 
-        public PathFinder(bool[,,] state, Vec source, Vec target)
+        public PathFinder(bool[,,] state, Vec source, Vec target, Matrix<int> blockedBefore = null, int timer = 0)
         {
             this.state = state;
             this.source = source;
             this.target = target;
+            this.blockedBefore = blockedBefore;
+            this.timer = timer;
             R = state.GetLength(0);
         }
 
@@ -94,7 +99,7 @@ namespace lib.Utils
                 {
                     shift += n;
                     var res = current + shift;
-                    if (!res.IsInCuboid(R) || state.Get(res))
+                    if (!res.IsInCuboid(R) || Get(res))
                         break;
                     yield return (new SMove(new LongLinearDifference(shift)), res);
                 }
@@ -107,7 +112,7 @@ namespace lib.Utils
                 {
                     fshift += fn;
                     var fres = current + fshift;
-                    if (!fres.IsInCuboid(R) || state.Get(fres))
+                    if (!fres.IsInCuboid(R) || Get(fres))
                         break;
                     foreach (var sn in neighbors)
                     {
@@ -118,7 +123,7 @@ namespace lib.Utils
                             {
                                 sshift += sn;
                                 var res = fres + sshift;
-                                if (!res.IsInCuboid(R) || state.Get(res))
+                                if (!res.IsInCuboid(R) || Get(res))
                                     break;
                                 yield return (new LMove(new ShortLinearDifference(fshift), new ShortLinearDifference(sshift)), res);
                             }
@@ -126,6 +131,12 @@ namespace lib.Utils
                     }
                 }
             }
+        }
+
+        private bool Get(Vec res)
+        {
+            return state.Get(res) || 
+                blockedBefore != null && blockedBefore[res] >= timer;
         }
     }
 }
