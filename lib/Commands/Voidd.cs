@@ -6,11 +6,11 @@ using lib.Utils;
 
 namespace lib.Commands
 {
-    public class Void : BaseCommand
+    public class Voidd : BaseCommand
     {
         public NearDifference Shift { get; }
 
-        public Void(NearDifference shift)
+        public Voidd(NearDifference shift)
         {
             this.Shift = shift;
         }

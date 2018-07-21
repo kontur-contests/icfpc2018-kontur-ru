@@ -89,6 +89,9 @@ namespace lib.Utils
                 return new FusionP(new NearDifference(fusionSNearDistance));
             if (firstByte.TryExtractMask("*****011", out var fillNearDistance))
                 return new Fill(new NearDifference(fillNearDistance));
+            if (firstByte.TryExtractMask("*****010", out var voidNearDistance))
+                return new Voidd(new NearDifference(voidNearDistance));
+            
             var secondByte = binaryReader.ReadByte();
             if (firstByte.TryExtractMask("00**0100", out var sMoveA) &&
                 secondByte.TryExtractMask("000*****", out var sMoveI))
@@ -106,7 +109,16 @@ namespace lib.Utils
 
             if (firstByte.TryExtractMask("*****101", out var fissionNearDistance))
                 return new Fission(new NearDifference(fissionNearDistance), secondByte);
-            throw new Exception($"Can't parse command from the stream: [{firstByte}, {secondByte}, ...]");
+            
+            var thirdByte = binaryReader.ReadByte();
+            var fourthByte = binaryReader.ReadByte();
+            if (firstByte.TryExtractMask("*****001", out var gFillNearDistance))
+                return new GFill(new NearDifference(gFillNearDistance), new FarDifference(secondByte, thirdByte, fourthByte));
+            if (firstByte.TryExtractMask("*****000", out var gVoidNearDistance))
+                return new GVoid(new NearDifference(gVoidNearDistance), new FarDifference(secondByte, thirdByte, fourthByte));
+            
+            throw new Exception("Can't parse command from the stream: " +
+                                $"[{firstByte}, {secondByte}, {thirdByte}, {fourthByte}...]");
         }
     }
 }
