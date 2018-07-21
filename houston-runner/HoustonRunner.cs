@@ -84,7 +84,7 @@ namespace houston
                             result.SecondsSpent = (int)timer.Elapsed.TotalSeconds;
                             result.EnergySpent = state.Energy;
                             result.EnergyHistory = state.EnergyHistory;
-                            result.Solution = Convert.ToBase64String(CommandSerializer.Save(commands).Compress());
+                            result.Solution = CommandSerializer.Save(commands).SerializeSolutionToString();
                             result.IsSuccess = true;
                         }
                         catch (Exception e)

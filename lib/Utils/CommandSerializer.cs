@@ -13,6 +13,18 @@ namespace lib.Utils
 {
     public static class Compressor
     {
+        [NotNull]
+        public static string SerializeSolutionToString([NotNull] this byte[] solutionContent)
+        {
+            return Convert.ToBase64String(solutionContent.Compress());
+        }
+
+        [NotNull]
+        public static byte[] SerializeSolutionFromString([NotNull] this string solutionString)
+        {
+            return Convert.FromBase64String(solutionString).Decompress();
+        }
+
         public static byte[] Compress(this byte[] data)
         {
             var memoryStream = new MemoryStream();
