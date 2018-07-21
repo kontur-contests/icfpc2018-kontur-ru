@@ -23,6 +23,7 @@ namespace lib.Models
             BuildingMatrix = new ComponentTrackingMatrix(new Matrix(targetMatrix.N));
         }
 
+        public List<long> EnergyHistory { get; } = new List<long>();
         public long Energy { get; set; }
         public Harmonics Harmonics { get; set; }
 
@@ -57,6 +58,7 @@ namespace lib.Models
                 botCommand.command.Apply(this, botCommand.bot);
             }
             EnsureWellFormed();
+            EnergyHistory.Add(Energy);
         }
 
         public void EnsureIsFinal()
