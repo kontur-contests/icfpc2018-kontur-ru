@@ -16,23 +16,42 @@ namespace lib.Strategies
     {
         private readonly Matrix targetMatrix;
         private Matrix buildingMatrix;
+        public MutableState State { get; private set; }
 
         public DivideAndConquer([NotNull] Matrix targetMatrix)
         {
             this.targetMatrix = targetMatrix;
             this.buildingMatrix = new Matrix(targetMatrix.N);
+            highestPoint = GetHighestPoint() + 1; //N - 1
         }
 
         private List<ICommand> Commands { get; } = new List<ICommand>();
 
+        private int GetHighestPoint()
+        {
+            var maxY = 0;
+            for (int x = 0; x < targetMatrix.N; x++)
+            {
+                for (int y = 0; y < targetMatrix.N; y++)
+                {
+                    for (int z = 0; z < targetMatrix.N; z++)
+                    {
+                        if (targetMatrix[x, y, z])
+                            maxY = Math.Max(maxY, y);
+                    }
+                }
+            }
+            return maxY;
+        }
+
         public IEnumerable<ICommand> Solve()
         {
-            var state = new MutableState(targetMatrix);
+            State = new MutableState(targetMatrix);
 
-            var blockSize = (state.BuildingMatrix.R + sqrtN - 1) / sqrtN;
+            var blockSize = (State.BuildingMatrix.R + sqrtN - 1) / sqrtN;
 
             Commands.Clear();
-            Clone(state);
+            Clone(State);
             foreach (var command in Commands)
             {
                 yield return command;
@@ -46,12 +65,12 @@ namespace lib.Strategies
             var queues = GetColumns()
                          .GroupBy(GetColumnBatchId)
                          .OrderBy(x => x.Key)
-                         .Zip(state.GetOrderedBots(), (columns, bot) => (columns, bot))
+                         .Zip(State.GetOrderedBots(), (columns, bot) => (columns, bot))
                          .Select(x => (new Queue<ICommand>(GenerateCommandsForColumns(x.columns.Where(y => y.To.Y >= 0).ToList(), x.bot)), x.bot))
                          .ToList();
             while (queues.Any(x => x.Item1.Count > 0))
             {
-                if (state.Bots.Select((x, i) => (x.Position.Z / blockSize, x.Position.X / blockSize, i)).Any(x => x.Item1 * sqrtN + x.Item2 != x.i))
+                if (State.Bots.Select((x, i) => (x.Position.Z / blockSize, x.Position.X / blockSize, i)).Any(x => x.Item1 * sqrtN + x.Item2 != x.i))
                     throw new Exception("Wrong zone");
                 var commands = new List<ICommand>();
                 for (int i = 0; i < queues.Count; i++)
@@ -63,7 +82,7 @@ namespace lib.Strategies
                     }
                     if (queues[i].Item1.Peek() is Fill fillCommand)
                     {
-                        if (CanFill(state, queues[i].bot.Position + fillCommand.Shift))
+                        if (CanFill(State, queues[i].bot.Position + fillCommand.Shift))
                         {
                             commands.Add(queues[i].Item1.Dequeue());
                         }
@@ -83,17 +102,17 @@ namespace lib.Strategies
                 {
                     yield return command;
                 }
-                state.Tick(new Queue<ICommand>(commands));
+                State.Tick(new Queue<ICommand>(commands));
             }
             Commands.Clear();
-            GoHome(state);
-            ApplyCommand(state, new Halt());
+            GoHome(State);
+            ApplyCommand(State, new Halt());
             foreach (var command in Commands)
             {
                 yield return command;
             }
             Commands.Clear();
-            state.EnsureIsFinal();
+            State.EnsureIsFinal();
         }
 
         private void Clone([NotNull] MutableState state)
@@ -123,8 +142,8 @@ namespace lib.Strategies
                 var commands = new List<ICommand>();
                 if (currVec.Y == 0)
                 {
-                    commands.AddRange(GoToVerticalFirst(currVec, new Vec(currVec.X, state.BuildingMatrix.R - 1, currVec.Z)));
-                    currVec = new Vec(currVec.X, state.BuildingMatrix.R - 1, currVec.Z);
+                    commands.AddRange(GoToVerticalFirst(currVec, new Vec(currVec.X, highestPoint, currVec.Z)));
+                    currVec = new Vec(currVec.X, highestPoint, currVec.Z);
                 }
                 commands.AddRange(GoToVerticalLast(currVec, new Vec(0, 0, i)));
                 foreach (var command in commands)
@@ -169,8 +188,8 @@ namespace lib.Strategies
                     pos += new Vec(0, 1, 0);
                     result.Add(new Fill(new NearDifference(new Vec(0, -1, 0))));
                 }
-                result.AddRange(GoToVerticalFirst(pos, new Vec(column.From.X, targetMatrix.N - 1, column.From.Z)));
-                pos = new Vec(column.From.X, targetMatrix.N - 1, column.From.Z);
+                result.AddRange(GoToVerticalFirst(pos, new Vec(column.From.X, highestPoint, column.From.Z)));
+                pos = new Vec(column.From.X, highestPoint, column.From.Z);
             }
 
             return result;
@@ -295,5 +314,6 @@ namespace lib.Strategies
 
         private static readonly int sqrtN = 4;
         private static readonly int n = sqrtN * sqrtN;
+        private int highestPoint;
     }
 }
