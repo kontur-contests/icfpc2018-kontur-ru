@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 
 using Kontur.Houston.Plugin;
@@ -71,7 +72,40 @@ namespace houston
                             var timer = Stopwatch.StartNew();
 
                             var solver = solution.Solver;
-                            var commands = solver.Solve().ToArray();
+
+                            var commands = new List<ICommand>();
+                           // var started = new ManualResetEvent(false);
+                            ExceptionDispatchInfo exceptionDispatchInfo = null;
+                            var runThread = new Thread(() =>
+                                {
+                                    try
+                                    {
+                                        var solverCommands = solver.Solve();
+                                        foreach (var command in solverCommands)
+                                        {
+                                            commands.Add(command);
+                                        }
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        exceptionDispatchInfo = ExceptionDispatchInfo.Capture(exception);
+                                    }
+                                    //started.Set();
+                                });
+                            runThread.Start();
+                            //if (!started.WaitOne(context.Properties.SolverStartTimeout))
+                            //{
+                            //    runThread.Abort();
+                            //    runThread.Join();
+                            //    throw new TimeoutException("Solve timeout expired");
+                            //}
+                            if (!runThread.Join(context.Properties.SolverStartTimeout))
+                            {
+                                runThread.Abort();
+                                runThread.Join();
+                                throw new TimeoutException("Solve timeout expired");
+                            }
+                            exceptionDispatchInfo?.Throw();
 
                             var state = new MutableState(task.Problem.Matrix);
                             var queue = new Queue<ICommand>(commands);
@@ -84,7 +118,7 @@ namespace houston
                             result.SecondsSpent = (int)timer.Elapsed.TotalSeconds;
                             result.EnergySpent = state.Energy;
                             result.EnergyHistory = state.EnergyHistory;
-                            result.Solution = Convert.ToBase64String(CommandSerializer.Save(commands).Compress());
+                            result.Solution = CommandSerializer.Save(commands.ToArray()).SerializeSolutionToString();
                             result.IsSuccess = true;
                         }
                         catch (Exception e)

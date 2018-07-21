@@ -323,3 +323,6 @@ ASALocalRun/
 
 # Mac OS X makes this stupid files somehow
 /._*.sln
+
+# Ignore submit/ directory
+submit/

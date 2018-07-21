@@ -1,7 +1,9 @@
+using System;
+
 namespace houston
 {
     public class HoustonRunnerProperties
     {
-        public string message = "Hi, i'm houston runner for ICFPC 2018";
+        public TimeSpan SolverStartTimeout = TimeSpan.FromMinutes(1);
     }
 }
