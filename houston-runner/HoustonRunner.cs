@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 
 using Kontur.Houston.Plugin;
@@ -74,15 +75,23 @@ namespace houston
 
                             var commands = new List<ICommand>();
                             var started = new ManualResetEvent(false);
+                            ExceptionDispatchInfo exceptionDispatchInfo = null;
                             var runThread = new Thread(() =>
                                 {
-                                    var solverCommands = solver.Solve();
-                                    foreach (var command in solverCommands)
+                                    try
                                     {
+                                        var solverCommands = solver.Solve();
+                                        foreach (var command in solverCommands)
+                                        {
                                         
-                                        commands.Add(command);
+                                            commands.Add(command);
+                                        }
+                                        started.Set();
                                     }
-                                    started.Set();
+                                    catch (Exception exception)
+                                    {
+                                        exceptionDispatchInfo = ExceptionDispatchInfo.Capture(exception);
+                                    }
                                 });
                             runThread.Start();
                             if (!started.WaitOne(context.Properties.SolverStartTimeout))
@@ -92,6 +101,7 @@ namespace houston
                                 throw new TimeoutException("Solve timeout expired");
                             }
                             runThread.Join();
+                            exceptionDispatchInfo?.Throw();
 
                             var state = new MutableState(task.Problem.Matrix);
                             var queue = new Queue<ICommand>(commands);
