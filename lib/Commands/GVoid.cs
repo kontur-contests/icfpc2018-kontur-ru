@@ -51,11 +51,10 @@ namespace lib.Commands
             var nearPos = GetPosition(bot);
             var farPos = nearPos + FarShift;
             
-            for (var x = nearPos.X; x < farPos.X; ++x)
-            for (var y = nearPos.Y; y < farPos.Y; ++y)
-            for (var z = nearPos.Z; z < farPos.Z; ++z)
+            var range = new Range(nearPos, farPos);
+
+            foreach (var pos in range)
             {
-                var pos = new Vec(x, y, z);
                 if (mutableState.BuildingMatrix.IsFilledVoxel(pos))
                 {
                     mutableState.BuildingMatrix.Void(pos);
@@ -81,11 +80,10 @@ namespace lib.Commands
             var nearPos = GetPosition(bot);
             var farPos = nearPos + FarShift;
             
-            for (var x = nearPos.X; x < farPos.X; ++x)
-            for (var y = nearPos.Y; y < farPos.Y; ++y)
-            for (var z = nearPos.Z; z < farPos.Z; ++z)
+            var range = new Range(nearPos, farPos);
+
+            foreach (var pos in range)
             {
-                var pos = new Vec(x, y, z);
                 volatileCells.Add(pos);
             }
             
