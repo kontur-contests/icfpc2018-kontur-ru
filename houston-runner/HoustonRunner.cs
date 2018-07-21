@@ -37,11 +37,7 @@ namespace houston
             context.Log.Info($"Replica # {replicaNumber} of {replicaCount}: preparing...");
 
             var client = new ElasticClient(new ConnectionSettings(new Uri(elasticUrl)).DisableDirectStreaming().DefaultIndex(elasticIndex));
-            var notSolved = new HashSet<string>(new[]
-                {
-                    "LA090_tgt", "LA096_tgt", "LA104_tgt", "LA105_tgt", "LA106_tgt", "LA108_tgt", "LA109_tgt", "LA112_tgt", "LA115_tgt", "LA116_tgt", "LA117_tgt", "LA119_tgt", "LA122_tgt", "LA123_tgt", "LA126_tgt", "LA128_tgt", "LA137_tgt", "LA138_tgt", "LA139_tgt", "LA143_tgt", "LA144_tgt", "LA145_tgt", "LA146_tgt", "LA150_tgt", "LA151_tgt", "LA152_tgt", "LA158_tgt", "LA161_tgt", "LA162_tgt", "LA163_tgt", "LA164_tgt", "LA165_tgt", "LA166_tgt", "LA167_tgt", "LA168_tgt", "LA169_tgt", "LA170_tgt", "LA171_tgt", "LA172_tgt", "LA173_tgt", "LA174_tgt", "LA175_tgt", "LA176_tgt", "LA177_tgt", "LA178_tgt", "LA179_tgt", "LA180_tgt", "LA181_tgt", "LA182_tgt", "LA183_tgt", "LA184_tgt", "LA185_tgt", "LA186_tgt" 
-                }, StringComparer.InvariantCultureIgnoreCase);
-            var tasks = ProblemSolutionFactory.GetTasks().Where(t => notSolved.Contains(t.Problem.Name)).ToArray();
+            var tasks = ProblemSolutionFactory.GetTasks().ToArray();
 
             var selectedTasks = tasks
                 .Where(task => ((uint)(task.Problem.Name + task.Solution.Name).GetHashCode()) % replicaCount == replicaNumber - 1)
