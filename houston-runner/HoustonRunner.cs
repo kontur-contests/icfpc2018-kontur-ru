@@ -71,10 +71,10 @@ namespace houston
                             var timer = Stopwatch.StartNew();
 
                             var solver = solution.Solver;
-                            solver.Solve();
+                            var commands = solver.Solve().ToArray();
 
                             var state = new MutableState(task.Problem.Matrix);
-                            var queue = new Queue<ICommand>(solver.Commands);
+                            var queue = new Queue<ICommand>(commands);
                             while (queue.Any())
                             {
                                 state.Tick(queue);
@@ -84,7 +84,7 @@ namespace houston
                             result.SecondsSpent = (int)timer.Elapsed.TotalSeconds;
                             result.EnergySpent = state.Energy;
                             result.EnergyHistory = state.EnergyHistory;
-                            result.Solution = Convert.ToBase64String(CommandSerializer.Save(solver.Commands.ToArray()).Compress());
+                            result.Solution = Convert.ToBase64String(CommandSerializer.Save(commands).Compress());
                             result.IsSuccess = true;
                         }
                         catch (Exception e)

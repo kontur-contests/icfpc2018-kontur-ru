@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 
@@ -16,10 +16,10 @@ namespace lib.Utils
             return GetProblems()
                 .Select(x => Tuple.Create(x, GetSolutions(x)))
                 .SelectMany(x => x.Item2.Select(y => new ProblemSolutionPair
-                    {
-                        Problem = x.Item1,
-                        Solution = y
-                    }))
+                {
+                    Problem = x.Item1,
+                    Solution = y
+                }))
                 .ToArray();
         }
 
@@ -30,11 +30,11 @@ namespace lib.Utils
                 .ToArray()
                 .Where(x => string.Equals(Path.GetExtension(x), ".mdl"))
                 .Select(x => new Problem
-                    {
-                        FileName = x,
-                        Name = Path.GetFileNameWithoutExtension(x),
-                        Matrix = Matrix.Load(File.ReadAllBytes(x))
-                    })
+                {
+                    FileName = x,
+                    Name = Path.GetFileNameWithoutExtension(x),
+                    Matrix = Matrix.Load(File.ReadAllBytes(x))
+                })
                 .ToArray();
         }
 
@@ -43,40 +43,58 @@ namespace lib.Utils
             var R = problem.Matrix.R;
 
             Func<Solution> s1 = () => new Solution
-                {
-                    Name = "GS + TH",
-                    Solver = new GreedyPartialSolver(
+            {
+                Name = "GS + TH",
+                Solver = new GreedyPartialSolver(
                                           problem.Matrix.Voxels,
                                           new bool[R, R, R],
                                           new Vec(0, 0, 0),
                                           new ThrowableHelper(problem.Matrix))
-                };
+            };
 
             Func<Solution> s2 = () => new Solution
-                {
-                    Name = "GS + TH Fast",
-                    Solver = new GreedyPartialSolver(
+            {
+                Name = "GS + TH Fast",
+                Solver = new GreedyPartialSolver(
                                           problem.Matrix.Voxels,
                                           new bool[R, R, R],
                                           new Vec(0, 0, 0),
                                           new ThrowableHelperFast(problem.Matrix))
-                };
+            };
 
             Func<Solution> s3 = () => new Solution
-                {
-                    Name = "GS + TH AStar",
-                    Solver = new GreedyPartialSolver(
+            {
+                Name = "GS + TH AStar",
+                Solver = new GreedyPartialSolver(
                                           problem.Matrix.Voxels,
                                           new bool[R, R, R],
                                           new Vec(0, 0, 0),
                                           new ThrowableHelperAStar(R))
-                };
+            };
+            Func<Solution> s4 = () => new Solution
+            {
+                Name = "GS + Layers",
+                Solver = new GreedyPartialSolver(
+                                          problem.Matrix.Voxels,
+                                          new bool[R, R, R],
+                                          new Vec(0, 0, 0),
+                                          new ThrowableHelper(problem.Matrix),
+                                          new BottomToTopBuildingAround())
+            };
+
+            Func<Solution> s5 = () => new Solution
+            {
+                Name = "Columns",
+                Solver = new DivideAndConquer(problem.Matrix)
+            };
 
             return new[]
                 {
                     s1,
                     s2,
-                    s3
+                    s3,
+                    s4,
+                    s5
                 };
         }
     }
@@ -91,7 +109,7 @@ namespace lib.Utils
     public class Solution
     {
         public string Name { get; set; }
-        public GreedyPartialSolver Solver { get; set; }
+        public IAmSolver Solver { get; set; }
     }
 
     public class ProblemSolutionPair

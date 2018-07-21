@@ -34,9 +34,10 @@ namespace tests
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
             var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix));
+            ICommand[] commands = null;
             try
             {
-                solver.Solve(30000);
+                commands = solver.Solve().ToArray();
                 Console.WriteLine($"{GreedyPartialSolver.A} {GreedyPartialSolver.B}");
             }
             catch (Exception e)
@@ -44,7 +45,6 @@ namespace tests
                 Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
                 throw;
             }
-            var commands = solver.Commands.ToArray();
 
             var solutionEnergy = GetSolutionEnergy(matrix, commands, problemFile);
             Console.WriteLine(solutionEnergy);
@@ -52,11 +52,6 @@ namespace tests
             var bytes = CommandSerializer.Save(commands);
             File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
             Console.WriteLine(ThrowableHelper.opt.ToDetailedString());
-        }
-
-        private int Estimate(Vec pos, Vec bot)
-        {
-            return 30 * pos.MDistTo(bot) + 4*pos.Y + pos.Z + pos.X;
         }
 
         [Test]
@@ -69,25 +64,27 @@ namespace tests
                 {
                     var matrix = Matrix.Load(File.ReadAllBytes(p));
                     return new {m = matrix, p, weight = matrix.Voxels.Cast<bool>().Count(b => b)};
-                }).Skip(18).Take(3).ToList();
+                }).Take(10).ToList();
             problems.Sort((p1, p2) => p1.weight.CompareTo(p2.weight));
             Log.For(this).Info(string.Join("\r\n", problems.Select(p => p.p)));
             Parallel.ForEach(problems, p =>
                 {
                     var R = p.m.N;
                     //var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(p.m));
-                    var solver = new DivideAndConquer(p.m);
-                    var solverName = "div-n-conq";
+                    var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(p.m));
+                    //var solver = new DivideAndConquer(p.m);
+                    //var solverName = "div-n-conq";
+                    var solverName = "greedy-fst";
+                    ICommand[] commands = null;
                     try
                     {
-                        solver.Solve();
+                        commands = solver.Solve().ToArray();
                     }
                     catch (Exception e)
                     {
                         Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(p.p)}", e);
                         return;
                     }
-                    var commands = solver.Commands.ToArray();
 
                     var solutionEnergy = GetSolutionEnergy(p.m, commands, p.p);
 

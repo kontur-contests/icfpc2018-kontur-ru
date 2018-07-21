@@ -12,7 +12,7 @@ using MoreLinq;
 
 namespace lib.Strategies
 {
-    public class GreedyPartialSolver
+    public class GreedyPartialSolver : IAmSolver
     {
         public static int A = 0, B = 0;
 
@@ -44,9 +44,10 @@ namespace lib.Strategies
         }
 
 
-        public List<ICommand> Commands { get; } = new List<ICommand>();
+        private List<ICommand> Commands { get; } = new List<ICommand>();
 
-        public bool Solve(int timeoutMs = -1)
+        
+        public IEnumerable<ICommand> Solve()
         {
             // ! красить можно то, что не покрашено, и после покраски станет граундед
             // строим список того, что можно красить, сортированный по расстоянию до бота (candidates)
@@ -56,16 +57,10 @@ namespace lib.Strategies
             //         выбираем ту, с которой оракул разрешает красить
             //   перемещаемся в ту точку, красим, обновляем список (добавляем ноды и сортируем заново)
             // в конце возвращаемся в 0 и HALT
-            var sw = Stopwatch.StartNew();
+            Commands.Clear();
             var candidates = BuildCandidates();
-            int filledCount = 0;
             while (candidates.Any())
             {
-                if (timeoutMs > 0 && sw.Elapsed.TotalMilliseconds > timeoutMs)
-                {
-                    Console.WriteLine(filledCount);
-                    return false;
-                }
                 var candidatesAndPositions = OrderCandidates(candidates);
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
@@ -74,7 +69,6 @@ namespace lib.Strategies
                     {
                         any = true;
                         Fill(candidate);
-                        filledCount++;
                         candidates.Remove(candidate);
                         foreach (var n in neighbors)
                         {
@@ -87,13 +81,21 @@ namespace lib.Strategies
                         break;
                     }
                 }
-
+                foreach (var command in Commands)
+                {
+                    yield return command;
+                }
+                Commands.Clear();
                 if (!any)
                     throw new Exception("Can't move");
             }
             Move(Vec.Zero);
             Commands.Add(new Halt());
-            return true;
+            foreach (var command in Commands)
+            {
+                yield return command;
+            }
+            Commands.Clear();
         }
 
         private bool Move(Vec target)

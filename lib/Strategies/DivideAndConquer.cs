@@ -12,7 +12,7 @@ using lib.Utils;
 
 namespace lib.Strategies
 {
-    public class DivideAndConquer
+    public class DivideAndConquer : IAmSolver
     {
         private readonly Matrix targetMatrix;
         private Matrix buildingMatrix;
@@ -23,15 +23,22 @@ namespace lib.Strategies
             this.buildingMatrix = new Matrix(targetMatrix.N);
         }
 
-        public List<ICommand> Commands { get; } = new List<ICommand>();
+        private List<ICommand> Commands { get; } = new List<ICommand>();
 
-        public void Solve()
+        public IEnumerable<ICommand> Solve()
         {
             var state = new MutableState(targetMatrix);
 
             var blockSize = (state.BuildingMatrix.R + sqrtN - 1) / sqrtN;
 
+            Commands.Clear();
             Clone(state);
+            foreach (var command in Commands)
+            {
+                yield return command;
+            }
+            Commands.Clear();
+
             var a = GetColumns()
                 .GroupBy(GetColumnBatchId)
                 .OrderBy(x => x.Key).ToList();
@@ -72,11 +79,20 @@ namespace lib.Strategies
                 }
                 if (commands.All(x => x is Wait))
                     throw new Exception();
-                Commands.AddRange(commands);
+                foreach (var command in commands)
+                {
+                    yield return command;
+                }
                 state.Tick(new Queue<ICommand>(commands));
             }
+            Commands.Clear();
             GoHome(state);
             ApplyCommand(state, new Halt());
+            foreach (var command in Commands)
+            {
+                yield return command;
+            }
+            Commands.Clear();
             state.EnsureIsFinal();
         }
 

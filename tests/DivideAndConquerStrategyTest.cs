@@ -25,16 +25,8 @@ namespace tests
             var content = File.ReadAllBytes(filename);
             var model = Matrix.Load(content);
             var solver = new DivideAndConquer(model);
-            try
-            {
-                solver.Solve();
-                File.WriteAllBytes($"C:\\workspace\\icfpc\\res\\{Path.GetFileNameWithoutExtension(filename)}-test.nbt", CommandSerializer.Save(solver.Commands.ToArray()));
-            }
-            catch
-            {
-                File.WriteAllBytes($"C:\\workspace\\icfpc\\failed\\{Path.GetFileNameWithoutExtension(filename)}-test.nbt", CommandSerializer.Save(solver.Commands.ToArray()));
-                throw;
-            }
+            var commands = solver.Solve().ToArray();
+            File.WriteAllBytes($"C:\\workspace\\icfpc\\res\\{Path.GetFileNameWithoutExtension(filename)}-test.nbt", CommandSerializer.Save(commands));
         }
 
         private static IEnumerable<TestCaseData> GetModels()
