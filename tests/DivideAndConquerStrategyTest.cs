@@ -25,15 +25,25 @@ namespace tests
             var content = File.ReadAllBytes(filename);
             var model = Matrix.Load(content);
             var solver = new DivideAndConquer(model);
+            List<ICommand> commands = new List<ICommand>();
             try
             {
-                solver.Solve();
-                File.WriteAllBytes($"C:\\workspace\\icfpc\\res\\{Path.GetFileNameWithoutExtension(filename)}-test.nbt", CommandSerializer.Save(solver.Commands.ToArray()));
+                foreach (var command in solver.Solve())
+                {
+                    commands.Add(command);
+                }
+                File.WriteAllBytes($"C:\\workspace\\icfpc\\res\\{Path.GetFileNameWithoutExtension(filename)}-test.nbt", CommandSerializer.Save(commands.ToArray()));
             }
-            catch
+            catch (Exception e)
             {
-                File.WriteAllBytes($"C:\\workspace\\icfpc\\failed\\{Path.GetFileNameWithoutExtension(filename)}-test.nbt", CommandSerializer.Save(solver.Commands.ToArray()));
+                File.WriteAllBytes($"C:\\workspace\\icfpc\\failed\\{Path.GetFileNameWithoutExtension(filename)}-test.nbt", CommandSerializer.Save(commands.ToArray()));
+
                 throw;
+            }
+            finally
+            {
+                File.WriteAllText($"C:\\workspace\\icfpc\\stats\\{Path.GetFileNameWithoutExtension(filename)}-test.nbt", $"Energy: {solver.State.Energy}");
+                Console.WriteLine($"Energy: {solver.State.Energy}");
             }
         }
 

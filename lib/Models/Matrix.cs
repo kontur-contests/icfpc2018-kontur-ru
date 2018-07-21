@@ -1,3 +1,5 @@
+using System.Linq;
+
 using JetBrains.Annotations;
 
 using lib.Utils;
@@ -18,7 +20,7 @@ namespace lib.Models
         {
             this.voxels = voxels;
             R = voxels.GetLength(0);
-
+            Weight = voxels.Cast<bool>().Count(b => b);
         }
 
         public Matrix([NotNull] params string[] zLayers)
@@ -78,6 +80,8 @@ namespace lib.Models
         public bool this[int x, int y, int z] { get => voxels[x, y, z]; set => voxels[x, y, z] = value; }
         
         public bool[,,] Voxels => this.voxels;
+
+        public int Weight { get; }
 
         public Matrix Clone()
         {

@@ -12,7 +12,7 @@ using MoreLinq;
 
 namespace lib.Strategies
 {
-    public class GreedyPartialSolver
+    public class GreedyPartialSolver : IAmSolver
     {
         public static int A = 0, B = 0;
 
@@ -31,29 +31,22 @@ namespace lib.Strategies
                 new Vec(0, 0, -1)
             };
 
-        private static readonly Vec[] nears =
-            Enumerable.Range(-1, 3)
-                      .SelectMany(x => Enumerable.Range(-1, 3).Select(y => new { x, y }))
-                      .SelectMany(v => Enumerable.Range(-1, 3).Select(z => new Vec(v.x, v.y, z)))
-                      .Where(v => v != Vec.Zero && v.MDistTo(Vec.Zero) <= 2).ToArray();
+        private readonly ICandidatesOrdering candidatesOrdering;
 
-        private readonly Comparison<Vec> comparison;
-
-        public GreedyPartialSolver(bool[,,] whatToFill, bool[,,] state, Vec pos, IOracle oracle, Func<Vec, Vec, int> priorityByCandidateAndBot = null)
+        public GreedyPartialSolver(bool[,,] whatToFill, bool[,,] state, Vec pos, IOracle oracle, ICandidatesOrdering candidatesOrdering = null)
         {
-            priorityByCandidateAndBot = priorityByCandidateAndBot ?? ((candidate, bot) => bot.MDistTo(candidate));
             this.whatToFill = whatToFill;
             this.state = state;
             this.pos = pos;
             this.oracle = oracle;
-            R = whatToFill.GetLength(0); //523042236
-            comparison = (a, b) => Comparer<int>.Default.Compare(priorityByCandidateAndBot(a, this.pos), priorityByCandidateAndBot(b, this.pos));
+            this.candidatesOrdering = candidatesOrdering ?? new BuildAllStayingStill();
+            R = whatToFill.GetLength(0);
         }
 
 
-        public List<ICommand> Commands { get; } = new List<ICommand>();
+        private List<ICommand> Commands { get; } = new List<ICommand>();
 
-        public bool Solve(int timeoutMs = -1)
+        public IEnumerable<ICommand> Solve()
         {
             // ! красить можно то, что не покрашено, и после покраски станет граундед
             // строим список того, что можно красить, сортированный по расстоянию до бота (candidates)
@@ -63,16 +56,10 @@ namespace lib.Strategies
             //         выбираем ту, с которой оракул разрешает красить
             //   перемещаемся в ту точку, красим, обновляем список (добавляем ноды и сортируем заново)
             // в конце возвращаемся в 0 и HALT
-            var sw = Stopwatch.StartNew();
+            Commands.Clear();
             var candidates = BuildCandidates();
-            int filledCount = 0;
             while (candidates.Any())
             {
-                if (timeoutMs > 0 && sw.Elapsed.TotalMilliseconds > timeoutMs)
-                {
-                    Console.WriteLine(filledCount);
-                    return false;
-                }
                 var candidatesAndPositions = OrderCandidates(candidates);
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
@@ -81,7 +68,6 @@ namespace lib.Strategies
                     {
                         any = true;
                         Fill(candidate);
-                        filledCount++;
                         candidates.Remove(candidate);
                         foreach (var n in neighbors)
                         {
@@ -94,13 +80,21 @@ namespace lib.Strategies
                         break;
                     }
                 }
-
+                foreach (var command in Commands)
+                {
+                    yield return command;
+                }
+                Commands.Clear();
                 if (!any)
                     throw new Exception("Can't move");
             }
             Move(Vec.Zero);
             Commands.Add(new Halt());
-            return true;
+            foreach (var command in Commands)
+            {
+                yield return command;
+            }
+            Commands.Clear();
         }
 
         private bool Move(Vec target)
@@ -146,13 +140,10 @@ namespace lib.Strategies
 
         private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(IEnumerable<Vec> candidates)
         {
-            var list = candidates.ToList();
-            list.Sort(comparison);
-            foreach (var candidate in list)
+            foreach (var candidate in candidatesOrdering.Order(candidates, pos))
             {
-                var nearPositions = nears.Select(n => n + candidate).Where(n => n.IsInCuboid(R)).ToList();
-                nearPositions.Sort(comparison);
-                foreach (var nearPosition in nearPositions)
+                var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(R));
+                foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(pos)))
                 {
                     if (oracle.CanFill(candidate, nearPosition))
                     {
@@ -184,6 +175,39 @@ namespace lib.Strategies
                         }
                     }
             return result;
+        }
+    }
+
+    public interface ICandidatesOrdering
+    {
+        IEnumerable<Vec> Order(IEnumerable<Vec> candidates, Vec bot);
+    }
+
+    public class BottomToTopBuildingAround : ICandidatesOrdering
+    {
+        public IEnumerable<Vec> Order(IEnumerable<Vec> candidates, Vec bot)
+        {
+            var nears = bot.GetNears().ToHashSet();
+            return candidates.OrderBy(c => c.Y).ThenByDescending(c => nears.Contains(c)).ThenBy(c => c.MDistTo(bot));
+        }
+    }
+
+    public class BuildAllStayingStill : ICandidatesOrdering
+    {
+        private readonly Func<Vec, Vec, double> keySelector;
+
+        public BuildAllStayingStill(Func<Vec, Vec, double> keySelector = null)
+        {
+            this.keySelector = keySelector ?? ((p, b) => p.MDistTo(b));
+        }
+
+        public IEnumerable<Vec> Order(IEnumerable<Vec> candidates, Vec bot)
+        {
+            var nears = bot.GetNears().ToHashSet();
+            return candidates
+                .GroupBy(cand => nears.Contains(cand))
+                .OrderByDescending(g => g.Key)
+                .SelectMany(g => g.OrderBy(p => keySelector(p, bot)));
         }
     }
 }
