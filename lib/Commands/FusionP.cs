@@ -28,16 +28,14 @@ namespace lib.Commands
             return new[] {(byte)((shift.GetParameter() << 3) | 0b111)};
         }
 
-        public override bool CanApply(MutableState state, Bot bot)
+        public override bool AllPositionsAreValid([NotNull] IMatrix matrix, Bot bot)
         {
             var pos = bot.Position + shift;
-            if (!state.BuildingMatrix.IsInside(bot.Position))
+            if (!matrix.IsInside(bot.Position))
                 return false;
-            if (!state.BuildingMatrix.IsInside(pos))
+            if (!matrix.IsInside(pos))
                 return false;
-
-            var secondaryBot = state.Bots.SingleOrDefault(x => x.Position == pos);
-            return secondaryBot != null;
+            return true;
         }
 
         protected override void DoApply(MutableState mutableState, Bot bot)
@@ -49,11 +47,19 @@ namespace lib.Commands
             mutableState.Energy -= 24;
         }
 
-        [NotNull]
-        public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override void Apply(DeluxeState state, Bot bot)
         {
-            var secondaryBot = GetSecondaryBot(mutableState, bot);
-            return new[] {bot.Position, secondaryBot.Position};
+            var secondaryBot = GetSecondaryBot(state, bot);
+            state.Bots.Remove(secondaryBot);
+            bot.Seeds.Add(secondaryBot.Bid);
+            bot.Seeds.AddRange(secondaryBot.Seeds);
+            state.Energy -= 24;
+        }
+
+        [NotNull]
+        public override Vec[] GetVolatileCells([NotNull] Bot bot)
+        {
+            return new[] {bot.Position, bot.Position + shift };
         }
 
         [NotNull]
@@ -61,6 +67,13 @@ namespace lib.Commands
         {
             var pos = bot.Position + shift;
             return mutableState.Bots.Single(x => x.Position == pos);
+        }
+
+        [NotNull]
+        private Bot GetSecondaryBot([NotNull] DeluxeState state, [NotNull] Bot bot)
+        {
+            var pos = bot.Position + shift;
+            return state.Bots.Single(x => x.Position == pos);
         }
     }
 }

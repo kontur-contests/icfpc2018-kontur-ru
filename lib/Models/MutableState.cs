@@ -57,10 +57,10 @@ namespace lib.Models
                           ? 30 * targetMatrix.R * targetMatrix.R * targetMatrix.R
                           : 3 * targetMatrix.R * targetMatrix.R * targetMatrix.R;
             Energy += 20 * Bots.Count;
-            
+
             var volatileCells =
                 from bc in botCommands
-                from cell in bc.command.GetVolatileCells(this, bc.bot)
+                from cell in bc.command.GetVolatileCells(bc.bot)
                 select new { bc, cell };
             var groups = volatileCells.GroupBy(c => c.cell).ToList();
             var badGroup = groups.FirstOrDefault(g => g.Count() > 1);

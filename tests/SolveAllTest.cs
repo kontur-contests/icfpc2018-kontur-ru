@@ -57,7 +57,7 @@ namespace tests
         [Explicit]
         //[Timeout(30000)]
         public void SolveOne(
-            [Values(104)] int problemId
+            [Values(1)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
@@ -165,11 +165,8 @@ namespace tests
 
         private long Validate([NotNull] Matrix problem, [NotNull] ICommand[] solution)
         {
-            var state = new MutableState(problem);
-            var queue = new Queue<ICommand>(solution);
-            while (queue.Any())
-                state.Tick(queue);
-            state.EnsureIsFinal();
+            var state = new DeluxeState(null, problem);
+            new Interpreter(state).Run(solution);
             return state.Energy;
         }
     }

@@ -18,13 +18,9 @@ namespace lib.Commands
             return "Halt()";
         }
 
-        public override bool CanApply(MutableState state, Bot bot)
+        public override bool AllPositionsAreValid([NotNull] IMatrix matrix, Bot bot)
         {
             if (bot.Position.MLen() != 0)
-                return false;
-            if (state.Bots.Count > 1)
-                return false;
-            if (state.Harmonics != Harmonics.Low)
                 return false;
             return true;
         }
@@ -34,8 +30,13 @@ namespace lib.Commands
             mutableState.Bots.Clear();
         }
 
+        public override void Apply(DeluxeState state, Bot bot)
+        {
+            state.Bots.Clear();
+        }
+
         [NotNull]
-        public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override Vec[] GetVolatileCells([NotNull] Bot bot)
         {
             return new[] {bot.Position};
         }

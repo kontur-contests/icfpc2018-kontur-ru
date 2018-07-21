@@ -6,13 +6,13 @@ using lib.Utils;
 
 namespace lib.Commands
 {
-    public class Voidd : BaseCommand
+    public class Void : BaseCommand
     {
         public NearDifference Shift { get; }
 
-        public Voidd(NearDifference shift)
+        public Void(NearDifference shift)
         {
-            this.Shift = shift;
+            Shift = shift;
         }
 
         public override string ToString()
@@ -26,9 +26,9 @@ namespace lib.Commands
             return new [] {(byte)((Shift.GetParameter() << 3) | 0b010)};
         }
 
-        public override bool CanApply(MutableState state, Bot bot)
+        public override bool AllPositionsAreValid([NotNull] IMatrix matrix, Bot bot)
         {
-            return state.BuildingMatrix.IsInside(GetPosition(bot));
+            return matrix.IsInside(GetPosition(bot));
         }
 
         protected override void DoApply(MutableState mutableState, Bot bot)
@@ -45,8 +45,22 @@ namespace lib.Commands
             }
         }
 
+        public override void Apply(DeluxeState state, Bot bot)
+        {
+            var pos = GetPosition(bot);
+            if (state.Matrix.IsFilledVoxel(pos))
+            {
+                state.Energy -= 12;
+                state.Matrix.Void(pos);
+            }
+            else
+            {
+                state.Energy += 3;
+            }
+        }
+
         [NotNull]
-        public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override Vec[] GetVolatileCells([NotNull] Bot bot)
         {
             return new[] {bot.Position, GetPosition(bot)};
         }

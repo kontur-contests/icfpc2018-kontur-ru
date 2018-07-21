@@ -182,11 +182,11 @@ namespace lib.Utils
                    && z >= 0 && z < r;
         }
 
-        public bool IsInRange(Range range)
+        public bool IsInRegion(Region region)
         {
-            return x >= range.Start.X && x < range.End.X
-                   && y >= range.Start.Y && y < range.End.Y
-                   && z >= range.Start.Z && z < range.End.Z;
+            return x >= region.Start.X && x <= region.End.X
+                   && y >= region.Start.Y && y <= region.End.Y
+                   && z >= region.Start.Z && z <= region.End.Z;
         }
     }
 }

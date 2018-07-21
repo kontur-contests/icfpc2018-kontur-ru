@@ -17,7 +17,7 @@ namespace lib.Strategies
         private readonly bool[,,] whatToFill;
         private readonly bool[,,] state;
         private Vec[] pos;
-        private Range[] ranges;
+        private Region[] regions;
         private readonly IOracle oracle;
         private readonly int R;
         private static readonly Vec[] neighbors =
@@ -50,17 +50,17 @@ namespace lib.Strategies
                 yield return new Fission(new NearDifference(new Vec(0, 0, 1)), N - i - 2);
             }
             pos = new Vec[N];
-            ranges = new Range[N];
+            regions = new Region[N];
             for (int i = 0; i < N; i++)
             {
                 pos[i] = new Vec(0, 0, i);
-                ranges[i] = Range.ForShift(new Vec(i % Nx * BlockSizeX, 0, i / Nx * BlockSizeZ), new Vec(BlockSizeX, R, BlockSizeZ));
+                regions[i] = Region.ForShift(new Vec(i % Nx * BlockSizeX, 0, i / Nx * BlockSizeZ), new Vec(BlockSizeX - 1, R - 1, BlockSizeZ - 1));
             }
 
             for (int i = N - 1; i >= 0; i--)
             {
                 var volatiles = pos.ToHashSet();
-                var target = ranges[i].Start;
+                var target = regions[i].Start;
                 var commands = new PathFinder(state, pos[i], target, volatiles, null).TryFindPath();
                 if (commands == null)
                     throw new InvalidOperationException($"Failed to find path from {pos[i]} to {target}");
@@ -161,7 +161,7 @@ namespace lib.Strategies
                         {
                             var neighbor = candidate + n;
                             if (neighbor.IsInCuboid(R)
-                                && neighbor.IsInRange(ranges[bot])
+                                && neighbor.IsInRegion(regions[bot])
                                 && whatToFill.Get(neighbor)
                                 && !state.Get(neighbor))
                                 candidates.Add(neighbor);
@@ -185,7 +185,7 @@ namespace lib.Strategies
 
         private bool Move(int bot, Vec target, List<ICommand> commands)
         {
-            var pathFinder = new PathFinder(state, pos[bot], target, null, ranges[bot]);
+            var pathFinder = new PathFinder(state, pos[bot], target, null, regions[bot]);
             var path = pathFinder.TryFindPath();
             if (path == null) return false;
             commands.AddRange(path);
@@ -202,7 +202,7 @@ namespace lib.Strategies
 
         private bool IsInBotRange(Vec vec, int bot)
         {
-            return vec.IsInRange(ranges[bot]);
+            return vec.IsInRegion(regions[bot]);
         }
 
         private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(int bot, HashSet<Vec> candidates)

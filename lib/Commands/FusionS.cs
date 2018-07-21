@@ -1,5 +1,3 @@
-using System.Linq;
-
 using JetBrains.Annotations;
 
 using lib.Models;
@@ -28,16 +26,14 @@ namespace lib.Commands
             return new[] {(byte)((shift.GetParameter() << 3) | 0b110)};
         }
 
-        public override bool CanApply(MutableState state, Bot bot)
+        public override bool AllPositionsAreValid([NotNull] IMatrix matrix, Bot bot)
         {
             var pos = bot.Position + shift;
-            if (!state.BuildingMatrix.IsInside(bot.Position))
+            if (!matrix.IsInside(bot.Position))
                 return false;
-            if (!state.BuildingMatrix.IsInside(pos))
+            if (!matrix.IsInside(pos))
                 return false;
-
-            var secondaryBot = state.Bots.SingleOrDefault(x => x.Position == pos);
-            return secondaryBot != null;
+            return true;
         }
 
         protected override void DoApply(MutableState mutableState, Bot bot)
@@ -45,8 +41,12 @@ namespace lib.Commands
             // The whole work is done in FusionP
         }
 
+        public override void Apply(DeluxeState state, Bot bot)
+        {
+            // The whole work is done in FusionP
+        }
 
-        public override Vec[] GetVolatileCells(MutableState mutableState, Bot bot)
+        public override Vec[] GetVolatileCells(Bot bot)
         {
             // Both volatile cells are in FusionP
             return new Vec[0];

@@ -9,8 +9,9 @@ namespace lib.Commands
     {
         byte[] Encode();
         void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot);
-        bool CanApply([NotNull] MutableState state, [NotNull] Bot bot);
+        void Apply([NotNull] DeluxeState state, [NotNull] Bot bot);
+        bool AllPositionsAreValid([NotNull] IMatrix matrix, [NotNull] Bot bot);
         [NotNull]
-        Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot);
+        Vec[] GetVolatileCells([NotNull] Bot bot);
     }
 }

@@ -31,11 +31,11 @@ namespace lib.Commands
             return new[] {firstByte, secondByte};
         }
 
-        public override bool CanApply(MutableState state, Bot bot)
+        public override bool AllPositionsAreValid([NotNull] IMatrix matrix, Bot bot)
         {
-            if (!state.BuildingMatrix.IsInside(bot.Position + shift))
+            if (!matrix.IsInside(bot.Position + shift))
                 return false;
-            return GetCellsOnPath(bot.Position).All(x => state.BuildingMatrix.IsVoidVoxel(x));
+            return GetCellsOnPath(bot.Position).All(matrix.IsVoidVoxel);
         }
 
         protected override void DoApply(MutableState mutableState, Bot bot)
@@ -44,8 +44,14 @@ namespace lib.Commands
             mutableState.Energy += 2 * shift.Shift.MLen();
         }
 
+        public override void Apply(DeluxeState state, Bot bot)
+        {
+            bot.Position = bot.Position + shift;
+            state.Energy += 2 * shift.Shift.MLen();
+        }
+
         [NotNull]
-        public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override Vec[] GetVolatileCells([NotNull] Bot bot)
         {
             return GetCellsOnPath(bot.Position);
         }
