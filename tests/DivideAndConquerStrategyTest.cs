@@ -51,51 +51,43 @@ namespace tests
                     exceptionInfo = DoTest(solver, shortname);
                 });
             thread.Start();
-            try
+            if (!thread.Join(TimeSpan.FromSeconds(10)))
             {
-                thread.Join(TimeSpan.FromSeconds(5));
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Aboring due to: {e}");
                 thread.Abort();
                 Assert.Fail("Test aborted due to timeout");
             }
-            finally
-            {
-                if (exceptionInfo != null)
-                    throw exceptionInfo;
+            if (exceptionInfo != null)
+                throw exceptionInfo;
 
-                sw.Stop();
-                var energy = solver.State.Energy;
+            sw.Stop();
+            var energy = solver.State.Energy;
 
-                var testResult = new ElasticTestResult
-                    {
-                        TestName = shortname,
-                        TimeSpent = sw.Elapsed,
-                        Energy = energy,
-                        StartTime = startTime,
-                        AlgoVersion = "lowceil-5x4",
-                    };
-
-                const string elasticUrl = "http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io";
-            
-                var client = new ElasticClient(new ConnectionSettings(new Uri(elasticUrl)).DefaultMappingFor<ElasticTestResult>(x => x.IndexName("localrunresults")));
-
-                client.IndexDocument(testResult);
-
-                var searchResponse = client.Search<ElasticTestResult>(s => s.Query(q => q.Match(m => m.Field(f => f.TestName).Query(shortname))));
-
-                var results = searchResponse?.Documents?.ToList() ?? new List<ElasticTestResult>();
-
-                var minEnergyRes = results.OrderBy(x => x.Energy).FirstOrDefault() ?? testResult;
-                if (minEnergyRes.Energy < energy)
+            var testResult = new ElasticTestResult
                 {
-                    Assert.Fail($"Not the best energy ({minEnergyRes.Energy} < {energy} in {minEnergyRes.AlgoVersion})");
-                }
-                
-                Console.WriteLine($"Energy: {solver.State.Energy}");
+                    TestName = shortname,
+                    TimeSpent = sw.Elapsed,
+                    Energy = energy,
+                    StartTime = startTime,
+                    AlgoVersion = "lowceil-5x4",
+                };
+
+            const string elasticUrl = "http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io";
+        
+            var client = new ElasticClient(new ConnectionSettings(new Uri(elasticUrl)).DefaultMappingFor<ElasticTestResult>(x => x.IndexName("localrunresults")));
+
+            client.IndexDocument(testResult);
+
+            var searchResponse = client.Search<ElasticTestResult>(s => s.Query(q => q.Match(m => m.Field(f => f.TestName).Query(shortname))));
+
+            var results = searchResponse?.Documents?.ToList() ?? new List<ElasticTestResult>();
+
+            var minEnergyRes = results.OrderBy(x => x.Energy).FirstOrDefault() ?? testResult;
+            if (minEnergyRes.Energy < energy)
+            {
+                Assert.Fail($"Not the best energy ({minEnergyRes.Energy} < {energy} in {minEnergyRes.AlgoVersion})");
             }
+            
+            Console.WriteLine($"Energy: {solver.State.Energy}");
         }
 
         private Exception DoTest(DivideAndConquer solver, string shortname)
