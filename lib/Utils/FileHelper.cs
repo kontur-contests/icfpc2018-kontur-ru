@@ -6,9 +6,9 @@ namespace lib.Utils
     public static class FileHelper
     {
         public static string DataDir => PatchDirectoryName("data");
-        public static string ProblemsDir => Path.Combine(DataDir, "problemsL");
+        public static string ProblemsDir => Path.Combine(DataDir, "problemsF");
         public static string SolutionsDir => Path.Combine(DataDir, "solutions");
-        public static string DefaultTracesDir => Path.Combine(DataDir, "dfltTracesL");
+        public static string DefaultTracesDir => Path.Combine(DataDir, "dfltTracesF");
 
         public static string PatchFilename(string filename, string baseDirectoryPath = null)
         {

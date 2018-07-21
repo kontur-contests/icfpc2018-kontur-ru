@@ -8,6 +8,6 @@
   </metadata>
   <files>
     <file src="net471\**" target="lib\net471" />
-    <file src="..\..\..\data\problemsL\**" target="data\problemsL" />
+    <file src="..\..\..\data\problemsF\**" target="data\problemsF" />
   </files>
 </package>

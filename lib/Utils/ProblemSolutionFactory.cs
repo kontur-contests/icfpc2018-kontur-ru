@@ -28,6 +28,7 @@ namespace lib.Utils
             return Directory
                 .EnumerateFiles(FileHelper.ProblemsDir)
                 .ToArray()
+                .Where(x => Path.GetFileName(x).StartsWith("FA")) // TODO learn to disassemble/reassemble
                 .Where(x => string.Equals(Path.GetExtension(x), ".mdl"))
                 .Select(x => new Problem
                 {
