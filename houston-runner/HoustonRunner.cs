@@ -40,15 +40,12 @@ namespace houston
 
             var tasks = ProblemSolutionFactory.GetTasks();
 
-            var lowerBound = (replicaNumber - 1) / replicaCount * tasks.Length;
-            var upperBound = replicaNumber / replicaCount * tasks.Length;
-
             var selectedTasks = tasks
-                .Where((x, i) => i >= lowerBound && i < upperBound) // TODO: Check if correct
+                .Where(task => ((uint) task.Problem.Name.GetHashCode()) % replicaCount == replicaNumber - 1)
                 .ToArray();
 
             context.Log.Info($"Replica # {replicaNumber} of {replicaCount}: " +
-                             $"running {selectedTasks.Length} of {tasks.Length} tasks ({lowerBound} to {upperBound})");
+                             $"running {selectedTasks.Length} of {tasks.Length} tasks");
 
             while (!context.CancellationToken.IsCancellationRequested)
             {
