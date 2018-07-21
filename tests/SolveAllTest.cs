@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using JetBrains.Annotations;
+
 using lib;
 using lib.Commands;
 using lib.Models;
@@ -40,16 +42,14 @@ namespace tests
                     }
                     var commands = solver.Commands.ToArray();
 
-                    // todo (andrew, 21.07.2018): Валидация работает некорректно :-(
-                    /*if (!TryValidate(problem, commands, p))
-                        return;*/
+                    TryValidate(problem, commands, p);
 
                     var bytes = CommandSerializer.Save(commands);
                     File.WriteAllBytes(Path.Combine(resultsDir, $"{Path.GetFileNameWithoutExtension(p).Split('_')[0]}.nbt"), bytes);
                 });
         }
 
-        private bool TryValidate(Matrix problem, ICommand[] commands, string p)
+        private void TryValidate(Matrix problem, ICommand[] commands, string p)
         {
             try
             {
@@ -58,12 +58,10 @@ namespace tests
             catch (Exception e)
             {
                 Log.For(this).Error($"Invalid solution for {Path.GetFileName(p)}", e);
-                return false;
             }
-            return true;
         }
 
-        private void Validate(Matrix problem, ICommand[] solution)
+        private void Validate([NotNull] Matrix problem, [NotNull] ICommand[] solution)
         {
             var state = new MutableState(problem);
             var queue = new Queue<ICommand>(solution);

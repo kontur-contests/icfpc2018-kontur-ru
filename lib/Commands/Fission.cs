@@ -34,9 +34,9 @@ namespace lib.Commands
         {
             if (bot.Seeds.Count < m + 1)
                 return false;
-            if (!state.Matrix.IsInside(bot.Position + shift))
+            if (!state.BuildingMatrix.IsInside(bot.Position + shift))
                 return false;
-            if (!state.Matrix.IsVoidVoxel(bot.Position + shift))
+            if (!state.BuildingMatrix.IsVoidVoxel(bot.Position + shift))
                 return false;
             return true;
         }

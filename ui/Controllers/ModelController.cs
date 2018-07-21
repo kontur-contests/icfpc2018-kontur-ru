@@ -63,12 +63,12 @@ namespace ui.Controllers
 
                     var newFilledVoxels = new ArrayList();
                     
-                    for (var x = 0; x < state.Matrix.R; ++x)
-                    for (var y = 0; y < state.Matrix.R; ++y)
-                    for (var z = 0; z < state.Matrix.R; ++z)
+                    for (var x = 0; x < state.BuildingMatrix.R; ++x)
+                    for (var y = 0; y < state.BuildingMatrix.R; ++y)
+                    for (var z = 0; z < state.BuildingMatrix.R; ++z)
                     {
                         var vec = new Vec(x, y, z);
-                        if (state.Matrix[x, y, z] && !filledVoxels.Contains(vec))
+                        if (state.BuildingMatrix[x, y, z] && !filledVoxels.Contains(vec))
                         {
                             newFilledVoxels.Add(vec);
                             filledVoxels.Add(vec);
@@ -77,7 +77,7 @@ namespace ui.Controllers
 
                     results.Add(new TickResult
                         {
-                            R = state.Matrix.R,
+                            R = state.BuildingMatrix.R,
                             change = newFilledVoxels,
                             bots = state.Bots
                                 .Select(x => Tuple.Create(x.Position.X, x.Position.Y, x.Position.Z))

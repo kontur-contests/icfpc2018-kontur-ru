@@ -33,9 +33,9 @@ namespace lib.Commands
 
         public override bool CanApply(MutableState state, Bot bot)
         {
-            if (!state.Matrix.IsInside(bot.Position + shift))
+            if (!state.BuildingMatrix.IsInside(bot.Position + shift))
                 return false;
-            return GetCellsOnPath(bot).All(x => state.Matrix.IsVoidVoxel(x));
+            return GetCellsOnPath(bot).All(x => state.BuildingMatrix.IsVoidVoxel(x));
         }
 
         protected override void DoApply(MutableState mutableState, Bot bot)

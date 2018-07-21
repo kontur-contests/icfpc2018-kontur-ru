@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using JetBrains.Annotations;
+
 using lib.Commands;
 using lib.Utils;
 
@@ -9,22 +11,23 @@ namespace lib.Models
 {
     public class MutableState
     {
-        public MutableState()
-        {
-        }
+        [NotNull]
+        private readonly Matrix targetMatrix;
 
-        public MutableState(Matrix problem)
+        public MutableState([NotNull] Matrix targetMatrix)
         {
+            this.targetMatrix = targetMatrix;
             Bots = new List<Bot> {new Bot {Bid = 1, Position = Vec.Zero, Seeds = Enumerable.Range(2, 19).ToList()}};
             Energy = 0;
             Harmonics = Harmonics.Low;
-            Matrix = new ComponentTrackingMatrix(problem);
+            BuildingMatrix = new ComponentTrackingMatrix(new Matrix(targetMatrix.N));
         }
 
         public long Energy { get; set; }
         public Harmonics Harmonics { get; set; }
-        public ComponentTrackingMatrix Matrix { get; set; }
-            public List<Bot> Bots { get; set; }
+
+        public ComponentTrackingMatrix BuildingMatrix { get; set; }
+        public List<Bot> Bots { get; set; }
 
         public void Tick(Queue<ICommand> trace)
         {
@@ -52,12 +55,17 @@ namespace lib.Models
         public void EnsureIsFinal()
         {
             if (Bots.Any())
-                throw new InvalidOperationException($"State is not final");
+                throw new InvalidOperationException("State is not final");
+            for (int i = 0; i < targetMatrix.N; i++)
+                for (int j = 0; j < targetMatrix.N; j++)
+                    for (int k = 0; k < targetMatrix.N; k++)
+                        if (targetMatrix[i, j, k] != BuildingMatrix[i, j, k])
+                            throw new InvalidOperationException("BuildingMatrix differs from targetMatrix");
         }
 
         public void EnsureWellFormed()
         {
-            if (Harmonics == Harmonics.Low && Matrix.HasNonGroundedVoxels)
+            if (Harmonics == Harmonics.Low && BuildingMatrix.HasNonGroundedVoxels)
             {
                 throw new InvalidOperationException($"Low Harmonics while non grounded voxel present");
             }
