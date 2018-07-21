@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using lib.Commands;
-using lib.Models;
 using lib.Primitives;
 
 namespace lib.Utils
@@ -131,12 +130,6 @@ namespace lib.Utils
                     }
                 }
             }
-        }
-
-        private bool Get(Vec res)
-        {
-            return state.Get(res) || 
-                blockedBefore != null && blockedBefore[res] >= timer;
         }
     }
 }

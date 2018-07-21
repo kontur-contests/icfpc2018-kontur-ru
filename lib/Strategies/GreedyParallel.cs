@@ -119,7 +119,7 @@ namespace lib.Strategies
 
         private bool Move(int index, Vec target)
         {
-            var pathFinder = new PathFinder(filled.Voxels, bots[index].Position, target, blockedBefore, Timer);
+            var pathFinder = new PathFinder(filled.Voxels, bots[index].Position, target, null, null/*, blockedBefore, Timer*/);
             var path = pathFinder.TryFindPath();
             if (path == null) return false;
 

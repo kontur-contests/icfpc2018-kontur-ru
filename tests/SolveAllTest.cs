@@ -45,15 +45,12 @@ namespace tests
             }
             finally
             {
-                var bytes = CommandSerializer.Save(commands);
+                var bytes = CommandSerializer.Save(commands.ToArray());
                 File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
             }
 
             var solutionEnergy = GetSolutionEnergy(matrix, commands.ToArray(), problemFile);
             Console.WriteLine(solutionEnergy);
-
-            var bytes = CommandSerializer.Save(commands.ToArray());
-            File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
             Console.WriteLine(ThrowableHelper.opt.ToDetailedString());
         }
 
