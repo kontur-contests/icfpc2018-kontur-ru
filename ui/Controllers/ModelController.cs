@@ -77,6 +77,7 @@ namespace ui.Controllers
 
                     results.Add(new TickResult
                         {
+                            R = state.Matrix.R,
                             change = newFilledVoxels,
                             bots = state.Bots
                                 .Select(x => Tuple.Create(x.Position.X, x.Position.Y, x.Position.Z))
@@ -91,16 +92,11 @@ namespace ui.Controllers
 
             return results;
         }
-
-        public struct TickState
-        {
-            public Matrix matrix;
-            public IEnumerable bots;
-        }
     }
 
     public struct TickResult
     {
+        public int R;
         public ArrayList change;
         public Tuple<int, int, int>[] bots;
     }

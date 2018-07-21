@@ -24,7 +24,7 @@ namespace lib.Models
         public long Energy { get; set; }
         public Harmonics Harmonics { get; set; }
         public ComponentTrackingMatrix Matrix { get; set; }
-        public List<Bot> Bots { get; set; }
+            public List<Bot> Bots { get; set; }
 
         public void Tick(Queue<ICommand> trace)
         {
