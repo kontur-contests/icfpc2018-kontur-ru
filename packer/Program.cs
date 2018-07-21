@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -52,6 +53,11 @@ namespace packer
             Console.WriteLine("Submitting the solution...");
             var result = SubmitSolution(link, hash, secretKey);
             Console.WriteLine($"  {result}");
+
+            if (result.Contains("failure"))
+            {
+                Environment.Exit(1);
+            }
         }
 
         private static List<string> DownloadSolutionsFromElastic()
