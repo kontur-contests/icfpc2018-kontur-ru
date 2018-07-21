@@ -38,15 +38,6 @@ namespace lib.Commands
             return true;
         }
 
-        protected override void DoApply(MutableState mutableState, Bot bot)
-        {
-            var secondaryBot = GetSecondaryBot(mutableState, bot);
-            mutableState.Bots.Remove(secondaryBot);
-            bot.Seeds.Add(secondaryBot.Bid);
-            bot.Seeds.AddRange(secondaryBot.Seeds);
-            mutableState.Energy -= 24;
-        }
-
         public override void Apply(DeluxeState state, Bot bot)
         {
             var secondaryBot = GetSecondaryBot(state, bot);
@@ -60,13 +51,6 @@ namespace lib.Commands
         public override Vec[] GetVolatileCells([NotNull] Bot bot)
         {
             return new[] {bot.Position, bot.Position + shift };
-        }
-
-        [NotNull]
-        private Bot GetSecondaryBot([NotNull] MutableState mutableState, [NotNull] Bot bot)
-        {
-            var pos = bot.Position + shift;
-            return mutableState.Bots.Single(x => x.Position == pos);
         }
 
         [NotNull]

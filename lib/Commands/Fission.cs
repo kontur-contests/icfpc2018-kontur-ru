@@ -41,21 +41,6 @@ namespace lib.Commands
             return true;
         }
 
-        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
-        {
-            var bids = bot.Seeds.Take(m + 1).ToArray();
-
-            bot.Seeds = bot.Seeds.Skip(m + 1).ToList();
-            var newBot = new Bot
-                {
-                    Bid = bids.First(),
-                    Position = bot.Position + shift,
-                    Seeds = bids.Skip(1).ToList(),
-                };
-            mutableState.Bots.Add(newBot);
-            mutableState.Energy += 24;
-        }
-
         public override void Apply(DeluxeState state, Bot bot)
         {
             var bids = bot.Seeds.Take(m + 1).ToArray();

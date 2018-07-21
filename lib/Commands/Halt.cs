@@ -25,11 +25,6 @@ namespace lib.Commands
             return true;
         }
 
-        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
-        {
-            mutableState.Bots.Clear();
-        }
-
         public override void Apply(DeluxeState state, Bot bot)
         {
             state.Bots.Clear();

@@ -22,11 +22,6 @@ namespace lib.Commands
             return true;
         }
 
-        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
-        {
-            mutableState.Harmonics = mutableState.Harmonics == Harmonics.High ? Harmonics.Low : Harmonics.High;
-        }
-
         public override void Apply(DeluxeState state, Bot bot)
         {
             state.Harmonics = state.Harmonics == Harmonics.High ? Harmonics.Low : Harmonics.High;

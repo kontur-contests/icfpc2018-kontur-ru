@@ -31,20 +31,6 @@ namespace lib.Commands
             return GetPosition(bot).IsInCuboid(matrix.R);
         }
 
-        protected override void DoApply(MutableState mutableState, Bot bot)
-        {
-            var pos = GetPosition(bot);
-            if (mutableState.BuildingMatrix.IsVoidVoxel(pos))
-            {
-                mutableState.Energy += 12;
-                mutableState.BuildingMatrix.Fill(pos);
-            }
-            else
-            {
-                mutableState.Energy += 6;
-            }
-        }
-
         public override void Apply(DeluxeState state, Bot bot)
         {
             var pos = GetPosition(bot);

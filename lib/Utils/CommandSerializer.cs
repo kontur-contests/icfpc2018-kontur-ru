@@ -9,8 +9,6 @@ using JetBrains.Annotations;
 using lib.Commands;
 using lib.Primitives;
 
-using Void = lib.Commands.Void;
-
 namespace lib.Utils
 {
     public static class Compressor
@@ -92,7 +90,7 @@ namespace lib.Utils
             if (firstByte.TryExtractMask("*****011", out var fillNearDistance))
                 return new Fill(new NearDifference(fillNearDistance));
             if (firstByte.TryExtractMask("*****010", out var voidNearDistance))
-                return new Void(new NearDifference(voidNearDistance));
+                return new Voidd(new NearDifference(voidNearDistance));
             
             var secondByte = binaryReader.ReadByte();
             if (firstByte.TryExtractMask("00**0100", out var sMoveA) &&

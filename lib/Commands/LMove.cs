@@ -43,12 +43,6 @@ namespace lib.Commands
             return GetCellsOnPath(bot.Position).All(matrix.IsVoidVoxel);
         }
 
-        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
-        {
-            bot.Position = bot.Position + firstShift + secondShift;
-            mutableState.Energy += 2 * (firstShift.Shift.MLen() + 2 + secondShift.Shift.MLen());
-        }
-
         public override void Apply(DeluxeState state, Bot bot)
         {
             bot.Position = bot.Position + firstShift + secondShift;

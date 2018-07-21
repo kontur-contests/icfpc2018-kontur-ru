@@ -8,7 +8,6 @@ namespace lib.Commands
     public interface ICommand
     {
         byte[] Encode();
-        void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot);
         void Apply([NotNull] DeluxeState state, [NotNull] Bot bot);
         bool AllPositionsAreValid([NotNull] IMatrix matrix, [NotNull] Bot bot);
         [NotNull]

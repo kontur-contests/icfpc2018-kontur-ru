@@ -41,24 +41,6 @@ namespace lib.Commands
             // * It is also an error if any coordinate boti.pos is a member of region r.
         }
 
-        protected override void DoApply(MutableState mutableState, Bot bot)
-        {
-            var range = GetRegion(bot.Position);
-
-            foreach (var pos in range)
-            {
-                if (mutableState.BuildingMatrix.IsFilledVoxel(pos))
-                {
-                    mutableState.BuildingMatrix.Void(pos);
-                    mutableState.Energy -= 12;
-                }
-                else
-                {
-                    mutableState.Energy += 3;
-                }
-            }
-        }
-
         public override void Apply(DeluxeState state, Bot bot)
         {
             var range = GetRegion(bot.Position);

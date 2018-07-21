@@ -117,13 +117,8 @@ namespace houston
 
                         exceptionDispatchInfo?.Throw();
 
-                        var state = new MutableState(task.Problem.SourceMatrix);
-                        var queue = new Queue<ICommand>(commands);
-                        while (queue.Any())
-                        {
-                            state.Tick(queue);
-                        }
-                        state.EnsureIsFinal();
+                        var state = new DeluxeState(task.Problem.SourceMatrix, task.Problem.TargetMatrix);
+                        new Interpreter(state).Run(commands);
 
                         result.SecondsSpent = (int)timer.Elapsed.TotalSeconds;
                         result.EnergySpent = state.Energy;

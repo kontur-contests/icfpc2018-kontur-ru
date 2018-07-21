@@ -28,11 +28,6 @@ namespace lib.Commands
             return true;
         }
 
-        protected override void DoApply([NotNull] MutableState mutableState, [NotNull] Bot bot)
-        {
-            // Just wait
-        }
-
         [NotNull]
         public override Vec[] GetVolatileCells([NotNull] Bot bot)
         {

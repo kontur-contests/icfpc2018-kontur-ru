@@ -36,11 +36,6 @@ namespace lib.Commands
             return true;
         }
 
-        protected override void DoApply(MutableState mutableState, Bot bot)
-        {
-            // The whole work is done in FusionP
-        }
-
         public override void Apply(DeluxeState state, Bot bot)
         {
             // The whole work is done in FusionP

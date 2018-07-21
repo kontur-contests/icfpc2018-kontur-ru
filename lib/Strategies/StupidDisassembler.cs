@@ -14,7 +14,7 @@ namespace lib.Strategies
     public class StupidDisassembler : IAmSolver
     {
         private readonly Matrix source;
-        private MutableState state;
+        private DeluxeState state;
 
         public StupidDisassembler(Matrix source)
         {
@@ -22,30 +22,31 @@ namespace lib.Strategies
         }
         public IEnumerable<ICommand> Solve()
         {
-            state = new MutableState(source, new Matrix(source.R));
+            state = new DeluxeState(source, new Matrix(source.R));
+            var bot = state.Bots.First();
             while (true)
             {
-                var shift = Math.Min(15, source.R - state.Bots[0].Position.Y - 1);
+                var shift = Math.Min(15, source.R - bot.Position.Y - 1);
                 yield return SimulateCommand(new SMove(new LongLinearDifference(new Vec(0, shift, 0))));
                 if (shift < 15) break;
             }
-            while (state.Bots[0].Position.Y > 0)
+            while (bot.Position.Y > 0)
             {
-                var layer = GetLayer(state.BuildingMatrix, state.Bots[0].Position.Y - 1).ToList();
+                var layer = GetLayer(state.Matrix, bot.Position.Y - 1).ToList();
                 if (layer.Count == 0) yield return SimulateCommand(new SMove(new LongLinearDifference(new Vec(0, -1, 0))));
                 else
                 {
-                    var botPos = state.Bots[0].Position;
-                    var target = layer.MinBy(p => p.GetMNeighbours(source).Count(n => state.BuildingMatrix[n])).First();
+                    var botPos = bot.Position;
+                    var target = layer.MinBy(p => p.GetMNeighbours(source).Count(n => state.Matrix[n])).First();
                     if (target.GetNears().Contains(botPos))
                         yield return SimulateCommand(new Voidd(new NearDifference(target-botPos)));
                     else
                         yield return SimulateMoveToTarget(target, botPos);
                 }
             }
-            while (!state.Bots[0].Position.Equals(Vec.Zero))
+            while (!bot.Position.Equals(Vec.Zero))
             {
-                yield return SimulateMoveToTarget(Vec.Zero, state.Bots[0].Position);
+                yield return SimulateMoveToTarget(Vec.Zero, bot.Position);
             }
             yield return SimulateCommand(new Halt());
         }
@@ -66,7 +67,7 @@ namespace lib.Strategies
 
         private ICommand SimulateCommand(ICommand command)
         {
-            state.Tick(new[] { command });
+            new Interpreter(state).Tick(new Queue<ICommand>(new[] { command }));
             return command;
         }
 
