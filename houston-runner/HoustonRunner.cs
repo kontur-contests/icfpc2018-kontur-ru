@@ -21,6 +21,7 @@ namespace houston
     {
         public void Run(IPluginContext<HoustonRunnerProperties> context)
         {
+            
             const string elasticUrl = "http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io";
             const string elasticIndex = "testruns";
             
@@ -32,6 +33,8 @@ namespace houston
                 replicaNumber = 1;
                 replicaCount = 1;
             }
+            
+            context.Log.Info($"Replica # {replicaNumber} of {replicaCount}: preparing...");
 
             var client = new ElasticClient(new ConnectionSettings(new Uri(elasticUrl)).DefaultIndex(elasticIndex));
 
