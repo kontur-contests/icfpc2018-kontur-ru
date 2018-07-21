@@ -49,21 +49,39 @@ namespace ui.Controllers
             var problem = Matrix.Load(System.IO.File.ReadAllBytes("../data/problemsL/LA007_tgt.mdl"));
             var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes("LA007.nbt"));
             
-            var state = new MutableState(problem);
+            var state = new MutableState(new Matrix(problem.R));
             var queue = new Queue<ICommand>(solution);
 
             var results = new ArrayList();
+            var filledVoxels = new ArrayList();
 
             try
             {
                 while (queue.Any())
                 {
-                    results.Add(new TickState
-                        {
-                            matrix = state.Matrix.Clone(),
-                            bots = state.Bots.Select(x => Tuple.Create(x.Position.X, x.Position.Y, x.Position.Z))
-                        });
                     state.Tick(queue);
+
+                    var newFilledVoxels = new ArrayList();
+                    
+                    for (var x = 0; x < state.Matrix.R; ++x)
+                    for (var y = 0; y < state.Matrix.R; ++y)
+                    for (var z = 0; z < state.Matrix.R; ++z)
+                    {
+                        var vec = new Vec(x, y, z);
+                        if (state.Matrix[x, y, z] && !filledVoxels.Contains(vec))
+                        {
+                            newFilledVoxels.Add(vec);
+                            filledVoxels.Add(vec);
+                        }
+                    }
+
+                    results.Add(new TickResult
+                        {
+                            change = newFilledVoxels,
+                            bots = state.Bots
+                                .Select(x => Tuple.Create(x.Position.X, x.Position.Y, x.Position.Z))
+                                .ToArray()
+                        });
                 }
             }
             catch (Exception)
@@ -79,5 +97,11 @@ namespace ui.Controllers
             public Matrix matrix;
             public IEnumerable bots;
         }
+    }
+
+    public struct TickResult
+    {
+        public ArrayList change;
+        public Tuple<int, int, int>[] bots;
     }
 }
