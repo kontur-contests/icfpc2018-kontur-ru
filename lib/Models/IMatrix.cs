@@ -21,6 +21,12 @@ namespace lib.Models
                 0 <= v.Y && v.Y < matrix.R &&
                 0 <= v.Z && v.Z < matrix.R;
         }
+        
+        public static bool IsFilledVoxel(this IMatrix matrix, [NotNull] Vec vec)
+        {
+            return matrix[vec] == true;
+        }
+        
         public static bool IsVoidVoxel(this IMatrix matrix, [NotNull] Vec vec)
         {
             return matrix[vec] == false;
@@ -29,6 +35,11 @@ namespace lib.Models
         public static void Fill(this IMatrix matrix, [NotNull] Vec vec)
         {
             matrix[vec] = true;
+        }
+
+        public static void Void(this IMatrix matrix, [NotNull] Vec vec)
+        {
+            matrix[vec] = false;
         }
     }
 }

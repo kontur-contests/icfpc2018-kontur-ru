@@ -30,6 +30,7 @@ namespace tests
                 new object[] {new FusionS(new NearDifference(new Vec(1, -1, 0))), new byte [] {0b10011110}},
                 new object[] {new Fission(new NearDifference(new Vec(0, 0, 1)), 5), new byte [] {0b01110101, 0b00000101}},
                 new object[] {new Fill(new NearDifference(new Vec(0, -1, 0))), new byte [] {0b01010011}},
+                new object[] {new Void(new NearDifference(new Vec(0, -1, 0))), new byte [] {0b01010010}},
             };
     }
 }
