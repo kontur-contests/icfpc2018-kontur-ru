@@ -35,7 +35,12 @@ export class Visualizer extends React.Component {
       this.canvas,
       this.canvasContainer
     );
-
+    
+    if (this.props.model) {
+      const sizes = modelToSizes(this.props.model)
+      this.visualizer.setSize(sizes.x, sizes.y, sizes.z);
+    } 
+    
     this.doImperativeStuff();
   }
 
@@ -45,18 +50,28 @@ export class Visualizer extends React.Component {
     }
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
+    this.updateSizeIfNeeded(prevProps.model, this.props.model);
     this.doImperativeStuff();
+  }
+
+  updateSizeIfNeeded(prevModel, curModel) {
+    const prevSizes = prevModel && modelToSizes(prevModel)
+    const curSizes = curModel && modelToSizes(curModel);
+
+    if (
+      (!prevModel && curModel) ||
+      prevSizes.x !== curSizes.x ||
+      prevSizes.y !== curSizes.y ||
+      prevSizes.z !== curSizes.z
+    ) {
+      this.visualizer.setSize(curSizes.x, curSizes.y, curSizes.z);
+    }
   }
 
   doImperativeStuff() {
     const { model, bots } = this.props;
     if (model) {
-      this.visualizer.setSize(
-        model.length,
-        model[0].length,
-        model[0][0].length
-      );
       this.visualizer.setMatrixFn(([x, y, z]) => model[x][y][z]);
     }
     if (bots) {
@@ -80,5 +95,13 @@ export class Visualizer extends React.Component {
         />
       </div>
     );
+  }
+}
+
+function modelToSizes(model) {
+  return {
+    x: model.length,
+    y: model[0].length,
+    z: model[0][0].length
   }
 }
