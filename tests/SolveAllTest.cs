@@ -45,12 +45,15 @@ namespace tests
                 Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
                 throw;
             }
+            finally
+            {
+                var bytes = CommandSerializer.Save(commands);
+                File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
+            }
 
             var solutionEnergy = GetSolutionEnergy(matrix, commands, problemFile);
             Console.WriteLine(solutionEnergy);
 
-            var bytes = CommandSerializer.Save(commands);
-            File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
             Console.WriteLine(ThrowableHelper.opt.ToDetailedString());
         }
 

@@ -43,7 +43,7 @@ namespace tests
             Console.WriteLine(filename);
             var content = File.ReadAllBytes(filename);
             var model = Matrix.Load(content);
-            var solver = new DivideAndConquer(model);
+            var solver = new DivideAndConquer(model, true);
             var shortname = Path.GetFileNameWithoutExtension(filename);
             Exception exceptionInfo = null;
             var thread = new Thread(() =>
@@ -68,7 +68,7 @@ namespace tests
                     TimeSpent = sw.Elapsed,
                     Energy = energy,
                     StartTime = startTime,
-                    AlgoVersion = "lowceil-5x4",
+                    AlgoVersion = "lowceil-5x4-bbox",
                 };
 
             const string elasticUrl = "http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io";
@@ -82,9 +82,14 @@ namespace tests
             var results = searchResponse?.Documents?.ToList() ?? new List<ElasticTestResult>();
 
             var minEnergyRes = results.OrderBy(x => x.Energy).FirstOrDefault() ?? testResult;
+            var a = results.Where(x => x.AlgoVersion != testResult.AlgoVersion).OrderBy(x => x.Energy).FirstOrDefault();
             if (minEnergyRes.Energy < energy)
             {
                 Assert.Fail($"Not the best energy ({minEnergyRes.Energy} < {energy} in {minEnergyRes.AlgoVersion})");
+            }
+            else if (a?.Energy > energy)
+            {
+                Assert.Pass($"New best energy ({a.Energy} > {energy} prev in {a.AlgoVersion})");
             }
             
             Console.WriteLine($"Energy: {solver.State.Energy}");

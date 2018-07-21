@@ -85,8 +85,14 @@ namespace lib.Utils
             var s5 = new Solution
             {
                 Name = "Columns",
-                Solver = () => new DivideAndConquer(problem.Matrix)
+                Solver = () => new DivideAndConquer(problem.Matrix, false),
             };
+
+            var s6 = new Solution
+                {
+                    Name = "ColumnsBbx",
+                    Solver = () => new DivideAndConquer(problem.Matrix, true),
+                };
 
             return new[]
                 {
@@ -94,7 +100,8 @@ namespace lib.Utils
                     s2,
                     //s3,
                     s4,
-                    s5
+                    s5,
+                    s6,
                 };
         }
     }
