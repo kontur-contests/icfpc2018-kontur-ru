@@ -32,6 +32,7 @@ namespace tests
                 new object[] {new Fill(new NearDifference(new Vec(0, -1, 0))), new byte [] {0b01010011}},
                 new object[] {new Void(new NearDifference(new Vec(1, 0, 1))), new byte [] {0b10111010}},
                 new object[] {new GFill(new NearDifference(new Vec(0, -1, 0)), new FarDifference(new Vec(10, -15, 20))), new byte[] {0b01010001, 0b00101000, 0b00001111, 0b00110010}},
+                new object[] {new GVoid(new NearDifference(new Vec(1, 0, 0)), new FarDifference(new Vec(5, 5, -5))), new byte[] {0b10110000, 0b00100011, 0b00100011, 0b00011001}},
             };
     }
 }
