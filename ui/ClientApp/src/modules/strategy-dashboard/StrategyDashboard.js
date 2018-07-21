@@ -9,15 +9,24 @@ export class StrategyDashboard extends React.Component {
   };
 
   componentDidMount() {
-    getSolutionResults().then(x => {
-      console.log(x);
-      this.setState({
-        result: x.result,
-        taskNames: x.taskNames,
-        solverNames: x.solverNames
-      });
-    });
+    this.fetchData()
   }
+
+  fetchData = async () => {
+    try {
+      const data = await getSolutionResults()
+      this.setState({
+        result: data.result,
+        taskNames: data.taskNames,
+        solverNames: data.solverNames
+      });
+    } catch (e) {
+    }
+    
+    // await new Promise(resolve => setTimeout(resolve, 15000))
+    
+    // this.fetchData()
+  };
 
   render() {
     return (
@@ -65,10 +74,10 @@ export class StrategyDashboard extends React.Component {
     );
 
     const isSolved = this.state.solverNames.some(isFiniteValue);
-    
-    if ((!isSolved)) {
-      console.log(taskName)
-    } 
+
+    if (!isSolved) {
+      console.log(taskName);
+    }
 
     return (
       <tr key={taskName}>

@@ -91,7 +91,7 @@ export const getSolutionResults = async () => {
     }
   }
 
-  return { result, taskNames: [...taskNames].sort(), solverNames: [...solverNames] };
+  return { result, taskNames: [...taskNames].sort(), solverNames: [...solverNames].sort() };
 };
 
 export function minBy(fn, xs) {

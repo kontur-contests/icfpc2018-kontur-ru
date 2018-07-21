@@ -55,6 +55,7 @@ export function initVisualizer(config, canvas, canvas_container) {
     camera,
     renderer.domElement
   );
+  controls.noKeys = true
   // controls.target.set(0, 0, 0);
 
   function onWindowResize() {
@@ -92,40 +93,40 @@ export function initVisualizer(config, canvas, canvas_container) {
   const objs = new THREE.Group();
   scene.add(objs);
 
-  // const floorMaterial = new THREE.MeshPhongMaterial({
-  //   color: 0x888888,
-  //   side: THREE.DoubleSide
-  // });
-  // const floorGeometry = new THREE.Geometry();
-  // const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  // floor.castShadow = false;
-  // floor.receiveShadow = true;
-  // objs.add(floor);
-  // function resizeFloor() {
-  //   floorGeometry.vertices.length = 0;
-  //   floorGeometry.faces.length = 0;
-  //   floorGeometry.vertices.push(
-  //     new THREE.Vector3(coordToPosX(0), 0, coordToPosZ(0))
-  //   );
-  //   floorGeometry.vertices.push(
-  //     new THREE.Vector3(coordToPosX(0), 0, coordToPosZ(sizeZ))
-  //   );
-  //   floorGeometry.vertices.push(
-  //     new THREE.Vector3(coordToPosX(sizeX), 0, coordToPosZ(0))
-  //   );
-  //   floorGeometry.vertices.push(
-  //     new THREE.Vector3(coordToPosX(sizeX), 0, coordToPosZ(sizeZ))
-  //   );
-  //   floorGeometry.faces.push(new THREE.Face3(0, 1, 3));
-  //   floorGeometry.faces.push(new THREE.Face3(0, 2, 3));
-  //   floorGeometry.computeFaceNormals();
-  //   floorGeometry.verticesNeedUpdate = true;
-  //   floorGeometry.elementsNeedUpdate = true;
-  //   floorGeometry.normalsNeedUpdate = true;
-  //   floorGeometry.computeBoundingBox();
-  //   floorGeometry.computeBoundingSphere();
-  //   floor.position.y = coordToPosY(0);
-  // }
+  const floorMaterial = new THREE.MeshPhongMaterial({
+    color: 0x888888,
+    side: THREE.DoubleSide
+  });
+  const floorGeometry = new THREE.Geometry();
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.castShadow = false;
+  floor.receiveShadow = true;
+  objs.add(floor);
+  function resizeFloor() {
+    floorGeometry.vertices.length = 0;
+    floorGeometry.faces.length = 0;
+    floorGeometry.vertices.push(
+      new THREE.Vector3(coordToPosX(0), 0, coordToPosZ(0))
+    );
+    floorGeometry.vertices.push(
+      new THREE.Vector3(coordToPosX(0), 0, coordToPosZ(sizeZ))
+    );
+    floorGeometry.vertices.push(
+      new THREE.Vector3(coordToPosX(sizeX), 0, coordToPosZ(0))
+    );
+    floorGeometry.vertices.push(
+      new THREE.Vector3(coordToPosX(sizeX), 0, coordToPosZ(sizeZ))
+    );
+    floorGeometry.faces.push(new THREE.Face3(0, 1, 3));
+    floorGeometry.faces.push(new THREE.Face3(0, 2, 3));
+    floorGeometry.computeFaceNormals();
+    floorGeometry.verticesNeedUpdate = true;
+    floorGeometry.elementsNeedUpdate = true;
+    floorGeometry.normalsNeedUpdate = true;
+    floorGeometry.computeBoundingBox();
+    floorGeometry.computeBoundingSphere();
+    floor.position.y = coordToPosY(0);
+  }
 
   const limitMaterial = new THREE.MeshPhongMaterial({
     color: 0xcccccc,
@@ -649,7 +650,7 @@ export function initVisualizer(config, canvas, canvas_container) {
 
     reset();
 
-    // resizeFloor();
+    resizeFloor();
     resizeLimits();
 
     const dim = sizeX_ * sizeY_ * sizeZ_;
