@@ -82,9 +82,14 @@ namespace tests
             var results = searchResponse?.Documents?.ToList() ?? new List<ElasticTestResult>();
 
             var minEnergyRes = results.OrderBy(x => x.Energy).FirstOrDefault() ?? testResult;
+            var a = results.Where(x => x.AlgoVersion != testResult.AlgoVersion).OrderBy(x => x.Energy).FirstOrDefault();
             if (minEnergyRes.Energy < energy)
             {
                 Assert.Fail($"Not the best energy ({minEnergyRes.Energy} < {energy} in {minEnergyRes.AlgoVersion})");
+            }
+            else if (a?.Energy > energy)
+            {
+                Assert.Pass($"New best energy ({a.Energy} > {energy} prev in {a.AlgoVersion})");
             }
             
             Console.WriteLine($"Energy: {solver.State.Energy}");
