@@ -48,6 +48,7 @@ namespace houston
             context.Log.Info($"Replica # {replicaNumber} of {replicaCount}: " +
                              $"running {selectedTasks.Length} of {tasks.Length} tasks");
 
+            var completeTasksCounter = 0;
             while (!context.CancellationToken.IsCancellationRequested)
             {
                 selectedTasks.ForEach(task =>
@@ -146,9 +147,13 @@ namespace houston
                                          $"at {result.RunningHostName}: " +
                                          $"completed in {result.SecondsSpent}s");
 
+                        completeTasksCounter++;
+                        context.Log.Info($"Tasks complete: {completeTasksCounter} of {selectedTasks.Length} for this worker");
+
                         client.IndexDocument(result);
                     });
 
+                context.Log.Info("Sleeping forever, all tasks done");
                 Thread.Sleep(int.MaxValue);
             }
         }
