@@ -181,5 +181,12 @@ namespace lib.Utils
                    && y >= 0 && y < r
                    && z >= 0 && z < r;
         }
+
+        public bool IsInRange(Range range)
+        {
+            return x >= range.Start.X && x < range.End.X
+                   && y >= range.Start.Y && y < range.End.Y
+                   && z >= range.Start.Z && z < range.End.Z;
+        }
     }
 }

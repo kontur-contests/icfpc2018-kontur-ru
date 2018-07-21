@@ -44,7 +44,7 @@ namespace tests
                 state.Set(current, false);
             }
 
-            var solver = new PathFinder(state, new Vec(0, 0, 0), new Vec(0, 3, 3));
+            var solver = new PathFinder(state, new Vec(0, 0, 0), new Vec(0, 3, 3), null, null);
             var path = solver.TryFindPath();
             foreach (var command in path)
             {

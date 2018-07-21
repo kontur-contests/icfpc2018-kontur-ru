@@ -99,7 +99,7 @@ namespace lib.Strategies
 
         private bool Move(Vec target)
         {
-            var pathFinder = new PathFinder(state, pos, target);
+            var pathFinder = new PathFinder(state, pos, target, null, null);
             var path = pathFinder.TryFindPath();
             if (path == null) return false;
             Commands.AddRange(path);

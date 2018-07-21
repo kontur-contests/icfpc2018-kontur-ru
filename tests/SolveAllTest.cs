@@ -24,7 +24,7 @@ namespace tests
         [Explicit]
         //[Timeout(30000)]
         public void SolveOne(
-            [Values(1)] int problemId
+            [Values(19)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
@@ -33,17 +33,15 @@ namespace tests
             var problemFile = Path.Combine(problemsDir, $"LA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
-            var solver = new GreedyParallel(matrix, new Vec(0, 0, 0), 
-                                            new ThrowableHelperFast(matrix));
-            ICommand[] commands = null;
+            var solver = new GreedyCooperativeSolver(matrix.Voxels, new bool[R, R, R], new ThrowableHelper(matrix));
+            List<ICommand> commands = new List<ICommand>();
             try
             {
-                commands = solver.Solve().ToArray();
+                commands.AddRange(solver.Solve());
             }
             catch (Exception e)
             {
                 Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
-                throw;
             }
             finally
             {
@@ -51,9 +49,11 @@ namespace tests
                 File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
             }
 
-            var solutionEnergy = GetSolutionEnergy(matrix, commands, problemFile);
+            var solutionEnergy = GetSolutionEnergy(matrix, commands.ToArray(), problemFile);
             Console.WriteLine(solutionEnergy);
 
+            var bytes = CommandSerializer.Save(commands.ToArray());
+            File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
             Console.WriteLine(ThrowableHelper.opt.ToDetailedString());
         }
 
