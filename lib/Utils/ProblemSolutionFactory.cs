@@ -90,10 +90,21 @@ namespace lib.Utils
             };
 
             var s6 = new Solution
-                {
-                    Name = "ColumnsBbx",
-                    Solver = () => new DivideAndConquer(problem.Matrix, true),
-                };
+            {
+                Name = "ColumnsBbx",
+                Solver = () => new DivideAndConquer(problem.Matrix, true),
+            };
+
+            var greedyForLargeModels = new Solution
+            {
+                Name = "GreedyForLarge",
+                Solver = () => new GreedyPartialSolver(
+                                   problem.Matrix.Voxels,
+                                   new bool[R, R, R],
+                                   new Vec(0, 0, 0),
+                                   new ThrowableHelper(problem.Matrix),
+                                   new NearToFarBottomToTopBuildingAround())
+            };
 
             return new[]
                 {
@@ -103,6 +114,7 @@ namespace lib.Utils
                     s4,
                     s5,
                     s6,
+                    greedyForLargeModels
                 };
         }
     }
