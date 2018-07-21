@@ -32,6 +32,9 @@ namespace packer
             if (Directory.Exists(FileHelper.SolutionsDir))
                 Directory.Delete(FileHelper.SolutionsDir, true);
             Directory.CreateDirectory(FileHelper.SolutionsDir);
+            foreach (var defaultTraceFile in Directory.GetFiles(FileHelper.DefaultTracesDir))
+                File.Copy(defaultTraceFile, Path.Combine(FileHelper.SolutionsDir, Path.GetFileName(defaultTraceFile)));
+
             foreach (var bucket in searchResponse.Aggregations.Terms("task_name").Buckets)
             {
                 var taskName = bucket.Key;
