@@ -19,7 +19,7 @@ namespace lib.Models
         public MutableState([NotNull] Matrix targetMatrix)
         {
             this.targetMatrix = targetMatrix;
-            Bots = new List<Bot> { new Bot { Bid = 1, Position = Vec.Zero, Seeds = Enumerable.Range(2, 19).ToList() } };
+            Bots = new List<Bot> { new Bot { Bid = 1, Position = Vec.Zero, Seeds = Enumerable.Range(2, 39).ToList() } };
             Energy = 0;
             Harmonics = Harmonics.Low;
             BuildingMatrix = new ComponentTrackingMatrix(new Matrix(targetMatrix.N));
