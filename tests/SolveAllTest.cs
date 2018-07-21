@@ -24,7 +24,7 @@ namespace tests
         [Explicit]
         //[Timeout(30000)]
         public void SolveOne(
-            [Values(21)] int problemId
+            [Values(15)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
@@ -33,7 +33,7 @@ namespace tests
             var problemFile = Path.Combine(problemsDir, $"LA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
-            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), Estimate);
+            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(matrix), Estimate);
             try
             {
                 solver.Solve();
@@ -42,6 +42,9 @@ namespace tests
             catch (Exception e)
             {
                 Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
+
+                File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), CommandSerializer.Save(solver.Commands.ToArray()));
+
                 throw;
             }
             var commands = solver.Commands.ToArray();
@@ -123,6 +126,7 @@ namespace tests
             while (queue.Any())
                 state.Tick(queue);
             state.EnsureIsFinal();
+            Console.WriteLine(state.Energy);
         }
     }
 }

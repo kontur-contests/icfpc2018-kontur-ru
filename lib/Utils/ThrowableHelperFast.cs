@@ -9,7 +9,7 @@ namespace lib.Utils
     {
         private readonly Matrix toFill;
         private readonly Matrix filled;
-        private readonly Matrix<HashSet<int>> Closed;
+        private readonly Matrix<int> Closed;
         private readonly int n;
 
         public ThrowableHelperFast(Matrix toFill)
@@ -18,13 +18,7 @@ namespace lib.Utils
             this.toFill = toFill;
             filled = new Matrix(n);
 
-            Closed = new Matrix<HashSet<int>>(n);
-            for (int x = 0; x < n; x++)
-            for (int y = 0; y < n; y++)
-            for (int z = 0; z < n; z++)
-            {
-                Closed[x, y, z] = new HashSet<int>();
-            }
+            Closed = new Matrix<int>(n);
         }
 
         public bool CanFill(Vec cell, Vec bot)
@@ -50,16 +44,15 @@ namespace lib.Utils
                         return false;
                 }
             }
-            
-            return true;
+
+            return Closed[bot] != 0b11111;
         }
 
         private bool CanFill(Vec cell, int from)
         {
-            var closed2 = new HashSet<int>(Closed[cell]);
-            closed2.Add(from);
-
-            return closed2.Count < 5;
+            var closed2 = Closed[cell] | (1 << from);
+            
+            return closed2 != 0b11111;
         }
 
         public void Fill(Vec cell)
@@ -77,7 +70,7 @@ namespace lib.Utils
                     if (!toFill.IsInside(v))
                         break;
 
-                    Closed[v].Add(i);
+                    Closed[v] |= 1 << i;
                 }
             }
         }

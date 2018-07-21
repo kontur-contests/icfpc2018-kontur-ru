@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 
@@ -59,7 +59,7 @@ namespace lib.Utils
                                           problem.Matrix.Voxels,
                                           new bool[R, R, R],
                                           new Vec(0, 0, 0),
-                                          new ThrowableHelperFast(R))
+                                          new ThrowableHelperFast(problem.Matrix))
                 };
 
             Func<Solution> s3 = () => new Solution
