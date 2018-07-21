@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 using lib.Commands;
+using lib.Utils;
+
+using MoreLinq;
 
 namespace lib.Models
 {
@@ -30,8 +33,11 @@ namespace lib.Models
             foreach (var bc in botCommands)
                 state.SetBotCommand(bc.bot, bc.command);
             state.EndTick();
+            LastChangedCells = state.VolatileCells.Keys.ToHashSet();
         }
-        
+
+        public HashSet<Vec> LastChangedCells { get; private set; }
+
         public void EnsureIsFinal()
         {
             if (state.Bots.Any())

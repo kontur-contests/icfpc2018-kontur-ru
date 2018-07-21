@@ -51,7 +51,7 @@ namespace ui.Controllers
             var problem = Matrix.Load(System.IO.File.ReadAllBytes($"../data/problemsL/{problemName}_tgt.mdl"));
             var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"../data/solutions/{file}.nbt"));
 
-            var state = new MutableState(new Matrix(problem.R));
+            var state = new DeluxeState(null, new Matrix(problem.R));
             var queue = new Queue<ICommand>(solution);
             var totalTicks = queue.Count;
             var results = new List<TickResult>();
@@ -61,12 +61,13 @@ namespace ui.Controllers
             {
                 var newFilledVoxels = new List<Vec>();
                 var tickIndex = 0;
+                var interpreter = new Interpreter(state);
                 while (queue.Any() && tickIndex < startTick + count)
                 {
-                    state.Tick(queue);
+                    interpreter.Tick(queue);
 
-                    foreach (var vec in state.LastChangedCells)
-                        if (state.BuildingMatrix[vec] && !filledVoxels.Contains(vec))
+                    foreach (var vec in interpreter.LastChangedCells)
+                        if (state.Matrix[vec] && !filledVoxels.Contains(vec))
                         {
                             newFilledVoxels.Add(vec);
                             filledVoxels.Add(vec);
