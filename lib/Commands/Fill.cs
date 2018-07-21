@@ -28,7 +28,7 @@ namespace lib.Commands
 
         public override bool CanApply(MutableState state, Bot bot)
         {
-            return state.BuildingMatrix.IsInside(GetPosition(bot));
+            return state.BuildingMatrix.IsInside(GetPosition(bot) + Shift);
         }
 
         protected override void DoApply(MutableState mutableState, Bot bot)

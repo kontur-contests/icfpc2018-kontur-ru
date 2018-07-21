@@ -15,6 +15,7 @@ namespace tests
     public class Class1
     {
         [Test]
+        [Explicit]
         public void Test()
         {
             var tasks = ProblemSolutionFactory.GetTasks();

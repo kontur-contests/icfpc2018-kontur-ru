@@ -143,7 +143,7 @@ namespace lib.Strategies
             oracle.Fill(target);
         }
 
-        private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(int index, IEnumerable<Vec> candidates)
+        private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(int index, HashSet<Vec> candidates)
         {
             var pos = bots[index].Position;
             foreach (var candidate in candidatesOrdering.Order(candidates, pos))

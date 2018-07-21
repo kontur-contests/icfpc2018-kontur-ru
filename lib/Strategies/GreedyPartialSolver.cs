@@ -8,8 +8,6 @@ using lib.Commands;
 using lib.Primitives;
 using lib.Utils;
 
-using MoreLinq;
-
 namespace lib.Strategies
 {
     public class GreedyPartialSolver : IAmSolver
@@ -45,7 +43,7 @@ namespace lib.Strategies
 
 
         private List<ICommand> Commands { get; } = new List<ICommand>();
-
+        public static StatValue candidatesCount = new StatValue();
         public IEnumerable<ICommand> Solve()
         {
             // ! красить можно то, что не покрашено, и после покраски станет граундед
@@ -57,9 +55,10 @@ namespace lib.Strategies
             //   перемещаемся в ту точку, красим, обновляем список (добавляем ноды и сортируем заново)
             // в конце возвращаемся в 0 и HALT
             Commands.Clear();
-            var candidates = BuildCandidates();
+            HashSet<Vec> candidates = BuildCandidates();
             while (candidates.Any())
             {
+                candidatesCount.Add(candidates.Count);
                 var candidatesAndPositions = OrderCandidates(candidates);
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
@@ -138,7 +137,7 @@ namespace lib.Strategies
             oracle.Fill(target);
         }
 
-        private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(IEnumerable<Vec> candidates)
+        private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(HashSet<Vec> candidates)
         {
             foreach (var candidate in candidatesOrdering.Order(candidates, pos))
             {
@@ -175,39 +174,6 @@ namespace lib.Strategies
                         }
                     }
             return result;
-        }
-    }
-
-    public interface ICandidatesOrdering
-    {
-        IEnumerable<Vec> Order(IEnumerable<Vec> candidates, Vec bot);
-    }
-
-    public class BottomToTopBuildingAround : ICandidatesOrdering
-    {
-        public IEnumerable<Vec> Order(IEnumerable<Vec> candidates, Vec bot)
-        {
-            var nears = bot.GetNears().ToHashSet();
-            return candidates.OrderBy(c => c.Y).ThenByDescending(c => nears.Contains(c)).ThenBy(c => c.MDistTo(bot));
-        }
-    }
-
-    public class BuildAllStayingStill : ICandidatesOrdering
-    {
-        private readonly Func<Vec, Vec, double> keySelector;
-
-        public BuildAllStayingStill(Func<Vec, Vec, double> keySelector = null)
-        {
-            this.keySelector = keySelector ?? ((p, b) => p.MDistTo(b));
-        }
-
-        public IEnumerable<Vec> Order(IEnumerable<Vec> candidates, Vec bot)
-        {
-            var nears = bot.GetNears().ToHashSet();
-            return candidates
-                .GroupBy(cand => nears.Contains(cand))
-                .OrderByDescending(g => g.Key)
-                .SelectMany(g => g.OrderBy(p => keySelector(p, bot)));
         }
     }
 }
