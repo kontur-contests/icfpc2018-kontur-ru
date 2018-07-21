@@ -10,6 +10,8 @@ namespace lib.Models
         bool this[Vec pos] { get; set; }
 
         int R { get; }
+
+        bool[,,] Voxels { get; }
     }
 
     public static class MatrixExtensions

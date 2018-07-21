@@ -2,6 +2,7 @@ namespace lib.Strategies
 {
     public interface IStrategy
     {
-        StrategyStatus Tick();
+        StrategyStatus Status { get; }
+        IStrategy[] Tick();
     }
 }
