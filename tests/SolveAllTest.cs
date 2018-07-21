@@ -75,7 +75,7 @@ namespace tests
                 {
                     var problem = p.m.Clone();
                     var R = p.m.N;
-                    var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(p.m));
+                    var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(p.m), Estimate);
                     try
                     {
                         solver.Solve();
