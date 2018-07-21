@@ -17,10 +17,8 @@ namespace lib.Primitives
             this.Shift = shift;
         }
 
-        public FarDifference(int parameter) // TODO: Fix
-            : this(new Vec(parameter / 9 - 1,
-                           (parameter / 3) % 3 - 1,
-                           parameter % 3 - 1))
+        public FarDifference(int parameterX, int parameterY, int parameterZ)
+            : this(new Vec(parameterX - 30, parameterY - 30, parameterZ - 30))
         {
         }
 
