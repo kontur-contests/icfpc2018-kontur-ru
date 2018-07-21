@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using JetBrains.Annotations;
 
@@ -15,21 +14,27 @@ namespace lib.Strategies
     public class DivideAndConquer : IAmSolver
     {
         private readonly Matrix targetMatrix;
+        private readonly bool useBoundingBox;
         private Matrix buildingMatrix;
-        public MutableState State { get; private set; }
 
-        public DivideAndConquer([NotNull] Matrix targetMatrix)
+        private int minX = 100000, minZ = 100000, maxX, maxZ;
+
+        private int highestPoint;
+
+        public DivideAndConquer([NotNull] Matrix targetMatrix, bool useBoundingBox)
         {
             this.targetMatrix = targetMatrix;
+            this.useBoundingBox = useBoundingBox;
             this.buildingMatrix = new Matrix(targetMatrix.N);
-            highestPoint = GetHighestPoint() + 1; //N - 1
+            CalcBoundingBox();
         }
+
+        public MutableState State { get; private set; }
 
         private List<ICommand> Commands { get; } = new List<ICommand>();
 
-        private int GetHighestPoint()
+        private void CalcBoundingBox()
         {
-            var maxY = 0;
             for (int x = 0; x < targetMatrix.N; x++)
             {
                 for (int y = 0; y < targetMatrix.N; y++)
@@ -37,17 +42,32 @@ namespace lib.Strategies
                     for (int z = 0; z < targetMatrix.N; z++)
                     {
                         if (targetMatrix[x, y, z])
-                            maxY = Math.Max(maxY, y);
+                        {
+                            highestPoint = Math.Max(highestPoint, y);
+                            minX = Math.Min(minX, x);
+                            minZ = Math.Min(minZ, z);
+                            maxX = Math.Max(maxX, x);
+                            maxZ = Math.Max(maxZ, z);
+                        }
                     }
                 }
             }
-            return maxY;
+            if (!useBoundingBox)
+            {
+                minX = 0;
+                minZ = 0;
+                maxX = targetMatrix.N - 1;
+                maxZ = targetMatrix.N - 1;
+            }
+
+            highestPoint++;
+            if ((maxX - minX + 1) < Nx || (maxZ - minZ + 1) < Nz)
+                throw new Exception("Alarm");
         }
 
         public IEnumerable<ICommand> Solve()
         {
             State = new MutableState(targetMatrix);
-
             Commands.Clear();
             Clone(State);
             foreach (var command in Commands)
@@ -55,6 +75,11 @@ namespace lib.Strategies
                 yield return command;
             }
             Commands.Clear();
+
+            var a = GetColumns()
+                .GroupBy(GetColumnBatchId)
+                .OrderBy(x => x.Key)
+                .ToList();
 
             var queues = GetColumns()
                          .GroupBy(GetColumnBatchId)
@@ -64,7 +89,7 @@ namespace lib.Strategies
                          .ToList();
             while (queues.Any(x => x.Item1.Count > 0))
             {
-                if (State.Bots.Select((x, i) => (x.Position.Z / BlockSizeZ, x.Position.X / BlockSizeX, i)).Any(x => x.Item1 * Nx + x.Item2 != x.i))
+                if (State.Bots.Select((x, i) => ((x.Position.Z - minZ) / BlockSizeZ, (x.Position.X - minX) / BlockSizeX, i)).Any(x => x.Item1 * Nx + x.Item2 != x.i))
                     throw new Exception("Wrong zone");
                 var commands = new List<ICommand>();
                 for (int i = 0; i < queues.Count; i++)
@@ -117,7 +142,7 @@ namespace lib.Strategies
             }
             for (int i = N - 1; i >= 0; i--)
             {
-                var commands = GoToVerticalFirst(new Vec(0, 0, i), new Vec(i % Nx * BlockSizeX, 0, i / Nx * BlockSizeZ)); // todo (mpivko, 21.07.2018): 
+                var commands = GoToVerticalFirst(new Vec(0, 0, i), new Vec(i % Nx * BlockSizeX + minX, 0, i / Nx * BlockSizeZ + minZ)); // todo (mpivko, 21.07.2018): 
                 foreach (var command in commands)
                 {
                     var toApply = Enumerable.Repeat<ICommand>(new Wait(), N).ToArray();
@@ -228,7 +253,12 @@ namespace lib.Strategies
 
         private (int, int) GetColumnBatchId((Vec From, Vec To) column)
         {
-            return (column.From.Z / BlockSizeZ, column.From.X / BlockSizeX);
+            return ((column.From.Z - minZ) / BlockSizeZ, (column.From.X - minX) / BlockSizeX);
+        }
+
+        private (int, int) GetBlockId([NotNull] Vec vec)
+        {
+            return (vec.Z, vec.X);
         }
 
         [NotNull]
@@ -260,27 +290,15 @@ namespace lib.Strategies
 
             realColumns = realColumns.Select((x, i) => (x.From, x.To, i)).OrderBy(x => x, new Comparer()).Select(x => (x.From, x.To)).ToList();
 
-            for (int x = 0; x < targetMatrix.N; x++)
+            for (int x = minX; x <= maxX; x++)
             {
-                for (int z = 0; z < targetMatrix.N; z++)
+                for (int z = minZ; z <= maxZ; z++)
                 {
                     realColumns.Add((new Vec(x, -1, z), new Vec(x, -1, z)));
                 }
             }
 
             return realColumns;
-        }
-
-        private class Comparer : IComparer<(Vec From, Vec To, int Index)>
-        {
-            public int Compare((Vec From, Vec To, int Index) x, (Vec From, Vec To, int Index) y)
-            {
-                if (x.From.X == y.From.X && x.From.Z == y.From.Z)
-                {
-                    return x.From.Y.CompareTo(y.From.Y);
-                }
-                return x.Index.CompareTo(y.Index);
-            }
         }
 
         [NotNull]
@@ -307,9 +325,19 @@ namespace lib.Strategies
         private int Nz { get; } = 5;
         private int N => Nx * Nz;
 
-        private int BlockSizeX => (targetMatrix.N + Nx - 1) / Nx;
-        private int BlockSizeZ => (targetMatrix.N + Nz - 1) / Nz;
+        private int BlockSizeX => ((maxX - minX + 1) + Nx - 1) / Nx;
+        private int BlockSizeZ => ((maxZ - minZ + 1) + Nz - 1) / Nz;
 
-        private readonly int highestPoint;
+        private class Comparer : IComparer<(Vec From, Vec To, int Index)>
+        {
+            public int Compare((Vec From, Vec To, int Index) x, (Vec From, Vec To, int Index) y)
+            {
+                if (x.From.X == y.From.X && x.From.Z == y.From.Z)
+                {
+                    return x.From.Y.CompareTo(y.From.Y);
+                }
+                return x.Index.CompareTo(y.Index);
+            }
+        }
     }
 }
