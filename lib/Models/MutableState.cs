@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,13 +17,18 @@ namespace lib.Models
         [NotNull]
         private readonly Matrix targetMatrix;
 
-        public MutableState([NotNull] Matrix targetMatrix)
+        public MutableState([NotNull] Matrix sourceMatrix, [NotNull]Matrix targetMatrix)
         {
             this.targetMatrix = targetMatrix;
             Bots = new List<Bot> { new Bot { Bid = 1, Position = Vec.Zero, Seeds = Enumerable.Range(2, 39).ToList() } };
             Energy = 0;
             Harmonics = Harmonics.Low;
-            BuildingMatrix = new ComponentTrackingMatrix(new Matrix(targetMatrix.R));
+            BuildingMatrix = new ComponentTrackingMatrix(sourceMatrix);
+        }
+
+        public MutableState([NotNull] Matrix targetMatrix)
+            :this(new Matrix(targetMatrix.R), targetMatrix)
+        {
         }
 
         public List<long> EnergyHistory { get; } = new List<long>();
@@ -39,6 +45,8 @@ namespace lib.Models
         }
 
         public HashSet<Vec> LastChangedCells;
+
+        public void Tick(IEnumerable<ICommand> tickCommands) => Tick(new Queue<ICommand>(tickCommands));
 
         public void Tick(Queue<ICommand> trace)
         {

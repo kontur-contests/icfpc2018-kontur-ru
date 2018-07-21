@@ -1,11 +1,10 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using lib.Models;
 using lib.Strategies;
-
-using Nest;
 
 namespace lib.Utils
 {
@@ -13,108 +12,105 @@ namespace lib.Utils
     {
         public static ProblemSolutionPair[] GetTasks()
         {
-            return GetProblems()
-                .Select(x => Tuple.Create(x, GetSolutions(x)))
-                .SelectMany(x => x.Item2.Select(y => new ProblemSolutionPair
-                {
-                    Problem = x.Item1,
-                    Solution = y
-                }))
+            return
+                (from p in GetProblems()
+                 from s in GetSolutions(p)
+                 where s.CompatibleProblemTypes.Contains(p.Type)
+                 select new ProblemSolutionPair
+                 {
+                     Problem = p,
+                     Solution = s
+                 }).ToArray();
+        }
+
+        public static Problem[] GetProblems()
+        {
+            return Directory
+                .EnumerateFiles(FileHelper.ProblemsDir, "*.mdl")
+                .Where(x => !Regex.IsMatch(Path.GetFileName(x) ?? "", "FR.*_src.mdl")) // ignore src for reassemble tasks (use tgt)
+                .Select(CreateProblem)
                 .ToArray();
         }
 
-        private static Problem[] GetProblems()
+        private static Problem CreateProblem(string x)
         {
-            return Directory
-                .EnumerateFiles(FileHelper.ProblemsDir)
-                .ToArray()
-                .Where(x => Path.GetFileName(x).StartsWith("FA")) // TODO learn to disassemble/reassemble
-                .Where(x => string.Equals(Path.GetExtension(x), ".mdl"))
-                .Select(x => new Problem
-                {
-                    FileName = x,
-                    Name = Path.GetFileNameWithoutExtension(x),
-                    Matrix = Matrix.Load(File.ReadAllBytes(x))
-                })
-                .ToArray();
+            var fileName = Path.GetFileName(x) ?? "";
+            var type = fileName.StartsWith("FA") ? ProblemType.Assemble : fileName.StartsWith("FD") ? ProblemType.Disassemble : ProblemType.Reassemple;
+
+            // ReSharper disable once PossibleNullReferenceException
+            var name = Path.GetFileNameWithoutExtension(x).Split('_')[0]; // no tgt and src suffix
+            var directoryName = Path.GetDirectoryName(x) ?? "";
+            return new Problem
+            {
+                FileName = x,
+                Name = name,
+                SourceMatrix = TryLoadMatrix(Path.Combine(directoryName, $"{name}_src.mdl")),
+                TargetMatrix = TryLoadMatrix(Path.Combine(directoryName, $"{name}_tgt.mdl")),
+                Type = type
+            };
+        }
+
+        private static Matrix TryLoadMatrix(string filename)
+        {
+            if (!File.Exists(filename)) return null;
+            return Matrix.Load(File.ReadAllBytes(filename));
         }
 
         private static Solution[] GetSolutions(Problem problem)
         {
-            var R = problem.Matrix.R;
+            var R = problem.TargetMatrix.R;
 
-            var s1 = new Solution
-            {
-                Name = "GS + TH",
-                Solver = () => new GreedyPartialSolver(
-                                          problem.Matrix.Voxels,
-                                          new bool[R, R, R],
-                                          new Vec(0, 0, 0),
-                                          new ThrowableHelper(problem.Matrix))
-            };
-
-            var s2 = new Solution
+            var gFast = new Solution
             {
                 Name = "GS + TH Fast",
                 Solver = () => new GreedyPartialSolver(
-                                          problem.Matrix.Voxels,
+                                          problem.TargetMatrix.Voxels,
                                           new bool[R, R, R],
                                           new Vec(0, 0, 0),
-                                          new ThrowableHelperFast(problem.Matrix))
+                                          new ThrowableHelperFast(problem.TargetMatrix))
             };
 
-            var s3 = new Solution
-            {
-                Name = "GS + TH AStar",
-                Solver = () => new GreedyPartialSolver(
-                                          problem.Matrix.Voxels,
-                                          new bool[R, R, R],
-                                          new Vec(0, 0, 0),
-                                          new ThrowableHelperAStar(R))
-            };
-            var s4 = new Solution
+            var gLayers = new Solution
             {
                 Name = "GS + Layers",
                 Solver = () => new GreedyPartialSolver(
-                                          problem.Matrix.Voxels,
+                                          problem.TargetMatrix.Voxels,
                                           new bool[R, R, R],
                                           new Vec(0, 0, 0),
-                                          new ThrowableHelper(problem.Matrix),
+                                          new ThrowableHelper(problem.TargetMatrix),
                                           new BottomToTopBuildingAround())
             };
 
-            var s5 = new Solution
+            var columns = new Solution
             {
                 Name = "Columns",
-                Solver = () => new DivideAndConquer(problem.Matrix, false),
+                Solver = () => new DivideAndConquer(problem.TargetMatrix, false),
             };
 
-            var s6 = new Solution
+            var columnsBbx = new Solution
             {
                 Name = "ColumnsBbx",
-                Solver = () => new DivideAndConquer(problem.Matrix, true),
+                Solver = () => new DivideAndConquer(problem.TargetMatrix, true),
             };
 
-            var greedyForLargeModels = new Solution
+            var gForLarge = new Solution
             {
                 Name = "GreedyForLarge",
                 Solver = () => new GreedyPartialSolver(
-                                   problem.Matrix.Voxels,
+                                   problem.TargetMatrix.Voxels,
                                    new bool[R, R, R],
                                    new Vec(0, 0, 0),
-                                   new ThrowableHelper(problem.Matrix),
+                                   new ThrowableHelper(problem.TargetMatrix),
                                    new NearToFarBottomToTopBuildingAround())
             };
 
             return new[]
                 {
-                    //s1,
-                    s2,
-                    //s3,
-                    s4,
-                    s5,
-                    s6,
-                    greedyForLargeModels
+                    gFast,
+                    gLayers,
+                    columns,
+                    columnsBbx,
+                    gForLarge
                 };
         }
     }
@@ -123,13 +119,23 @@ namespace lib.Utils
     {
         public string FileName { get; set; }
         public string Name { get; set; }
-        public Matrix Matrix { get; set; }
+        public Matrix SourceMatrix { get; set; }
+        public Matrix TargetMatrix { get; set; }
+        public ProblemType Type { get; set; }
+    }
+
+    public enum ProblemType
+    {
+        Assemble,
+        Disassemble,
+        Reassemple
     }
 
     public class Solution
     {
         public string Name { get; set; }
         public Func<IAmSolver> Solver { get; set; }
+        public ProblemType[] CompatibleProblemTypes { get; set; } = { ProblemType.Assemble };
     }
 
     public class ProblemSolutionPair

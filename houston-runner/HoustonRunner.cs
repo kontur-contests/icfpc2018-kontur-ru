@@ -73,7 +73,8 @@ namespace houston
                         var commands = new List<ICommand>();
                         var started = new ManualResetEvent(false);
                         ExceptionDispatchInfo exceptionDispatchInfo = null;
-                        var total = task.Problem.Matrix.Weight;
+                        //task.Problem.Type
+                        var total = (task.Problem.TargetMatrix?.Weight + task.Problem.SourceMatrix?.Weight) ?? 0;
                         int done = 0;
                         var timeout = Stopwatch.StartNew();
                         var runThread = new Thread(() =>
@@ -116,7 +117,7 @@ namespace houston
 
                         exceptionDispatchInfo?.Throw();
 
-                        var state = new MutableState(task.Problem.Matrix);
+                        var state = new MutableState(task.Problem.SourceMatrix);
                         var queue = new Queue<ICommand>(commands);
                         while (queue.Any())
                         {

@@ -24,6 +24,36 @@ namespace tests
         [Test]
         [Explicit]
         //[Timeout(30000)]
+        public void Disassemble(
+            [Values(1)] int problemId
+            //[ValueSource(nameof(Problems))] int problemId
+            )
+        {
+            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsF");
+            var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/solutions");
+            var problemFile = Path.Combine(problemsDir, $"FD{problemId.ToString().PadLeft(3, '0')}_src.mdl");
+            var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
+            var R = matrix.R;
+            var solver = new StupidDisassembler(matrix);
+            List<ICommand> commands = new List<ICommand>();
+            try
+            {
+                var sw = Stopwatch.StartNew();
+                commands.AddRange(solver.Solve());
+            }
+            catch (Exception e)
+            {
+                Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
+            }
+            finally
+            {
+                var bytes = CommandSerializer.Save(commands.ToArray());
+                File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
+            }
+        }
+        [Test]
+        [Explicit]
+        //[Timeout(30000)]
         public void SolveOne(
             [Values(104)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
