@@ -6,6 +6,6 @@ namespace houston
     {
         public TimeSpan SolverStartTimeout = TimeSpan.FromMinutes(1);
         public TimeSpan SolverTimeoutMeasureInterval = TimeSpan.FromMinutes(1);
-        public TimeSpan SolverTimeout = TimeSpan.FromMinutes(10);
+        public TimeSpan SolverTimeout = TimeSpan.FromMinutes(60);
     }
 }
