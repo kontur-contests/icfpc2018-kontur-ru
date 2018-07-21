@@ -47,7 +47,7 @@ namespace ui.Controllers
         public ArrayList Check007(string file)
         {
             var problem = Matrix.Load(System.IO.File.ReadAllBytes($"../data/problemsL/{file}_tgt.mdl"));
-            var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"{file}.nbt"));
+            var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"../data/solutions/{file}.nbt"));
             
             var state = new MutableState(new Matrix(problem.R));
             var queue = new Queue<ICommand>(solution);
