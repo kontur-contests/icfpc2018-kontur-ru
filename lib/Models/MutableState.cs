@@ -7,6 +7,8 @@ using JetBrains.Annotations;
 using lib.Commands;
 using lib.Utils;
 
+using MoreLinq;
+
 namespace lib.Models
 {
     public class MutableState
@@ -36,8 +38,11 @@ namespace lib.Models
             return Bots.OrderBy(b => b.Bid).ToList();
         }
 
+        public HashSet<Vec> LastChangedCells;
+
         public void Tick(Queue<ICommand> trace)
         {
+            LastChangedCells = new HashSet<Vec>();
             var botCommands = GetOrderedBots().Select(bot => new { bot, command = trace.Dequeue() }).ToList();
 
             Energy += Harmonics == Harmonics.High
@@ -49,13 +54,15 @@ namespace lib.Models
                 from bc in botCommands
                 from cell in bc.command.GetVolatileCells(this, bc.bot)
                 select new { bc, cell };
-            var badGroup = volitileCells.GroupBy(c => c.cell).FirstOrDefault(g => g.Count() > 1);
+            var groups = volitileCells.GroupBy(c => c.cell).ToList();
+            var badGroup = groups.FirstOrDefault(g => g.Count() > 1);
             if (badGroup != null)
             {
                 throw new InvalidOperationException($"Common volatile cell {badGroup.Key}. " +
                                                     $"Bots: {string.Join(", ", badGroup.Select(b => b.bc.bot.Bid))} " +
                                                     $"Commands: {string.Join(", ", badGroup.Select(b => b.bc.command))} ");
             }
+            LastChangedCells = groups.Select(c => c.Key).ToHashSet();
             //TODO: Validate pair commands (Fission-Fusion)
             foreach (var botCommand in botCommands)
             {
