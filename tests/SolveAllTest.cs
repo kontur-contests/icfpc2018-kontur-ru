@@ -24,7 +24,7 @@ namespace tests
         [Explicit]
         //[Timeout(30000)]
         public void SolveOne(
-            [Values(21)] int problemId
+            [Values(40)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
@@ -33,7 +33,7 @@ namespace tests
             var problemFile = Path.Combine(problemsDir, $"LA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
-            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), Estimate);
+            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix));
             try
             {
                 solver.Solve(30000);
@@ -46,7 +46,8 @@ namespace tests
             }
             var commands = solver.Commands.ToArray();
 
-            GetSolutionEnergy(matrix, commands, problemFile);
+            var solutionEnergy = GetSolutionEnergy(matrix, commands, problemFile);
+            Console.WriteLine(solutionEnergy);
 
             var bytes = CommandSerializer.Save(commands);
             File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
@@ -68,14 +69,15 @@ namespace tests
                 {
                     var matrix = Matrix.Load(File.ReadAllBytes(p));
                     return new {m = matrix, p, weight = matrix.Voxels.Cast<bool>().Count(b => b)};
-                }).Take(10).ToList();
+                }).Skip(18).Take(3).ToList();
             problems.Sort((p1, p2) => p1.weight.CompareTo(p2.weight));
             Log.For(this).Info(string.Join("\r\n", problems.Select(p => p.p)));
             Parallel.ForEach(problems, p =>
                 {
                     var R = p.m.N;
-                    var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(p.m), Estimate);
-                    var solverName = "greedy-ne2";
+                    //var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(p.m));
+                    var solver = new DivideAndConquer(p.m);
+                    var solverName = "div-n-conq";
                     try
                     {
                         solver.Solve();

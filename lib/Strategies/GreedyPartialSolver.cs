@@ -31,17 +31,16 @@ namespace lib.Strategies
                 new Vec(0, 0, -1)
             };
 
-        private readonly Comparison<Vec> comparison;
+        private readonly ICandidatesOrdering candidatesOrdering;
 
-        public GreedyPartialSolver(bool[,,] whatToFill, bool[,,] state, Vec pos, IOracle oracle, Func<Vec, Vec, int> priorityByCandidateAndBot = null)
+        public GreedyPartialSolver(bool[,,] whatToFill, bool[,,] state, Vec pos, IOracle oracle, ICandidatesOrdering candidatesOrdering = null)
         {
-            priorityByCandidateAndBot = priorityByCandidateAndBot ?? ((candidate, bot) => bot.MDistTo(candidate));
             this.whatToFill = whatToFill;
             this.state = state;
             this.pos = pos;
             this.oracle = oracle;
-            R = whatToFill.GetLength(0); //523042236
-            comparison = (a, b) => Comparer<int>.Default.Compare(priorityByCandidateAndBot(a, this.pos), priorityByCandidateAndBot(b, this.pos));
+            this.candidatesOrdering = candidatesOrdering ?? new BuildAllStayingStill();
+            R = whatToFill.GetLength(0);
         }
 
 
@@ -140,11 +139,7 @@ namespace lib.Strategies
 
         private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(IEnumerable<Vec> candidates)
         {
-            var list = candidates.ToList();
-            list.Sort(comparison);
-            var nears = pos.GetNears().ToHashSet();
-            var orderedCandidates = list.GroupBy(cand => nears.Contains(cand)).OrderByDescending(g => g.Key).SelectMany(g => g);
-            foreach (var candidate in orderedCandidates)
+            foreach (var candidate in candidatesOrdering.Order(candidates, pos))
             {
                 var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(R));
                 foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(pos)))
@@ -179,6 +174,39 @@ namespace lib.Strategies
                         }
                     }
             return result;
+        }
+    }
+
+    public interface ICandidatesOrdering
+    {
+        IEnumerable<Vec> Order(IEnumerable<Vec> candidates, Vec bot);
+    }
+
+    public class BottomToTopBuildingAround : ICandidatesOrdering
+    {
+        public IEnumerable<Vec> Order(IEnumerable<Vec> candidates, Vec bot)
+        {
+            var nears = bot.GetNears().ToHashSet();
+            return candidates.OrderBy(c => c.Y).ThenByDescending(c => nears.Contains(c)).ThenBy(c => c.MDistTo(bot));
+        }
+    }
+
+    public class BuildAllStayingStill : ICandidatesOrdering
+    {
+        private readonly Func<Vec, Vec, double> keySelector;
+
+        public BuildAllStayingStill(Func<Vec, Vec, double> keySelector = null)
+        {
+            this.keySelector = keySelector ?? ((p, b) => p.MDistTo(b));
+        }
+
+        public IEnumerable<Vec> Order(IEnumerable<Vec> candidates, Vec bot)
+        {
+            var nears = bot.GetNears().ToHashSet();
+            return candidates
+                .GroupBy(cand => nears.Contains(cand))
+                .OrderByDescending(g => g.Key)
+                .SelectMany(g => g.OrderBy(p => keySelector(p, bot)));
         }
     }
 }
