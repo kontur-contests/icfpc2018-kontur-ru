@@ -22,7 +22,7 @@ namespace lib.Commands
         {
             if (bot.Position.MLen() != 0)
                 return false;
-            if (state.Bots.Count > 0)
+            if (state.Bots.Count > 1)
                 return false;
             if (state.Harmonics != Harmonics.Low)
                 return false;

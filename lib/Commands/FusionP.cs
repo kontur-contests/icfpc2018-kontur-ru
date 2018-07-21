@@ -31,9 +31,9 @@ namespace lib.Commands
         public override bool CanApply(MutableState state, Bot bot)
         {
             var pos = bot.Position + shift;
-            if (!state.Matrix.IsInside(bot.Position))
+            if (!state.BuildingMatrix.IsInside(bot.Position))
                 return false;
-            if (!state.Matrix.IsInside(pos))
+            if (!state.BuildingMatrix.IsInside(pos))
                 return false;
 
             var secondaryBot = state.Bots.SingleOrDefault(x => x.Position == pos);
