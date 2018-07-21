@@ -16,4 +16,10 @@
     <ProjectReference Include="..\lib\lib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="log4stash">
+      <HintPath>..\Assemblies\log4stash\log4stash.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

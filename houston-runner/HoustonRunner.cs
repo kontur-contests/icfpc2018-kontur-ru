@@ -42,7 +42,7 @@ namespace houston
             var tasks = ProblemSolutionFactory.GetTasks();
 
             var selectedTasks = tasks
-                .Where(task => ((uint) task.Problem.Name.GetHashCode()) % replicaCount == replicaNumber - 1)
+                .Where(task => ((uint) (task.Problem.Name + task.Solution.Name).GetHashCode()) % replicaCount == replicaNumber - 1)
                 .ToArray();
 
             context.Log.Info($"Replica # {replicaNumber} of {replicaCount}: " +
@@ -53,7 +53,7 @@ namespace houston
             {
                 selectedTasks.ForEach(task =>
                     {
-                        var solution = task.Solution.Invoke();
+                        var solution = task.Solution;
                         
                         var result = new TaskRunMeta
                             {
@@ -72,7 +72,7 @@ namespace houston
                         {
                             var timer = Stopwatch.StartNew();
 
-                            var solver = solution.Solver;
+                            var solver = solution.Solver();
 
                             var commands = new List<ICommand>();
                             var started = new ManualResetEvent(false);
