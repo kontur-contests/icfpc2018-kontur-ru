@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace tests
         [Explicit]
         //[Timeout(30000)]
         public void SolveOne(
-            [Values(19)] int problemId
+            [Values(104)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
@@ -33,11 +34,15 @@ namespace tests
             var problemFile = Path.Combine(problemsDir, $"LA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
-            var solver = new GreedyCooperativeSolver(matrix.Voxels, new bool[R, R, R], new ThrowableHelper(matrix));
+            //var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), new BottomToTopBuildingAround());
+            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), new NearToFarBottomToTopBuildingAround());
+            //var solver = new DivideAndConquer(matrix);
             List<ICommand> commands = new List<ICommand>();
             try
             {
-                commands.AddRange(solver.Solve());
+                var sw = Stopwatch.StartNew();
+                commands.AddRange(solver.Solve().TakeWhile(x => sw.Elapsed.TotalSeconds < 20));
+                Console.WriteLine(GreedyPartialSolver.candidatesCount.ToDetailedString());
             }
             catch (Exception e)
             {
@@ -123,7 +128,6 @@ namespace tests
             {
                 Log.For(this).Error($"Invalid solution for {Path.GetFileName(p)}", e);
                 throw;
-                return 0;
             }
         }
 

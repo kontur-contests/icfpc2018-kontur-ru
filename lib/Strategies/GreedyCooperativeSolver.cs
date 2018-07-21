@@ -205,7 +205,7 @@ namespace lib.Strategies
             return vec.IsInRange(ranges[bot]);
         }
 
-        private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(int bot, IEnumerable<Vec> candidates)
+        private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(int bot, HashSet<Vec> candidates)
         {
             foreach (var candidate in candidatesOrdering.Order(candidates, pos[bot]))
             {
