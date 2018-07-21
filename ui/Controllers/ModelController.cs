@@ -91,7 +91,8 @@ namespace ui.Controllers
                             change = newFilledVoxels,
                             bots = state.Bots
                                 .Select(x => Tuple.Create(x.Position.X, x.Position.Y, x.Position.Z))
-                                .ToArray()
+                                .ToArray(),
+                            energy = state.Energy
                         });
                 }
             }
@@ -109,5 +110,6 @@ namespace ui.Controllers
         public int R;
         public ArrayList change;
         public Tuple<int, int, int>[] bots;
+        public long energy;
     }
 }

@@ -1,39 +1,14 @@
 import React, { Component } from "react";
 import { Visualizer } from "./modules/visualizer";
-
-const steps = [
-  {
-    model: [
-      [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
-      [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
-      [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    ],
-    bots: [[1, 1, 1]]
-  },
-  {
-    model: [
-      [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
-      [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
-      [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    ],
-    bots: [[0, 0, 0], [2, 2, 2]]
-  },
-  {
-    model: [
-      [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
-      [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
-      [[0, 1, 0], [0, 1, 0], [0, 1, 0]]
-    ],
-    bots: [[1, 1, 1], [2, 2, 2]]
-  }
-];
+import { Plot2D } from "./modules/plot-2d/Plot2D";
 
 export default class App extends Component {
   state = {
     step: 0,
     modelId: 0,
     steps: [],
-    solutions: []
+    solutions: [],
+    energy: []
   };
 
   componentDidMount() {
@@ -46,9 +21,7 @@ export default class App extends Component {
     return (
       <div style={{ maxWidth: "1200px", margin: "auto" }}>
         {!stepData && <h1>Loading...</h1>}
-        {stepData && (
-          <Visualizer model={stepData.model} bots={stepData.bots} />
-        )}
+        {stepData && <Visualizer model={stepData.model} bots={stepData.bots} />}
         <hr />
         <input
           style={{ width: "100%" }}
@@ -59,14 +32,15 @@ export default class App extends Component {
           max={this.state.steps.length - 1}
         />
         <center>Step: {this.state.step}</center>
-        <hr/>
+        <hr />
+        <h2>Energy</h2>
+        <Plot2D data={this.state.energy} />
+        <hr />
         <h2>Solutions</h2>
         <ul>
           {this.state.solutions.map(x => (
-            <li>
-              <a href={`/?file=${x}`} key={x}>
-                {x}
-              </a>
+            <li key={x}>
+              <a href={`/?file=${x}`}>{x}</a>
             </li>
           ))}
         </ul>
@@ -83,7 +57,7 @@ export default class App extends Component {
     fetch(`/api/matrix/trace${search}`)
       .then(x => x.json())
       .then(processData)
-      .then(x => this.setState({ steps: x, step: 0 }));
+      .then(x => this.setState({ steps: x.steps, step: 0, energy: x.energy }));
 
     fetch(`/api/matrix/solutions`)
       .then(x => x.json())
@@ -117,7 +91,8 @@ function processData(data) {
   const normalized = data.map(y => ({
     changes: y.change,
     bots: y.bots.map(x => [x.item1, x.item2, x.item3]),
-    r: y.r
+    r: y.r,
+    energy: y.energy
   }));
 
   const r = normalized[0].r;
@@ -128,7 +103,7 @@ function processData(data) {
   );
 
   for (let i = 0; i < data.length; i++) {
-    const { changes, bots } = normalized[i];
+    const { changes, bots, energy } = normalized[i];
 
     changes.forEach(({ x, y, z }) => {
       model[x][y][z] = 1;
@@ -140,5 +115,10 @@ function processData(data) {
     });
   }
 
-  return steps;
+  const energy = normalized.map((step, x) => ({
+    y: step.energy,
+    x
+  }));
+
+  return { steps, energy };
 }
