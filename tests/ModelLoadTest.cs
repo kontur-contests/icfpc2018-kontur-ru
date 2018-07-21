@@ -35,7 +35,7 @@ namespace tests
 
         private static IEnumerable<string> GetModels()
         {
-            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsL");
+            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsF");
             foreach (string file in Directory.EnumerateFiles(problemsDir, "*.mdl"))
             {
                 yield return file;
