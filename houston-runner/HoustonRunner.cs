@@ -23,9 +23,8 @@ namespace houston
             while (!context.CancellationToken.IsCancellationRequested)
             {
                 var problemId = 1;
-                var problemsDir = Path.Combine(Environment.CurrentDirectory, "../data/problemsL");
                 var problemFileName = $"LA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl";
-                var matrix = Matrix.Load(File.ReadAllBytes(Path.Combine(problemsDir, problemFileName)));
+                var matrix = Matrix.Load(File.ReadAllBytes(Path.Combine(FileHelper.ProblemsDir, problemFileName)));
                 var R = matrix.R;
 
                 var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix));

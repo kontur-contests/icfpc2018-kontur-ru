@@ -7,6 +7,7 @@
     <description>Kontur.Ru team runner for ICFPC 2018</description>
   </metadata>
   <files>
-    <file src="net471/**" target="lib/net471" />
+    <file src="net471\**" target="lib\net471" />
+    <file src="..\..\..\data\problemsL\**" target="data\problemsL" />
   </files>
 </package>
