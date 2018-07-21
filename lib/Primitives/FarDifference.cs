@@ -41,7 +41,7 @@ namespace lib.Primitives
 
         public int GetParameterZ()
         {
-            return Shift.Y;
+            return Shift.Z;
         }
 
         public static implicit operator Vec([NotNull] FarDifference difference)

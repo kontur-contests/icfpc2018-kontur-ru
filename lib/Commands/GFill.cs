@@ -30,9 +30,9 @@ namespace lib.Commands
             return new []
                 {
                     (byte)((NearShift.GetParameter() << 3) | 0b001),
-                    (byte) FarShift.GetParameterX(),
-                    (byte) FarShift.GetParameterY(),
-                    (byte) FarShift.GetParameterZ(),
+                    (byte) (FarShift.GetParameterX() + 30),
+                    (byte) (FarShift.GetParameterY() + 30),
+                    (byte) (FarShift.GetParameterZ() + 30),
                 };
         }
 
