@@ -68,7 +68,7 @@ namespace tests
         [Test]
         public void Solve()
         {
-            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsL");
+            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsF");
             var p = Directory.EnumerateFiles(problemsDir, "*.mdl").Single(x => x.Contains("007"));
             var mtrx = Matrix.Load(File.ReadAllBytes(p));
             var R = mtrx.N;

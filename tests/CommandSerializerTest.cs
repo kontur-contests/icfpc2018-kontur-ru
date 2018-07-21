@@ -22,7 +22,7 @@ namespace tests
 
         private static IEnumerable<string> GetModels()
         {
-            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/dfltTracesL");
+            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/dfltTracesF");
             foreach (string file in Directory.EnumerateFiles(problemsDir, "*.nbt"))
             {
                 yield return file;

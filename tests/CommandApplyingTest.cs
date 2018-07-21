@@ -28,7 +28,7 @@ namespace tests
         private static IEnumerable<object[]> GetModels()
         {
             var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data");
-            foreach (var (commands, model) in Directory.EnumerateFiles(problemsDir, "dfltTracesL/*.nbt").Zip(Directory.EnumerateFiles(problemsDir, "problemsL/*.mdl"), (a, b) => (a, b)))
+            foreach (var (commands, model) in Directory.EnumerateFiles(problemsDir, "dfltTracesF/*.nbt").Zip(Directory.EnumerateFiles(problemsDir, "problemsF/*.mdl"), (a, b) => (a, b)))
             {
                 yield return new [] {commands, model};
             }
