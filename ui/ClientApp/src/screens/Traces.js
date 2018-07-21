@@ -78,28 +78,17 @@ export default class App extends Component {
 }
 
 function processData(data) {
-  if (data.length === 0) {
-    return 0;
-  }
-
-  const normalized = data.map(y => ({
-    changes: y.change,
-    bots: y.bots.map(x => [x.item1, x.item2, x.item3]),
-    r: y.r,
-    energy: y.energy
-  }));
-
-  const r = normalized[0].r;
+  const r = data.r;
 
   const steps = [];
   const model = Array.from({ length: r }, () =>
     Array.from({ length: r }, () => Array(r).fill(0))
   );
 
-  for (let i = 0; i < data.length; i++) {
-    const { changes, bots, energy } = normalized[i];
+  for (let i = 0; i < data.ticks.length; i++) {
+      const { changes, bots, energy } = data.ticks[i];
 
-    changes.forEach(({ x, y, z }) => {
+    changes.forEach(([ x, y, z ]) => {
       model[x][y][z] = 1;
     });
 
@@ -109,7 +98,7 @@ function processData(data) {
     });
   }
 
-  const energy = normalized.map((step, x) => ({
+    const energy = data.ticks.map((step, x) => ({
     y: step.energy,
     x
   }));

@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 using lib.Commands;
 using lib.Models;
@@ -31,15 +28,9 @@ namespace ui.Controllers
             var strings = new string[voxels.GetLength(0), voxels.GetLength(1), voxels.GetLength(2)];
 
             for (var x = 0; x < voxels.GetLength(0); x++)
-            {
                 for (var y = 0; y < voxels.GetLength(1); y++)
-                {
                     for (var z = 0; z < voxels.GetLength(2); z++)
-                    {
                         strings[x, y, z] = voxels[x, y, z] ? "" : "0";
-                    }
-                }
-            }
 
             return strings;
         }
@@ -54,12 +45,12 @@ namespace ui.Controllers
         }
 
         [HttpGet("[action]")]
-        public List<TickResult> Trace(string file)
+        public TraceResult Trace(string file, int startTick = 0, int count = 2000)
         {
             var problemName = file.Split("-")[0];
             var problem = Matrix.Load(System.IO.File.ReadAllBytes($"../data/problemsL/{problemName}_tgt.mdl"));
             var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"../data/solutions/{file}.nbt"));
-            
+
             var state = new MutableState(new Matrix(problem.R));
             var queue = new Queue<ICommand>(solution);
 
@@ -75,20 +66,17 @@ namespace ui.Controllers
                     var newFilledVoxels = new List<Vec>();
 
                     foreach (var vec in state.LastChangedCells)
-                    {
                         if (state.BuildingMatrix[vec] && !filledVoxels.Contains(vec))
                         {
                             newFilledVoxels.Add(vec);
                             filledVoxels.Add(vec);
                         }
-                    }
                     results.Add(new TickResult
                         {
-                            R = state.BuildingMatrix.R,
-                            change = newFilledVoxels,
+                            changes = newFilledVoxels.Select(v => new[] {v.X, v.Y, v.Z}).ToArray(),
                             bots = state.Bots
-                                .Select(x => Tuple.Create(x.Position.X, x.Position.Y, x.Position.Z))
-                                .ToArray(),
+                                        .Select(x => new[] {x.Position.X, x.Position.Y, x.Position.Z})
+                                        .ToArray(),
                             energy = state.Energy
                         });
                 }
@@ -98,15 +86,29 @@ namespace ui.Controllers
                 // Ignore failed simulation
             }
 
-            return results;
+            var ticks = results.Skip(startTick).Take(count).ToArray();
+            return new TraceResult
+                {
+                    R = problem.R,
+                    startTick = startTick,
+                    totalTicks = results.Count,
+                    Ticks = ticks
+                };
         }
+    }
+
+    public struct TraceResult
+    {
+        public int startTick;
+        public int totalTicks;
+        public int R;
+        public TickResult[] Ticks;
     }
 
     public struct TickResult
     {
-        public int R;
-        public List<Vec> change;
-        public Tuple<int, int, int>[] bots;
+        public int[][] changes;
+        public int[][] bots;
         public long energy;
     }
 }
