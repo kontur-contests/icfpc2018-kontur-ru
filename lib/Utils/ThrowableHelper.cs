@@ -14,7 +14,7 @@ namespace lib.Utils
         public static StatValue opt = new StatValue();
         private readonly Matrix toFill;
         private readonly Matrix filled;
-        private readonly MatrixInt used;
+        private readonly Matrix<int> used;
         private Vec[] queue;
         private int timer = 1;
 
@@ -25,7 +25,7 @@ namespace lib.Utils
             this.toFill = toFill;
             n = toFill.N;
             filled = new Matrix(n);
-            used = new MatrixInt(n);
+            used = new Matrix<int>(n);
             queue = new Vec[n * n * n + 10];
         }
 
