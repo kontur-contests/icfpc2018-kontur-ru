@@ -13,15 +13,19 @@ namespace lib.Strategies
     {
         public Vec Position;
         public List<ICommand> Commands = new List<ICommand>();
+        public int Tick = 1;
     }
 
     public class GreedyParallel : IAmSolver
     {
         private readonly Matrix whatToFill;
+        private readonly Matrix<int> blockedBefore;
         private readonly Matrix filled;
         private Dictionary<int, BotState> bots;
         private readonly IOracle oracle;
         private readonly int R;
+        private int Timer = 1;
+        private SortedDictionary<int, List<Vec>> ToFill = new SortedDictionary<int, List<Vec>>();
 
         private readonly ICandidatesOrdering candidatesOrdering;
 
@@ -34,103 +38,107 @@ namespace lib.Strategies
             this.candidatesOrdering = candidatesOrdering ?? new BuildAllStayingStill();
             R = whatToFill.R;
             filled = new Matrix(R);
+            blockedBefore = new Matrix<int>(R);
         }
 
-        private List<ICommand> Commands { get; } = new List<ICommand>();
 
         public IEnumerable<ICommand> Solve()
         {
             var candidates = BuildCandidates();
 
-            Commands.Add(new LMove(new ShortLinearDifference(new Vec(5, 0, 0)), 
+            var commands = new List<ICommand>();
+
+            commands.Add(new LMove(new ShortLinearDifference(new Vec(5, 0, 0)), 
                                    new ShortLinearDifference(new Vec(0, 5, 0))));
-            Commands.Add(new Fission(new NearDifference(new Vec(0, 0, 1)), 10));
+            commands.Add(new Fission(new NearDifference(new Vec(0, 0, 1)), 10));
+            bots[0].Position = new Vec(5, 5, 0);
+            bots.Add(10, new BotState {Position = new Vec(5, 5, 1)});
+
+           
 
             while (true)
             {
                 if (!candidates.Any())
                     break;
 
+                foreach (var bot in bots.Values)
+                    blockedBefore[bot.Position] = Timer;
+
                 foreach (var bot in bots)
                 {
-                    var candidatesAndPositions = OrderCandidates(bot.Key, candidates);
-
-                    var any = false;
-                    foreach (var (candidate, nearPosition) in candidatesAndPositions)
+                    if (!bot.Value.Commands.Any())
                     {
-                        if (Move(bot.Key, nearPosition))
+                        var candidatesAndPositions = OrderCandidates(bot.Key, candidates);
+
+                        foreach (var (candidate, nearPosition) in candidatesAndPositions)
                         {
-                            any = true;
-                            Fill(bot.Key, candidate);
-                            candidates.Remove(candidate);
-                            foreach (var neighbor in candidate.GetMNeighbours())
+                            if (Move(bot.Key, nearPosition))
                             {
-                                if (neighbor.IsInCuboid(R)
-                                    && whatToFill[neighbor]
-                                    && !filled[neighbor])
-                                    candidates.Add(neighbor);
+                                Fill(bot.Key, candidate);
+                                candidates.Remove(candidate);
+                                
+                                break;
                             }
-                            break;
                         }
                     }
+
+                    if (!bot.Value.Commands.Any())
+                        bot.Value.Commands.Add(new Wait());
+
+                    commands.Add(bot.Value.Commands.First());
+                    bot.Value.Commands.RemoveAt(0);
+                }
+
+                Timer++;
+                while (ToFill.Any() && ToFill.First().Key < Timer)
+                {
+                    foreach (var candidate in ToFill.First().Value)
+                    {
+                        foreach (var neighbor in candidate.GetMNeighbours())
+                        {
+                            if (neighbor.IsInCuboid(R)
+                                && whatToFill[neighbor]
+                                && !filled[neighbor])
+                                candidates.Add(neighbor);
+                        }
+                    }
+
+                    ToFill.Remove(ToFill.First().Key);
                 }
             }
-            
-            //while (candidates.Any())
-            //{
-            //    var candidatesAndPositions = OrderCandidates(candidates);
-            //    var any = false;
-            //    foreach (var (candidate, nearPosition) in candidatesAndPositions)
-            //    {
-            //        if (Move(nearPosition))
-            //        {
-            //            any = true;
-            //            Fill(candidate);
-            //            candidates.Remove(candidate);
-            //            foreach (var neighbor in candidate.GetMNeighbours())
-            //            {
-            //                if (neighbor.IsInCuboid(R)
-            //                    && whatToFill[neighbor]
-            //                    && !filled[neighbor])
-            //                    candidates.Add(neighbor);
-            //            }
-            //            break;
-            //        }
-            //    }
-            //    foreach (var command in Commands)
-            //    {
-            //        yield return command;
-            //    }
-            //    Commands.Clear();
-            //    if (!any)
-            //        throw new Exception("Can't move");
-            //}
-            
-            //Move(Vec.Zero);
 
-            Commands.Add(new Halt());
-            Commands.Add(new Halt());
+            commands.Add(new Halt());
+            commands.Add(new Halt());
 
-            foreach (var command in Commands)
+            foreach (var command in commands)
             {
                 yield return command;
             }
-            Commands.Clear();
+            commands.Clear();
         }
 
         private bool Move(int index, Vec target)
         {
-            var pathFinder = new PathFinder(filled.Voxels, bots[index].Position, target);
+            var pathFinder = new PathFinder(filled.Voxels, bots[index].Position, target, blockedBefore, Timer);
             var path = pathFinder.TryFindPath();
             if (path == null) return false;
-            Commands.Add(path.First());
-            bots[index].Position = target;
+
+            foreach (var command in path)
+            {
+                AddCommand(bots[index], command);
+            }
+
             return true;
         }
 
         private void Fill(int index, Vec target)
         {
-            Commands.Add(new Fill(new NearDifference(target - bots[index].Position)));
+            var tick = bots[index].Tick;
+            if (!ToFill.ContainsKey(tick))
+                ToFill[tick] = new List<Vec>();
+            ToFill[tick].Add(target);
+
+            AddCommand(bots[index], new Fill(new NearDifference(target - bots[index].Position)));
             filled[target] = true;
             oracle.Fill(target);
         }
@@ -149,6 +157,41 @@ namespace lib.Strategies
                     }
                 }
             }
+        }
+
+        private void AddCommand(BotState bot, ICommand command)
+        {
+            bot.Tick++;
+
+            if (command is LMove move1)
+            {
+                var cells = move1.GetCellsOnPath(bot.Position);
+                foreach (var cell in cells)
+                {
+                    blockedBefore[cell] = bot.Tick;
+                }
+
+                bot.Position = cells.Last();
+            } else if (command is SMove move2)
+            {
+                var cells = move2.GetCellsOnPath(bot.Position);
+                foreach (var cell in cells)
+                {
+                    blockedBefore[cell] = bot.Tick;
+                }
+
+                bot.Position = cells.Last();
+            }
+            else if (command is Fill move3)
+            {
+                blockedBefore[bot.Position + move3.Shift] = bot.Tick;
+            }
+            else
+            {
+                throw new Exception("Unknown move type");
+            }
+
+            bot.Commands.Add(command);
         }
 
         private HashSet<Vec> BuildCandidates()

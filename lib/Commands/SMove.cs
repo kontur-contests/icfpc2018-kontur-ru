@@ -35,7 +35,7 @@ namespace lib.Commands
         {
             if (!state.BuildingMatrix.IsInside(bot.Position + shift))
                 return false;
-            return GetCellsOnPath(bot).All(x => state.BuildingMatrix.IsVoidVoxel(x));
+            return GetCellsOnPath(bot.Position).All(x => state.BuildingMatrix.IsVoidVoxel(x));
         }
 
         protected override void DoApply(MutableState mutableState, Bot bot)
@@ -47,13 +47,13 @@ namespace lib.Commands
         [NotNull]
         public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
         {
-            return GetCellsOnPath(bot);
+            return GetCellsOnPath(bot.Position);
         }
 
         [NotNull]
-        private Vec[] GetCellsOnPath([NotNull] Bot bot)
+        public Vec[] GetCellsOnPath([NotNull] Vec position)
         {
-            return shift.GetTrace(bot.Position);
+            return shift.GetTrace(position);
         }
     }
 }

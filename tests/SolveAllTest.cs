@@ -24,7 +24,7 @@ namespace tests
         [Explicit]
         //[Timeout(30000)]
         public void SolveOne(
-            [Values(40)] int problemId
+            [Values(1)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
@@ -33,12 +33,12 @@ namespace tests
             var problemFile = Path.Combine(problemsDir, $"LA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
-            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix));
+            var solver = new GreedyParallel(matrix, new Vec(0, 0, 0), 
+                                            new ThrowableHelperFast(matrix));
             ICommand[] commands = null;
             try
             {
                 commands = solver.Solve().ToArray();
-                Console.WriteLine($"{GreedyPartialSolver.A} {GreedyPartialSolver.B}");
             }
             catch (Exception e)
             {
@@ -125,6 +125,7 @@ namespace tests
             catch (Exception e)
             {
                 Log.For(this).Error($"Invalid solution for {Path.GetFileName(p)}", e);
+                throw;
                 return 0;
             }
         }
