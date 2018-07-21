@@ -148,10 +148,14 @@ namespace houston
                     context.Log.Info($"Tasks complete: {completeTasksCounter} of {selectedTasks.Length} for this worker");
 
                     var indexingResult = client.IndexDocument(result);
-                    if (!indexingResult.IsValid)
+                    var tryCount = 1;
+                    while (!indexingResult.IsValid && tryCount < 5)
                     {
-                        context.Log.Error($"Failed to insert task {result.TaskName} into Elastic (success was {result.IsSuccess})");
+                        context.Log.Error($"Failed to insert task {result.TaskName} into Elastic on {tryCount} try (success was {result.IsSuccess})");
                         context.Log.Error(indexingResult.DebugInformation);
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        indexingResult = client.IndexDocument(result);
+                        tryCount++;
                     }
                 });
 
