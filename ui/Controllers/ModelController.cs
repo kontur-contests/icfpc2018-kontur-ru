@@ -44,10 +44,10 @@ namespace ui.Controllers
         }
 
         [HttpGet("[action]")]
-        public ArrayList Check007()
+        public ArrayList Check007(string file)
         {
-            var problem = Matrix.Load(System.IO.File.ReadAllBytes("../data/problemsL/LA007_tgt.mdl"));
-            var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes("LA007.nbt"));
+            var problem = Matrix.Load(System.IO.File.ReadAllBytes($"../data/problemsL/{file}_tgt.mdl"));
+            var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"{file}.nbt"));
             
             var state = new MutableState(new Matrix(problem.R));
             var queue = new Queue<ICommand>(solution);
