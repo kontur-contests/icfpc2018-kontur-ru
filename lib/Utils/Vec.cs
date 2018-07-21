@@ -53,7 +53,7 @@ namespace lib.Utils
         {
             unchecked
             {
-                return ((x * 397) ^ y) * 397 ^ z;
+                return ((x * 256) ^ y) * 256 ^ z;
             }
         }
 

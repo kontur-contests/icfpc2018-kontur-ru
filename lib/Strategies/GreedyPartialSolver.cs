@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using lib.Commands;
 using lib.Primitives;
 using lib.Utils;
+
+using MoreLinq;
 
 namespace lib.Strategies
 {
@@ -27,7 +30,7 @@ namespace lib.Strategies
 
         private static readonly Vec[] nears =
             Enumerable.Range(-1, 3)
-                      .SelectMany(x => Enumerable.Range(-1, 3).Select(y => new {x, y}))
+                      .SelectMany(x => Enumerable.Range(-1, 3).Select(y => new { x, y }))
                       .SelectMany(v => Enumerable.Range(-1, 3).Select(z => new Vec(v.x, v.y, z)))
                       .Where(v => v != Vec.Zero && v.MDistTo(Vec.Zero) <= 2).ToArray();
 
@@ -83,7 +86,30 @@ namespace lib.Strategies
             var pathFinder = new PathFinder(state, pos, target);
             var path = pathFinder.TryFindPath();
             if (path == null)
-                throw new InvalidOperationException($"Couldn't find path from {pos} to {target}; {string.Join("; ", Commands)}");
+            {
+                var all = whatToFill.Cast<bool>().Count(b => b);
+                var done = Commands.Count(c => c is Fill);
+                //for (int i = 0; i < Commands.Count; i++)
+                //{
+                //    var bytes = CommandSerializer.Save(Commands.Take(i + 1).ToArray());
+                //    File.WriteAllBytes($@"c:\temp\007_{i:0000000}.nbt", bytes);
+                //}
+
+                //var s = "";
+                //for (int y = 0; y < R; y++)
+                //{
+                //    for (int z = 0; z < R; z++)
+                //    {
+                //        for (int x = R- 1; x >= 0; x--)
+                //            s += state.Get(new Vec(x, y, z)) ? "X" : ".";
+                //        s += "\r\n";
+                //    }
+                //    s += "===r\n";
+                //}
+                //File.WriteAllText(@"c:\1.txt", s);
+
+                throw new InvalidOperationException($"Couldn't find path from {pos} to {target}; all={all}; done={done}; Commands.Count={Commands.Count}; {string.Join("; ", Commands)}");
+            }
             Commands.AddRange(path);
             pos = target;
         }

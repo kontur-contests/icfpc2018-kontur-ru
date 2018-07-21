@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using lib.Commands;
@@ -26,7 +27,13 @@ namespace lib.Utils
             if (source == target)
                 return new List<ICommand>();
 
-            var queue = new SortedSet<Vec>(Comparer<Vec>.Create((a, b) => a.MDistTo(target).CompareTo(b.MDistTo(target))));
+            var queue = new SortedSet<Vec>(Comparer<Vec>.Create((a, b) =>
+                {
+                    var compareTo = a.MDistTo(target).CompareTo(b.MDistTo(target));
+                    if (compareTo != 0)
+                        return compareTo;
+                    return Comparer<int>.Default.Compare(a.GetHashCode(), b.GetHashCode());
+                }));
             queue.Add(source);
             var used = new Dictionary<Vec, (Vec prev, ICommand command)>();
             used.Add(source, (null, null));
@@ -54,6 +61,18 @@ namespace lib.Utils
                     }
                 }
             }
+            //var s = "";
+            //for (int y = 0; y < R; y++)
+            //{
+            //    for (int z = 0; z < R; z++)
+            //    {
+            //        for (int x = R - 1; x >= 0; x--)
+            //            s += used.ContainsKey(new Vec(x, y, z)) ? "X" : ".";
+            //        s += "\r\n";
+            //    }
+            //    s += "===r\n";
+            //}
+            //File.WriteAllText(@"c:\2.txt", s);
             return null;
         }
 
