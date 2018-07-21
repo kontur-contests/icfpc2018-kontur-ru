@@ -19,16 +19,21 @@ namespace tests
     [TestFixture]
     public class SolveAllTest
     {
+        public static int[] Problems = Enumerable.Range(1, 100).ToArray();
         [Test]
         [Explicit]
-        public void SolveOne([Values(1)] int problemId)
+        //[Timeout(30000)]
+        public void SolveOne(
+            [Values(21)] int problemId
+            //[ValueSource(nameof(Problems))] int problemId
+            )
         {
             var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsL");
             var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/solutions");
             var problemFile = Path.Combine(problemsDir, $"LA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
-            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(matrix.N));
+            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), Estimate);
             try
             {
                 solver.Solve();
@@ -45,6 +50,12 @@ namespace tests
 
             var bytes = CommandSerializer.Save(commands);
             File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
+            Console.WriteLine(ThrowableHelper.opt.ToDetailedString());
+        }
+
+        private int Estimate(Vec pos, Vec bot)
+        {
+            return 30 * pos.MDistTo(bot) + 4*pos.Y + pos.Z + pos.X;
         }
 
         [Test]
