@@ -11,16 +11,16 @@ namespace lib.Models
         private readonly bool[,,] voxels;
 
         public Matrix(int n)
-            : this(new bool[n, n, n])
+            : this(new bool[n, n, n], 0)
         {
         }
 
 
-        public Matrix([NotNull] bool[,,] voxels)
+        public Matrix([NotNull] bool[,,] voxels, int weight)
         {
             this.voxels = voxels;
             R = voxels.GetLength(0);
-            Weight = voxels.Cast<bool>().Count(b => b);
+            Weight = weight;
         }
 
         public Matrix([NotNull] params string[] zLayers)
@@ -33,6 +33,7 @@ namespace lib.Models
                     {
                         var yLayers = zLayers[z].Split('|');
                         voxels[x, y, z] = yLayers[y][x] == '1';
+                        if (voxels[x, y, z]) Weight++;
                     }
         }
 
@@ -44,6 +45,7 @@ namespace lib.Models
             var r = content[0];
             var voxels = new bool[r, r, r];
             var bit = 0;
+            var weight = 0;
             for (int x = 0; x < r; x++)
                 for (int y = 0; y < r; y++)
                     for (int z = 0; z < r; z++)
@@ -51,9 +53,10 @@ namespace lib.Models
                         byte b = content[1 + bit / 8];
                         bool isFull = (b >> (bit % 8) & 1) == 1;
                         voxels[x, y, z] = isFull;
+                        if (isFull) weight++;
                         bit++;
                     }
-            return new Matrix(voxels);
+            return new Matrix(voxels, weight);
         }
 
         [NotNull]
@@ -84,7 +87,7 @@ namespace lib.Models
 
         public Matrix Clone()
         {
-            return new Matrix((bool[,,])voxels.Clone());
+            return new Matrix((bool[,,])voxels.Clone(), Weight);
         }
     }
 }
