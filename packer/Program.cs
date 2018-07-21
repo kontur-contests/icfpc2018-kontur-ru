@@ -28,10 +28,13 @@ namespace packer
                                                                      .Size(1000)
                                                                      .Aggregations(childAggs => childAggs
                                                                                                     .Min("min_energy", min => min.Field("energySpent"))))));
-            var solutionsDirectory = Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "..", "submit", $"solutions_{DateTime.Now:dd_hh-mm-ss}");
-            Console.Error.WriteLine(solutionsDirectory);
-            if (!Directory.Exists(solutionsDirectory))
-                Directory.CreateDirectory(solutionsDirectory);
+            Console.Out.WriteLine(FileHelper.SolutionsDir);
+            if (Directory.Exists(FileHelper.SolutionsDir))
+                Directory.Delete(FileHelper.SolutionsDir, true);
+            Directory.CreateDirectory(FileHelper.SolutionsDir);
+            foreach (var defaultTraceFile in Directory.GetFiles(FileHelper.DefaultTracesDir))
+                File.Copy(defaultTraceFile, Path.Combine(FileHelper.SolutionsDir, Path.GetFileName(defaultTraceFile)));
+
             foreach (var bucket in searchResponse.Aggregations.Terms("task_name").Buckets)
             {
                 var taskName = bucket.Key;
@@ -45,7 +48,7 @@ namespace packer
                 {
                     var solutionBase64 = document.Solution;
                     var solutionContent = solutionBase64.SerializeSolutionFromString();
-                    var targetSolutionPath = Path.Combine(solutionsDirectory, $"{document.TaskName}.nbt");
+                    var targetSolutionPath = Path.Combine(FileHelper.SolutionsDir, $"{document.TaskName.Split('_')[0]}.nbt");
                     var infoMessage = $"Save solution for task '{document.TaskName}' with energy '{document.EnergySpent}' to the '{targetSolutionPath}'";
                     Console.Error.WriteLine(infoMessage);
                     Log.For("packer").Info(infoMessage);

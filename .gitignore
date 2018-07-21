@@ -326,3 +326,5 @@ ASALocalRun/
 
 # Ignore submit/ directory
 submit/
+data/solutions/
+/submission/submission.zip
