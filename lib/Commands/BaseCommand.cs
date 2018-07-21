@@ -17,7 +17,7 @@ namespace lib.Commands
         public void Apply([NotNull] MutableState mutableState, [NotNull] Bot bot)
         {
             if (!CanApply(mutableState, bot))
-                throw new Exception("Can't apply command");
+                throw new Exception($"Can't apply command {this}");
             DoApply(mutableState, bot);
         }
 
