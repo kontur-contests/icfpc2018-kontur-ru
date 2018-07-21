@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Runtime.CompilerServices;
+
+using lib.Models;
 
 namespace lib.Utils
 {
@@ -153,6 +156,11 @@ namespace lib.Utils
             yield return new Vec(x + 1, y, z);
             yield return new Vec(x, y - 1, z);
             yield return new Vec(x, y + 1, z);
+        }
+
+        public IEnumerable<Vec> GetMNeighbours(Matrix matrix)
+        {
+            return GetMNeighbours().Where(matrix.IsInside);
         }
 
         public bool IsInCuboid(int r)

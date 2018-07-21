@@ -21,7 +21,7 @@ namespace tests
     {
         [Test]
         [Explicit]
-        public void SolveOne([Values(57)] int problemId)
+        public void SolveOne([Values(42)] int problemId)
         {
             var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsL");
             var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/solutions");
@@ -32,6 +32,7 @@ namespace tests
             try
             {
                 solver.Solve();
+                Console.WriteLine($"{GreedyPartialSolver.A} {GreedyPartialSolver.B}");
             }
             catch (Exception e)
             {

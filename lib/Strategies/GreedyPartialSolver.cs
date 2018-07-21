@@ -13,6 +13,8 @@ namespace lib.Strategies
 {
     public class GreedyPartialSolver
     {
+        public static int A = 0, B = 0;
+
         private readonly bool[,,] whatToFill;
         private readonly bool[,,] state;
         private Vec pos;
@@ -131,7 +133,11 @@ namespace lib.Strategies
                 foreach (var nearPosition in nearPositions)
                 {
                     if (oracle.TryFill(candidate, nearPosition))
+                    {
+                        A++;
                         return (candidate, nearPosition);
+                    }
+                    B++;
                 }
             }
             throw new InvalidOperationException("Couldn't decide what to fill next");
