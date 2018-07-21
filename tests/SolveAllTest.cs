@@ -28,7 +28,7 @@ namespace tests
             var problemFile = Path.Combine(problemsDir, $"LA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
-            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix));
+            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(matrix.N));
             try
             {
                 solver.Solve();
