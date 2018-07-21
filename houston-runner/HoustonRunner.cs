@@ -74,8 +74,11 @@ namespace houston
                             var solver = solution.Solver;
 
                             var commands = new List<ICommand>();
-                           // var started = new ManualResetEvent(false);
+                            var started = new ManualResetEvent(false);
                             ExceptionDispatchInfo exceptionDispatchInfo = null;
+                            var total = task.Problem.Matrix.Weight;
+                            int done = 0;
+                            var timeout = Stopwatch.StartNew();
                             var runThread = new Thread(() =>
                                 {
                                     try
@@ -83,28 +86,37 @@ namespace houston
                                         var solverCommands = solver.Solve();
                                         foreach (var command in solverCommands)
                                         {
+                                            started.Set();
                                             commands.Add(command);
+                                            if (command is Fill)
+                                                Interlocked.Increment(ref done);
                                         }
                                     }
                                     catch (Exception exception)
                                     {
                                         exceptionDispatchInfo = ExceptionDispatchInfo.Capture(exception);
+                                        started.Set();
                                     }
-                                    //started.Set();
                                 });
                             runThread.Start();
-                            //if (!started.WaitOne(context.Properties.SolverStartTimeout))
-                            //{
-                            //    runThread.Abort();
-                            //    runThread.Join();
-                            //    throw new TimeoutException("Solve timeout expired");
-                            //}
-                            if (!runThread.Join(context.Properties.SolverStartTimeout))
+                            if (!started.WaitOne(context.Properties.SolverStartTimeout))
                             {
                                 runThread.Abort();
                                 runThread.Join();
-                                throw new TimeoutException("Solve timeout expired");
+                                throw new TimeoutException("Solve start timeout expired");
                             }
+
+                            while (!runThread.Join(context.Properties.SolverTimeoutMeasureInterval))
+                            {
+                                var localDone = Interlocked.CompareExchange(ref done, 0, 0);
+                                if (localDone == 0)
+                                    throw new TimeoutException("Solver didn't fill any cells");
+
+                                var estimatedTotalTime = TimeSpan.FromTicks(timeout.Elapsed.Ticks * total / localDone);
+                                if (estimatedTotalTime > context.Properties.SolverTimeout)
+                                    throw new TimeoutException($"Solver total time estimation {estimatedTotalTime} exceeds limit {context.Properties.SolverTimeout}");
+                            }
+                            
                             exceptionDispatchInfo?.Throw();
 
                             var state = new MutableState(task.Problem.Matrix);
