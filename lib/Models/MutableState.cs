@@ -17,7 +17,7 @@ namespace lib.Models
         public MutableState([NotNull] Matrix targetMatrix)
         {
             this.targetMatrix = targetMatrix;
-            Bots = new List<Bot> {new Bot {Bid = 1, Position = Vec.Zero, Seeds = Enumerable.Range(2, 19).ToList()}};
+            Bots = new List<Bot> { new Bot { Bid = 1, Position = Vec.Zero, Seeds = Enumerable.Range(2, 19).ToList() } };
             Energy = 0;
             Harmonics = Harmonics.Low;
             BuildingMatrix = new ComponentTrackingMatrix(new Matrix(targetMatrix.N));
@@ -32,11 +32,18 @@ namespace lib.Models
         public void Tick(Queue<ICommand> trace)
         {
             var botCommands
-                = Bots.OrderBy(b => b.Bid).Select(bot => new {bot, command = trace.Dequeue()}).ToList();
+                = Bots.OrderBy(b => b.Bid).Select(bot => new { bot, command = trace.Dequeue() }).ToList();
+
+            Energy += Harmonics == Harmonics.High
+                          ? 30 * targetMatrix.R * targetMatrix.R * targetMatrix.R
+                          : 3 * targetMatrix.R * targetMatrix.R * targetMatrix.R;
+            Energy += 20 * Bots.Count;
+
+
             var volitileCells =
                 from bc in botCommands
                 from cell in bc.command.GetVolatileCells(this, bc.bot)
-                select new {bc, cell};
+                select new { bc, cell };
             var badGroup = volitileCells.GroupBy(c => c.cell).FirstOrDefault(g => g.Count() > 1);
             if (badGroup != null)
             {
