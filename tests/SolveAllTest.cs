@@ -37,7 +37,7 @@ namespace tests
             //var solver = new StupidDisassembler(matrix);
             //var assembler = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(matrix));
             var assembler = new DivideAndConquer(matrix, true);
-            var solver = new InvertorDisassembler(assembler, R);
+            var solver = new InvertorDisassembler(assembler, matrix);
             List<ICommand> commands = new List<ICommand>();
             try
             {
@@ -47,6 +47,7 @@ namespace tests
             catch (Exception e)
             {
                 Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
+                throw;
             }
             finally
             {
@@ -58,18 +59,18 @@ namespace tests
         [Explicit]
         //[Timeout(30000)]
         public void SolveOne(
-            [Values(1)] int problemId
+            [Values(19)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
             var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsF");
             var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/solutions");
-            var problemFile = Path.Combine(problemsDir, $"FA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
+            var problemFile = Path.Combine(problemsDir, $"FD{problemId.ToString().PadLeft(3, '0')}_src.mdl");
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
             //var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), new BottomToTopBuildingAround());
-            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), new NearToFarBottomToTopBuildingAround());
-            //var solver = new DivideAndConquer(matrix);
+            //var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), new NearToFarBottomToTopBuildingAround());
+            var solver = new DivideAndConquer(matrix, true);
             List<ICommand> commands = new List<ICommand>();
             try
             {
@@ -80,6 +81,7 @@ namespace tests
             catch (Exception e)
             {
                 Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
+                throw;
             }
             finally
             {

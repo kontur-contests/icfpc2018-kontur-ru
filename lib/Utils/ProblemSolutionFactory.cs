@@ -117,13 +117,13 @@ namespace lib.Utils
                                                                 problem.SourceMatrix.Voxels,
                                                                 new bool[R, R, R],
                                                                 new Vec(0, 0, 0),
-                                                                new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix.R),
+                                                                new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix),
                     CompatibleProblemTypes = new[] { ProblemType.Disassemble }
                 };
             var invColDisassebler = new Solution
                     {
                         Name = "invCol",
-                        Solver = () => new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix.R),
+                        Solver = () => new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix),
                         CompatibleProblemTypes = new[] { ProblemType.Disassemble }
                     };
 
