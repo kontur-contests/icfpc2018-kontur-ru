@@ -37,7 +37,6 @@ namespace lib.Models
         }
 
         public int R { get; }
-        public int N => R;
 
         [NotNull]
         public static Matrix Load([NotNull] byte[] content)

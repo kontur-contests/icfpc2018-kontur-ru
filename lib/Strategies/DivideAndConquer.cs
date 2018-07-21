@@ -25,7 +25,7 @@ namespace lib.Strategies
         {
             this.targetMatrix = targetMatrix;
             this.useBoundingBox = useBoundingBox;
-            this.buildingMatrix = new Matrix(targetMatrix.N);
+            this.buildingMatrix = new Matrix(targetMatrix.R);
             CalcBoundingBox();
         }
 
@@ -35,11 +35,11 @@ namespace lib.Strategies
 
         private void CalcBoundingBox()
         {
-            for (int x = 0; x < targetMatrix.N; x++)
+            for (int x = 0; x < targetMatrix.R; x++)
             {
-                for (int y = 0; y < targetMatrix.N; y++)
+                for (int y = 0; y < targetMatrix.R; y++)
                 {
-                    for (int z = 0; z < targetMatrix.N; z++)
+                    for (int z = 0; z < targetMatrix.R; z++)
                     {
                         if (targetMatrix[x, y, z])
                         {
@@ -56,8 +56,8 @@ namespace lib.Strategies
             {
                 minX = 0;
                 minZ = 0;
-                maxX = targetMatrix.N - 1;
-                maxZ = targetMatrix.N - 1;
+                maxX = targetMatrix.R - 1;
+                maxZ = targetMatrix.R - 1;
             }
 
             highestPoint++;
@@ -265,9 +265,9 @@ namespace lib.Strategies
         private List<(Vec From, Vec To)> GetColumns()
         {
             var columns = new List<(Vec From, Vec To)>();
-            for (int x = 0; x < targetMatrix.N; x++)
+            for (int x = 0; x < targetMatrix.R; x++)
             {
-                for (int z = 0; z < targetMatrix.N; z++)
+                for (int z = 0; z < targetMatrix.R; z++)
                 {
                     columns.AddRange(GetColumnsAbove(x, z));
                 }
@@ -306,7 +306,7 @@ namespace lib.Strategies
         {
             var res = new List<(Vec, Vec)>();
             Vec currStart = null;
-            for (int y = 0; y < targetMatrix.N; y++)
+            for (int y = 0; y < targetMatrix.R; y++)
             {
                 if (targetMatrix[x, y, z] && currStart == null)
                 {

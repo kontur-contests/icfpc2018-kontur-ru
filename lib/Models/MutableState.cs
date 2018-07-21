@@ -22,7 +22,7 @@ namespace lib.Models
             Bots = new List<Bot> { new Bot { Bid = 1, Position = Vec.Zero, Seeds = Enumerable.Range(2, 39).ToList() } };
             Energy = 0;
             Harmonics = Harmonics.Low;
-            BuildingMatrix = new ComponentTrackingMatrix(new Matrix(targetMatrix.N));
+            BuildingMatrix = new ComponentTrackingMatrix(new Matrix(targetMatrix.R));
         }
 
         public List<long> EnergyHistory { get; } = new List<long>();
@@ -76,9 +76,9 @@ namespace lib.Models
         {
             if (Bots.Any())
                 throw new InvalidOperationException("State is not final");
-            for (int i = 0; i < targetMatrix.N; i++)
-                for (int j = 0; j < targetMatrix.N; j++)
-                    for (int k = 0; k < targetMatrix.N; k++)
+            for (int i = 0; i < targetMatrix.R; i++)
+                for (int j = 0; j < targetMatrix.R; j++)
+                    for (int k = 0; k < targetMatrix.R; k++)
                         if (targetMatrix[i, j, k] != BuildingMatrix[i, j, k])
                             throw new InvalidOperationException("BuildingMatrix differs from targetMatrix");
         }

@@ -14,7 +14,7 @@ namespace lib.Utils
 
         public ThrowableHelperFast(Matrix toFill)
         {
-            n = toFill.N;
+            n = toFill.R;
             this.toFill = toFill;
             filled = new Matrix(n);
 

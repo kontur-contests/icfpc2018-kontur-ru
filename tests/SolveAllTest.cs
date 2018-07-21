@@ -74,7 +74,7 @@ namespace tests
             Log.For(this).Info(string.Join("\r\n", problems.Select(p => p.p)));
             Parallel.ForEach(problems, p =>
                 {
-                    var R = p.m.N;
+                    var R = p.m.R;
                     //var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(p.m));
                     var solver = new GreedyPartialSolver(p.m.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(p.m));
                     //var solver = new DivideAndConquer(p.m);
