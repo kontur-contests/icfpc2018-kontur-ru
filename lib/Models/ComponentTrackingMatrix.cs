@@ -112,5 +112,10 @@ namespace lib.Models
         public bool this[Vec pos] { get => matrix[pos]; set => this[pos.X, pos.Y, pos.Z] = value; }
 
         public int R => matrix.R;
+        
+        public Matrix Clone()
+        {
+            return new Matrix((bool[,,])this.matrix.Voxels.Clone());
+        }
     }
 }
