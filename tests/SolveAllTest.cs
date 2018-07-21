@@ -20,6 +20,33 @@ namespace tests
     public class SolveAllTest
     {
         [Test]
+        [Explicit]
+        public void SolveOne([Values(57)] int problemId)
+        {
+            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsL");
+            var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/solutions");
+            var problemFile = Path.Combine(problemsDir, $"LA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
+            var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
+            var R = matrix.R;
+            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix));
+            try
+            {
+                solver.Solve();
+            }
+            catch (Exception e)
+            {
+                Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
+                return;
+            }
+            var commands = solver.Commands.ToArray();
+
+            TryValidate(matrix, commands, problemFile);
+
+            var bytes = CommandSerializer.Save(commands);
+            File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
+        }
+
+        [Test]
         public void Solve()
         {
             var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsL");
