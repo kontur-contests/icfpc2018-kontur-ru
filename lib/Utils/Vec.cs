@@ -17,6 +17,7 @@ namespace lib.Utils
 
     public class Vec : IVec, IEquatable<Vec>, IFormattable
     {
+        public static readonly Vec Zero = new Vec(0, 0, 0);
         private readonly int x, y, z;
         public int X => x;
         public int Y => y;
@@ -158,6 +159,17 @@ namespace lib.Utils
             yield return new Vec(x, y + 1, z);
         }
 
+        private static readonly Vec[] nears =
+            Enumerable.Range(-1, 3)
+                      .SelectMany(x => Enumerable.Range(-1, 3).Select(y => new { x, y }))
+                      .SelectMany(v => Enumerable.Range(-1, 3).Select(z => new Vec(v.x, v.y, z)))
+                      .Where(v => v != Vec.Zero && v.MDistTo(Vec.Zero) <= 2).ToArray();
+
+        public IEnumerable<Vec> GetNears()
+        {
+            return nears.Select(d => d + this);
+        }
+
         public IEnumerable<Vec> GetMNeighbours(Matrix matrix)
         {
             return GetMNeighbours().Where(matrix.IsInside);
@@ -169,7 +181,5 @@ namespace lib.Utils
                    && y >= 0 && y < r
                    && z >= 0 && z < r;
         }
-
-        public static Vec Zero { get; } = new Vec(0, 0, 0);
     }
 }

@@ -31,12 +31,6 @@ namespace lib.Strategies
                 new Vec(0, 0, -1)
             };
 
-        private static readonly Vec[] nears =
-            Enumerable.Range(-1, 3)
-                      .SelectMany(x => Enumerable.Range(-1, 3).Select(y => new { x, y }))
-                      .SelectMany(v => Enumerable.Range(-1, 3).Select(z => new Vec(v.x, v.y, z)))
-                      .Where(v => v != Vec.Zero && v.MDistTo(Vec.Zero) <= 2).ToArray();
-
         private readonly Comparison<Vec> comparison;
 
         public GreedyPartialSolver(bool[,,] whatToFill, bool[,,] state, Vec pos, IOracle oracle, Func<Vec, Vec, int> priorityByCandidateAndBot = null)
@@ -148,11 +142,12 @@ namespace lib.Strategies
         {
             var list = candidates.ToList();
             list.Sort(comparison);
-            foreach (var candidate in list)
+            var nears = pos.GetNears().ToHashSet();
+            var orderedCandidates = list.GroupBy(cand => nears.Contains(cand)).OrderByDescending(g => g.Key).SelectMany(g => g);
+            foreach (var candidate in orderedCandidates)
             {
-                var nearPositions = nears.Select(n => n + candidate).Where(n => n.IsInCuboid(R)).ToList();
-                nearPositions.Sort(comparison);
-                foreach (var nearPosition in nearPositions)
+                var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(R));
+                foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(pos)))
                 {
                     if (oracle.CanFill(candidate, nearPosition))
                     {
