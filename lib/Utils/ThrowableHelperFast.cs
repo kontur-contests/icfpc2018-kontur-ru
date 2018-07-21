@@ -16,7 +16,18 @@ namespace lib.Utils
             if (filled[cell] || filled[bot])
                 return false;
 
-            var result = Check(cell, bot);
+            var result = Check(cell);
+            filled[cell] = true;
+
+            foreach (var neighbour in cell.GetMNeighbours(filled))
+            {
+                if (filled[neighbour])
+                    continue;
+
+                result &= Check(neighbour);
+            }
+
+            result &= Check(bot);
 
             if (!result)
                 filled[cell] = false;
@@ -24,9 +35,19 @@ namespace lib.Utils
             return result;
         }
 
-        private bool Check(Vec cell, Vec bot)
+        private static readonly Vec[] deltas =
+            {
+                new Vec(0, 0, 1),
+                //new Vec(0, 0, -1) нельзя в пол
+                new Vec(1, 0, 0),
+                new Vec(-1, 0, 0),
+                new Vec(0, 1, 0),
+                new Vec(0, -1, 0),
+            };
+
+        private bool Check(Vec cell)
         {
-            foreach (var delta in Vec.Zero.GetMNeighbours())
+            foreach (var delta in deltas)
             {
                 var v = cell;
                 while (true)

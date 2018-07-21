@@ -21,7 +21,7 @@ namespace tests
     {
         [Test]
         [Explicit]
-        public void SolveOne([Values(42)] int problemId)
+        public void SolveOne([Values(1)] int problemId)
         {
             var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsL");
             var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/solutions");
@@ -37,7 +37,7 @@ namespace tests
             catch (Exception e)
             {
                 Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
-                return;
+                throw;
             }
             var commands = solver.Commands.ToArray();
 
