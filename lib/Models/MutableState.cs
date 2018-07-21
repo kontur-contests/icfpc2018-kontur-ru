@@ -50,11 +50,11 @@ namespace lib.Models
                           : 3 * targetMatrix.R * targetMatrix.R * targetMatrix.R;
             Energy += 20 * Bots.Count;
             
-            var volitileCells =
+            var volatileCells =
                 from bc in botCommands
                 from cell in bc.command.GetVolatileCells(this, bc.bot)
                 select new { bc, cell };
-            var groups = volitileCells.GroupBy(c => c.cell).ToList();
+            var groups = volatileCells.GroupBy(c => c.cell).ToList();
             var badGroup = groups.FirstOrDefault(g => g.Count() > 1);
             if (badGroup != null)
             {
@@ -63,7 +63,7 @@ namespace lib.Models
                                                     $"Commands: {string.Join(", ", badGroup.Select(b => b.bc.command))} ");
             }
             LastChangedCells = groups.Select(c => c.Key).ToHashSet();
-            //TODO: Validate pair commands (Fission-Fusion)
+            //TODO: Validate pair commands (Fission-Fusion, GFill, GVoid)
             foreach (var botCommand in botCommands)
             {
                 botCommand.command.Apply(this, botCommand.bot);
