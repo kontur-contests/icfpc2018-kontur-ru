@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 
 using JetBrains.Annotations;
@@ -10,6 +11,36 @@ using lib.Primitives;
 
 namespace lib.Utils
 {
+    public static class Compressor
+    {
+        public static byte[] Compress(this byte[] data)
+        {
+            var memoryStream = new MemoryStream();
+            using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create))
+            {
+                var entry = zipArchive.CreateEntry("data", CompressionLevel.Optimal);
+                using (var stream = entry.Open())
+                    stream.Write(data, 0, data.Length);
+            }
+            return memoryStream.ToArray();
+        }
+
+        public static byte[] Decompress(this byte[] data)
+        {
+            var dataStream = new MemoryStream(data);
+            using (var zipArchive = new ZipArchive(dataStream, ZipArchiveMode.Read))
+            {
+                var entry = zipArchive.GetEntry("data");
+                using (var stream = entry.Open())
+                {
+                    var result = new MemoryStream();
+                    stream.CopyTo(result);
+                    return result.ToArray();
+                }
+            }
+        }
+    }
+
     public static class CommandSerializer
     {
         [NotNull]
