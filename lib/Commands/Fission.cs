@@ -10,7 +10,7 @@ namespace lib.Commands
 {
     public class Fission : BaseCommand
     {
-        private readonly NearDifference shift;
+        public readonly NearDifference shift;
         private readonly int m;
 
         public Fission(NearDifference shift, int m)
