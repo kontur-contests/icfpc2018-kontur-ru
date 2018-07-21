@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>packer</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\lib\lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="log4stash">
+      <HintPath>..\Assemblies\log4stash\log4stash.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
