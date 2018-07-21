@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using lib.Commands;
@@ -44,7 +45,16 @@ namespace ui.Controllers
         }
 
         [HttpGet("[action]")]
-        public ArrayList Check007(string file)
+        public IEnumerable<string> Solutions()
+        {
+            return Directory
+                .EnumerateFiles("../data/solutions/")
+                .Select(Path.GetFileNameWithoutExtension)
+                .OrderBy(x => x);
+        }
+
+        [HttpGet("[action]")]
+        public ArrayList Trace(string file)
         {
             var problem = Matrix.Load(System.IO.File.ReadAllBytes($"../data/problemsL/{file}_tgt.mdl"));
             var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"../data/solutions/{file}.nbt"));
