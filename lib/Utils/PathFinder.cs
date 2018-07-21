@@ -11,17 +11,17 @@ namespace lib.Utils
         private readonly bool[,,] state;
         private readonly Vec source;
         private readonly Vec target;
-        private readonly Range range;
+        private readonly Region region;
         private readonly HashSet<Vec> volatiles;
         private readonly int R;
 
-        public PathFinder(bool[,,] state, Vec source, Vec target, HashSet<Vec> volatiles, Range range)
+        public PathFinder(bool[,,] state, Vec source, Vec target, HashSet<Vec> volatiles, Region region)
         {
             R = state.GetLength(0);
             this.state = state;
             this.source = source;
             this.target = target;
-            this.range = range ?? new Range(Vec.Zero, new Vec(R, R, R));
+            this.region = region ?? new Region(Vec.Zero, new Vec(R-1, R-1, R-1));
             this.volatiles = volatiles ?? new HashSet<Vec>();
         }
 
@@ -98,7 +98,7 @@ namespace lib.Utils
                 {
                     shift += n;
                     var res = current + shift;
-                    if (!res.IsInCuboid(R) || !res.IsInRange(range) || state.Get(res) || volatiles.Contains(res))
+                    if (!res.IsInCuboid(R) || !res.IsInRegion(region) || state.Get(res) || volatiles.Contains(res))
                         break;
                     yield return (new SMove(new LongLinearDifference(shift)), res);
                 }
@@ -111,7 +111,7 @@ namespace lib.Utils
                 {
                     fshift += fn;
                     var fres = current + fshift;
-                    if (!fres.IsInCuboid(R) || !fres.IsInRange(range) || state.Get(fres) || volatiles.Contains(fres))
+                    if (!fres.IsInCuboid(R) || !fres.IsInRegion(region) || state.Get(fres) || volatiles.Contains(fres))
                         break;
                     foreach (var sn in neighbors)
                     {
@@ -122,7 +122,7 @@ namespace lib.Utils
                             {
                                 sshift += sn;
                                 var res = fres + sshift;
-                                if (!res.IsInCuboid(R) || !res.IsInRange(range) || state.Get(res) || volatiles.Contains(res))
+                                if (!res.IsInCuboid(R) || !res.IsInRegion(region) || state.Get(res) || volatiles.Contains(res))
                                     break;
                                 yield return (new LMove(new ShortLinearDifference(fshift), new ShortLinearDifference(sshift)), res);
                             }

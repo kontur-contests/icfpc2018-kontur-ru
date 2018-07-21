@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 using JetBrains.Annotations;
 
 using lib.Models;
@@ -8,15 +6,11 @@ using lib.Utils;
 
 namespace lib.Commands
 {
-    public class GFill : BaseCommand
+    public class GFill : GroupCommand
     {
-        public NearDifference NearShift { get; }
-        public FarDifference FarShift { get; }
-
         public GFill(NearDifference nearShift, FarDifference farShift)
+            : base(nearShift, farShift)
         {
-            this.NearShift = nearShift;
-            this.FarShift = farShift;
         }
 
         public override string ToString()
@@ -36,62 +30,38 @@ namespace lib.Commands
                 };
         }
 
-        public override bool CanApply(MutableState state, Bot bot)
+        public override bool AllPositionsAreValid([NotNull] IMatrix matrix, Bot bot)
         {
-            return state.BuildingMatrix.IsInside(GetPosition(bot)) &&
-                   state.BuildingMatrix.IsInside(GetPosition(bot) + FarShift);
+            var region = GetRegion(bot.Position);
+            return matrix.IsInside(region.Start) &&
+                   matrix.IsInside(region.End);
             
             // Not checking these conditions:
             // * It is also an error if boti.pos + ndi = botj.pos + ndj (for i ≠ j).
             // * It is also an error if any coordinate boti.pos is a member of region r.
         }
 
-        protected override void DoApply(MutableState mutableState, Bot bot)
+        public override void Apply(DeluxeState state, Bot bot)
         {
-            var nearPos = GetPosition(bot);
-            var farPos = nearPos + FarShift;
-
-            var range = new Range(nearPos, farPos);
-
+            var range = GetRegion(bot.Position);
             foreach (var pos in range)
             {
-                if (mutableState.BuildingMatrix.IsVoidVoxel(pos))
+                if (state.Matrix.IsVoidVoxel(pos))
                 {
-                    mutableState.BuildingMatrix.Fill(pos);
-                    mutableState.Energy += 12;
+                    state.Matrix.Fill(pos);
+                    state.Energy += 12;
                 }
                 else
                 {
-                    mutableState.Energy += 6;
+                    state.Energy += 6;
                 }
             }
         }
 
         [NotNull]
-        public override Vec[] GetVolatileCells([NotNull] MutableState mutableState, [NotNull] Bot bot)
+        public override Vec[] GetVolatileCells([NotNull] Bot bot)
         {
-            var volatileCells = new List<Vec>
-                {
-                    // Adding only this bot's position as a volatile cell.
-                    // All bots doing GFill should do the same
-                    bot.Position
-                };
-
-            var nearPos = GetPosition(bot);
-            var farPos = nearPos + FarShift;
-            
-            var range = new Range(nearPos, farPos);
-
-            foreach (var pos in range)
-                volatileCells.Add(pos);
-            
-            return volatileCells.ToArray();
-        }
-
-        [NotNull]
-        private Vec GetPosition([NotNull] Bot bot)
-        {
-            return bot.Position + NearShift;
+            return new []{ bot.Position };
         }
     }
 }
