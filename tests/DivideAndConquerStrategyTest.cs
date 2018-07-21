@@ -30,7 +30,7 @@ namespace tests
                 solver.Solve();
                 File.WriteAllBytes($"C:\\workspace\\icfpc\\res\\{Path.GetFileNameWithoutExtension(filename)}-test.nbt", CommandSerializer.Save(solver.Commands.ToArray()));
             }
-            catch (Exception e)
+            catch
             {
                 File.WriteAllBytes($"C:\\workspace\\icfpc\\failed\\{Path.GetFileNameWithoutExtension(filename)}-test.nbt", CommandSerializer.Save(solver.Commands.ToArray()));
                 throw;

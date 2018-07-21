@@ -2,6 +2,7 @@ namespace lib.Utils
 {
     public interface IOracle
     {
-        bool TryFill(Vec cell, Vec bot);
+        bool CanFill(Vec cell, Vec bot);
+        void Fill(Vec cell);
     }
 }

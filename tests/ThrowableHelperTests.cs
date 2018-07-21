@@ -21,11 +21,13 @@ namespace tests
 
             var helper = new ThrowableHelper(toFill);
 
-            helper.TryFill(a, b).Should().BeTrue();
-            helper.TryFill(b, c).Should().BeTrue();
+            helper.CanFill(a, b).Should().BeTrue();
+            helper.Fill(a);
+            helper.CanFill(b, c).Should().BeTrue();
+            helper.Fill(b);
 
-            helper.TryFill(c, new Vec(2, 2, 2)).Should().BeFalse();
-            helper.TryFill(c, new Vec(0, 0, 0)).Should().BeTrue();
+            helper.CanFill(c, new Vec(2, 2, 2)).Should().BeFalse();
+            helper.CanFill(c, new Vec(0, 0, 0)).Should().BeTrue();
         }
     }
 }

@@ -1,12 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using lib.Models;
+using lib.Primitives;
+
+using MoreLinq;
 
 namespace lib.Utils
 {
     public class ThrowableHelper : IOracle
     {
+        public static StatValue opt = new StatValue();
         private readonly Matrix toFill;
         private readonly Matrix filled;
         private readonly MatrixInt used;
@@ -24,10 +29,67 @@ namespace lib.Utils
             queue = new Vec[n * n * n + 10];
         }
 
-        public bool TryFill(Vec cell, Vec bot)
+        public bool HasConnectivityChangesInLocalCuboid(Vec cellToFill, int localityRadius)
+        {
+            var marks = GetMarks(cellToFill, localityRadius);
+            filled[cellToFill] = true;
+            try
+            {
+                var newMarks = GetMarks(cellToFill, localityRadius);
+                var hasChanges = !marks.SequenceEqual(newMarks);
+                if (hasChanges)
+                {
+                    //Console.WriteLine(marks.ToDelimitedString(" "));
+                    //Console.WriteLine(newMarks.ToDelimitedString(" "));
+                }
+                return hasChanges;
+            }
+            finally
+            {
+                filled[cellToFill] = false;
+            }
+        }
+
+        private List<int> GetMarks(Vec center, int localityRadius)
+        {
+            var marks = new List<int>();
+            var mark = new Dictionary<Vec, int>();
+            var nextMark = 1;
+            var cuboid = new Cuboid(toFill.R).Intersect(new Cuboid(center, localityRadius));
+            foreach (var p in cuboid.AllPoints())
+            {
+                if (p == center || filled[p]) continue;
+                if (!mark.ContainsKey(p))
+                {
+                    mark[p] = nextMark;
+                    var component = MoreEnumerable.TraverseDepthFirst(p, cur => cur.GetMNeighbours().Where(next => cuboid.Contains(next) && !filled[next] && !mark.ContainsKey(next)));
+                    foreach (var componentItem in component)
+                        mark[componentItem] = nextMark;
+                    nextMark++;
+                }
+                marks.Add(mark[p]);
+            }
+            return marks;
+        }
+
+        public void Fill(Vec cell)
+        {
+            filled[cell] = true;
+        }
+
+        public bool CanFill(Vec cell, Vec bot)
         {
             if (filled[cell] || filled[bot])
                 return false;
+            if (!HasConnectivityChangesInLocalCuboid(cell, 1))
+            {
+                opt.Add(1);
+                return true;
+            }
+            else
+            {
+                opt.Add(0);
+            }
 
             var result = Check(cell, bot);
 

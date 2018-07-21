@@ -13,17 +13,21 @@ namespace lib.Utils
             filled = new Matrix(n);
         }
 
-        public bool TryFill(Vec cell, Vec bot)
+        public bool CanFill(Vec cell, Vec bot)
         {
             if (filled[cell] || filled[bot])
                 return false;
 
             var result = Check(cell, bot);
 
-            if (!result)
-                filled[cell] = false;
+            filled[cell] = false;
 
             return result;
+        }
+
+        public void Fill(Vec cell)
+        {
+            filled[cell] = true;
         }
 
         private bool Check(Vec cell, Vec bot)
