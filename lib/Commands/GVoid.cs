@@ -38,8 +38,8 @@ namespace lib.Commands
 
         public override bool CanApply(MutableState state, Bot bot)
         {
-            return state.BuildingMatrix.IsInside(GetPosition(bot) + NearShift) &&
-                   state.BuildingMatrix.IsInside(GetPosition(bot) + NearShift + FarShift);
+            return state.BuildingMatrix.IsInside(GetPosition(bot)) &&
+                   state.BuildingMatrix.IsInside(GetPosition(bot) + FarShift);
             
             // Not checking these conditions:
             // * It is also an error if boti.pos + ndi = botj.pos + ndj (for i ≠ j).
