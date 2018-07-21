@@ -10,7 +10,7 @@ namespace lib.Commands
 {
     public class LMove  : BaseCommand
     {
-        private readonly ShortLinearDifference firstShift, secondShift;
+        public readonly ShortLinearDifference firstShift, secondShift;
 
         public LMove(ShortLinearDifference firstShift, ShortLinearDifference secondShift)
         {

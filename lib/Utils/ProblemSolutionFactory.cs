@@ -58,7 +58,7 @@ namespace lib.Utils
 
         private static Solution[] GetSolutions(Problem problem)
         {
-            var R = problem.TargetMatrix.R;
+            var R = problem.TargetMatrix?.R ?? problem.SourceMatrix.R;
 
             var gFast = new Solution
             {
@@ -104,8 +104,27 @@ namespace lib.Utils
                                    new NearToFarBottomToTopBuildingAround())
             };
 
+            var stupidDisassebler = new Solution
+            {
+                Name = "disasm",
+                Solver = () => new StupidDisassembler(problem.SourceMatrix),
+                CompatibleProblemTypes = new[] { ProblemType.Disassemble }
+            };
+            var invertorDisassebler = new Solution
+            {
+                Name = "invertor",
+                Solver = () => new InvertorDisassembler(new GreedyPartialSolver(
+                                                            problem.SourceMatrix.Voxels,
+                                                            new bool[R, R, R],
+                                                            new Vec(0, 0, 0),
+                                                            new ThrowableHelperFast(problem.SourceMatrix))),
+                CompatibleProblemTypes = new[] { ProblemType.Disassemble }
+            };
+
             return new[]
                 {
+                    stupidDisassebler,
+                    invertorDisassebler,
                     gFast,
                     gLayers,
                     columns,

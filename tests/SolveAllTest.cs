@@ -25,7 +25,7 @@ namespace tests
         [Explicit]
         //[Timeout(30000)]
         public void Disassemble(
-            [Values(1)] int problemId
+            [Values(2)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
@@ -34,7 +34,9 @@ namespace tests
             var problemFile = Path.Combine(problemsDir, $"FD{problemId.ToString().PadLeft(3, '0')}_src.mdl");
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
-            var solver = new StupidDisassembler(matrix);
+            //var solver = new StupidDisassembler(matrix);
+            var assembler = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(matrix));
+            var solver = new InvertorDisassembler(assembler);
             List<ICommand> commands = new List<ICommand>();
             try
             {

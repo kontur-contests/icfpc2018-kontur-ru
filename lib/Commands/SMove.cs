@@ -10,7 +10,7 @@ namespace lib.Commands
 {
     public class SMove : BaseCommand
     {
-        private readonly LongLinearDifference shift;
+        public readonly LongLinearDifference shift;
 
         public SMove(LongLinearDifference shift)
         {
