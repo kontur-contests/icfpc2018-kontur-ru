@@ -1,4 +1,7 @@
-import * as THREE from "three";
+const THREE = require("three");
+// const TrackballControls = require('three-trackballcontrols');
+// require("three-orthographic-trackball-controls");
+const OrbitControls = require('three-orbit-controls')(THREE);
 
 export function initVisualizer(config, canvas, canvas_container) {
   const scale = 2;
@@ -47,7 +50,12 @@ export function initVisualizer(config, canvas, canvas_container) {
   camera.position.y = 0;
   camera.position.z = (9 / 8) * dscale;
   camera.lookAt(0, 0, 0);
-  // var controls = new THREE.OrbitControls(camera);
+
+  const controls = new OrbitControls(
+    camera,
+    renderer.domElement
+  );
+  // controls.target.set(0, 0, 0);
 
   function onWindowResize() {
     canvas.style.removeProperty("height");
@@ -922,6 +930,7 @@ export function initVisualizer(config, canvas, canvas_container) {
   function render() {
     updateMatrixGeometry();
     renderer.render(scene, camera);
+    // controls.update();
   }
 
   function animate() {
