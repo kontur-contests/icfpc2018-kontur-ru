@@ -1,25 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard20</TargetFramework>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <None Remove="log4net.config" />
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="log4net.config" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="log4net" Version="2.0.8" />
@@ -27,7 +21,6 @@
     <PackageReference Include="NEST" Version="6.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
-
   <ItemGroup>
     <Reference Include="log4stash">
       <HintPath>..\Assemblies\log4stash\log4stash.dll</HintPath>
@@ -36,5 +29,4 @@
       <HintPath>..\Assemblies\metrics\Metrics.dll</HintPath>
     </Reference>
   </ItemGroup>
-
 </Project>

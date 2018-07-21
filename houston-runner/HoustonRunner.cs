@@ -1,14 +1,17 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 using Kontur.Houston.Plugin;
 
-using lib;
+using lib.Commands;
 using lib.ElasticDTO;
 using lib.Models;
-using lib.Strategies;
 using lib.Utils;
+
+using MoreLinq.Extensions;
 
 using Nest;
 
@@ -18,44 +21,93 @@ namespace houston
     {
         public void Run(IPluginContext<HoustonRunnerProperties> context)
         {
-            var client = new ElasticClient(new ConnectionSettings(new Uri("http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io")).DefaultIndex("testruns"));
+            
+            const string elasticUrl = "http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io";
+            const string elasticIndex = "testruns";
+            
+            var replicaNumber = context.Info.Replica.ReplicaNumber;
+            var replicaCount = context.Info.Replica.ReplicationFactor;
+
+            if (replicaNumber == 0 || replicaCount == 0)
+            {
+                replicaNumber = 1;
+                replicaCount = 1;
+            }
+            
+            context.Log.Info($"Replica # {replicaNumber} of {replicaCount}: preparing...");
+
+            var client = new ElasticClient(new ConnectionSettings(new Uri(elasticUrl)).DefaultIndex(elasticIndex));
+
+            var tasks = ProblemSolutionFactory.GetTasks();
+
+            var lowerBound = (replicaNumber - 1) / replicaCount * tasks.Length;
+            var upperBound = replicaNumber / replicaCount * tasks.Length;
+
+            var selectedTasks = tasks
+                .Where((x, i) => i >= lowerBound && i < upperBound) // TODO: Check if correct
+                .ToArray();
+
+            context.Log.Info($"Replica # {replicaNumber} of {replicaCount}: " +
+                             $"running {selectedTasks.Length} of {tasks.Length} tasks ({lowerBound} to {upperBound})");
 
             while (!context.CancellationToken.IsCancellationRequested)
             {
-                var problemId = 1;
-                var problemFileName = $"LA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl";
-                var matrix = Matrix.Load(File.ReadAllBytes(Path.Combine(FileHelper.ProblemsDir, problemFileName)));
-                var R = matrix.R;
-
-                var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix));
-                var testResult = new TaskRunMeta
+                selectedTasks.ForEach(task =>
                     {
-                        RunningHostName = Environment.MachineName,
-                        SolverName = solver.GetType().Name,
-                        StartedAt = DateTime.Now,
-                        TaskName = problemFileName,
-                    };
-                context.Log.Info($"Starting task {testResult.TaskName} at {testResult.RunningHostName} with solver {testResult.SolverName}");
+                        var solution = task.Solution.Invoke();
+                        
+                        var result = new TaskRunMeta
+                            {
+                                StartedAt = DateTime.UtcNow,
+                                TaskName = task.Problem.Name,
+                                SolverName = solution.Name,
+                                RunningHostName = Environment.MachineName
+                            };
 
-                try
-                {
-                    solver.Solve();
+                        context.Log.Info($"Task {result.TaskName} " +
+                                         $"with solver {result.SolverName} " +
+                                         $"at {result.RunningHostName}: " +
+                                         $"starting...");
 
-                    //TODO fill IsSuccess, EnergySpent
+                        try
+                        {
+                            var timer = Stopwatch.StartNew();
 
-                    testResult.Solution = Convert.ToBase64String(CommandSerializer.Save(solver.Commands.ToArray()).Compress());
-                }
-                catch (Exception e)
-                {
-                    context.Log.Warn($"Unhandled exception in solver for {problemFileName}", e);
-                }
+                            var solver = solution.Solver;
+                            solver.Solve();
 
-                client.IndexDocument(testResult);
+                            var state = new MutableState(task.Problem.Matrix);
+                            var queue = new Queue<ICommand>(solver.Commands);
+                            while (queue.Any())
+                            {
+                                state.Tick(queue);
+                            }
+                            state.EnsureIsFinal();
 
-                Thread.Sleep(10000);
+                            result.SecondsSpent = (int)timer.Elapsed.TotalSeconds;
+                            result.EnergySpent = state.Energy;
+                            result.EnergyHistory = state.EnergyHistory;
+                            result.Solution = Convert.ToBase64String(CommandSerializer.Save(solver.Commands.ToArray()).Compress());
+                            result.IsSuccess = true;
+                        }
+                        catch (Exception e)
+                        {
+                            context.Log.Warn($"Unhandled exception in solver for {task.Problem.FileName}");
+
+                            result.IsSuccess = false;
+                            result.ExceptionInfo = $"{e.Message}\n{e.StackTrace}";
+                        }
+
+                        context.Log.Info($"Task {result.TaskName} " +
+                                         $"with solver {result.SolverName} " +
+                                         $"at {result.RunningHostName}: " +
+                                         $"completed in {result.SecondsSpent}s");
+
+                        client.IndexDocument(result);
+                    });
+
+                Thread.Sleep(int.MaxValue);
             }
-
-            context.Log.Info("Bye!");
         }
     }
 }
