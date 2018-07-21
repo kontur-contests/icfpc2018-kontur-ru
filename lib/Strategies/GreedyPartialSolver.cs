@@ -46,7 +46,6 @@ namespace lib.Strategies
 
         private List<ICommand> Commands { get; } = new List<ICommand>();
 
-        
         public IEnumerable<ICommand> Solve()
         {
             // ! красить можно то, что не покрашено, и после покраски станет граундед
