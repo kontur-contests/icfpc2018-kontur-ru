@@ -15,23 +15,25 @@ namespace lib.Strategies
     {
         private readonly IAmSolver assembler;
         private readonly Matrix sourceMatrix;
+        private readonly Matrix targetMatrix;
 
-        public InvertorDisassembler(IAmSolver assembler, Matrix sourceMatrix)
+        public InvertorDisassembler(IAmSolver assembler, Matrix sourceMatrix, Matrix targetMatrix = null)
         {
             this.assembler = assembler;
             this.sourceMatrix = sourceMatrix;
+            this.targetMatrix = targetMatrix ?? new Matrix(sourceMatrix.R);
         }
 
         public IEnumerable<ICommand> Solve()
         {
             var commands = new Queue<ICommand>(assembler.Solve());
-            return ReverseCommands(commands, sourceMatrix);
+            return ReverseCommands(commands, targetMatrix, sourceMatrix);
         }
 
-        public static IEnumerable<ICommand> ReverseCommands(Queue<ICommand> commands, Matrix sourceMatrix)
+        public static IEnumerable<ICommand> ReverseCommands(Queue<ICommand> commands, Matrix initialMatrix, Matrix finalMatrix)
         {
             var ticks = new List<List<ICommand>>();
-            var state = new DeluxeState(new Matrix(sourceMatrix.R), sourceMatrix);
+            var state = new DeluxeState(initialMatrix, finalMatrix);
             while (commands.Any())
             {
                 state.StartTick();
