@@ -169,13 +169,12 @@ namespace lib.Utils
             };
 
             var blockDeconstructor = new Solution
-                {
-                    Name = "BlockDeconstructor",
-                    ProblemPrioritizer = p => p.Type == ProblemType.Disassemble ? ProblemPriority.High : ProblemPriority.DoNotSolve,
-                    Solver = () => new FastDeconstructor(problem.TargetMatrix),
-
-                };
-            
+            {
+                Name = "BlockDeconstructor",
+                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.Normal : ProblemPriority.High,
+                Solver = () => new FastDeconstructor(problem.TargetMatrix),
+                CompatibleProblemTypes = new [] {ProblemType.Disassemble},
+            };
 
             var parallelGredy = new Solution
             {
