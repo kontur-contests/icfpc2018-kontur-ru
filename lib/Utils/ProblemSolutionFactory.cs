@@ -176,6 +176,14 @@ namespace lib.Utils
                 CompatibleProblemTypes = new [] {ProblemType.Disassemble},
             };
 
+            var blockDeconstructor137 = new Solution
+                {
+                    Name = "BlockDeconstructor",
+                    ProblemPrioritizer = p => p.Name.Contains("137") ? ProblemPriority.High: ProblemPriority.DoNotSolve,
+                    Solver = () => new FastDeconstructor(problem.SourceMatrix, 23),
+                    CompatibleProblemTypes = new[] { ProblemType.Disassemble },
+                };
+
             var parallelGredy = new Solution
             {
                 Name = "ParallelGredy",
@@ -232,6 +240,7 @@ namespace lib.Utils
                     slicer6x6,
                     slicer8x5,
                     blockDeconstructor,
+                    blockDeconstructor137,
                 }.Concat(raSolutions).ToArray();
         }
 

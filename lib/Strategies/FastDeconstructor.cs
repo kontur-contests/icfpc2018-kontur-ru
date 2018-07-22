@@ -24,13 +24,13 @@ namespace lib.Strategies
         private int crewDistance;
         private int maxSpeed = 15;
 
-        public FastDeconstructor(Matrix targetMatrix)
+        public FastDeconstructor(Matrix targetMatrix, int maxCrewDistance = 29)
         {
             this.targetMatrix = targetMatrix;
-            crewDistance = Math.Min(29, N - 3);
+            crewDistance = Math.Min(maxCrewDistance, N - 3);
             crewXCount = Math.Max(2, Math.Min(5, (N - 1) / crewDistance + 1));
             crewZCount = Math.Max(2, Math.Min(4, (N - 1) / crewDistance + 1));
-            crewDistance = Math.Min(29, Math.Min((N - 3) / (crewXCount - 1), (N - 3) / (crewZCount - 1)));
+            crewDistance = Math.Min(maxCrewDistance, Math.Min((N - 3) / (crewXCount - 1), (N - 3) / (crewZCount - 1)));
             crewHeight = Math.Min(29, N - 1);
         }
 
