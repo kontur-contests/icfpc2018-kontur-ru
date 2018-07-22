@@ -186,9 +186,20 @@ namespace lib.Strategies
             }
 
             var botsToEvaluate = initialBots.ToList();
+            bool isHighEnergy = false;
+            bool firstHigh = false;
             while (botQueues.Any(x => x.Count > 0))
             {
                 var commands = new List<ICommand>();
+                if (isHighEnergy && !firstHigh && !buildingMatrix.HasNonGroundedVoxels)
+                {
+                    commands = new ICommand[] {new Flip()}.Concat(Enumerable.Repeat<ICommand>(new Wait(), botsToEvaluate.Count - 1)).ToList();
+                    isHighEnergy = false;
+                    foreach (var command in commands)
+                        yield return command;
+                    continue;
+                }
+                firstHigh = false;
                 for (var i = 0; i < botQueues.Count; i++)
                 {
                     if (botQueues[i].Count == 0)
@@ -199,7 +210,7 @@ namespace lib.Strategies
                     if (botQueues[i].Peek() is Fill fillCommand)
                     {
                         var fillPosition = botsToEvaluate[i] + fillCommand.Shift;
-                        if (CanFill(buildingMatrix.Voxels, fillPosition))
+                        if (CanFill(buildingMatrix.Voxels, fillPosition) || isHighEnergy)
                         {
                             buildingMatrix[fillPosition] = true;
                             commands.Add(botQueues[i].Dequeue());
@@ -211,7 +222,7 @@ namespace lib.Strategies
                     {
                         var voidPosition = botsToEvaluate[i] + voidCommand.Shift;
 
-                        if (buildingMatrix.CanVoidCell(voidPosition))
+                        if (buildingMatrix.CanVoidCell(voidPosition) || isHighEnergy)
                         {
                             buildingMatrix[voidPosition] = false;
                             commands.Add(botQueues[i].Dequeue());
@@ -226,7 +237,8 @@ namespace lib.Strategies
                 }
                 if (commands.All(x => x is Wait))
                 {
-                    throw new Exception("commands.All(x => x is Wait) == true");
+                    firstHigh = isHighEnergy = true;
+                    commands[0] = new Flip();
                 }
                 for (var i = 0; i < commands.Count; i++)
                 {
