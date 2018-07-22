@@ -18,7 +18,7 @@ export class DzinDzin extends React.Component {
   }
 
   componentWillUnmount() {
-    clearInterval(this.this.interval);
+    clearInterval(this.interval);
   }
 
   fetchData = async () => {
