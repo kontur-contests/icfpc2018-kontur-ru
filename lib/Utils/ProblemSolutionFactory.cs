@@ -111,20 +111,27 @@ namespace lib.Utils
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
             var invertorDisassebler = new Solution
-            {
-                Name = "invertor",
-                Solver = () => new InvertorDisassembler(new GreedyPartialSolver(
-                                                            problem.SourceMatrix.Voxels,
-                                                            new bool[R, R, R],
-                                                            new Vec(0, 0, 0),
-                                                            new ThrowableHelperFast(problem.SourceMatrix))),
-                CompatibleProblemTypes = new[] { ProblemType.Disassemble }
-            };
+                {
+                    Name = "invertor",
+                    Solver = () => new InvertorDisassembler(new GreedyPartialSolver(
+                                                                problem.SourceMatrix.Voxels,
+                                                                new bool[R, R, R],
+                                                                new Vec(0, 0, 0),
+                                                                new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix),
+                    CompatibleProblemTypes = new[] { ProblemType.Disassemble }
+                };
+            var invColDisassebler = new Solution
+                    {
+                        Name = "invCol",
+                        Solver = () => new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix),
+                        CompatibleProblemTypes = new[] { ProblemType.Disassemble }
+                    };
 
             return new[]
                 {
                     stupidDisassebler,
                     invertorDisassebler,
+                    invColDisassebler,
                     gFast,
                     gLayers,
                     columns,

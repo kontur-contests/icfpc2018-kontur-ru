@@ -8,7 +8,7 @@ namespace lib.Commands
 {
     public class FusionS : BaseCommand
     {
-        private readonly NearDifference shift;
+        public readonly NearDifference shift;
 
         public FusionS(NearDifference shift)
         {

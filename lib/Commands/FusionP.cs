@@ -10,7 +10,7 @@ namespace lib.Commands
 {
     public class FusionP : BaseCommand
     {
-        private readonly NearDifference shift;
+        public readonly NearDifference shift;
 
         public FusionP(NearDifference shift)
         {
