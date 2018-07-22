@@ -25,7 +25,13 @@ namespace lib.Strategies.Features
                 if (!await new MoveSingleBot(state, bot, fromPos))
                     return false;
             }
-            await Do(new Fill(new NearDifference(whatToFill - fromPos)));
+
+            var command = new Fill(new NearDifference(whatToFill - fromPos));
+            if (command.HasVolatileConflicts(bot, state))
+                return false;
+
+
+            await Do(command);
             return true;
         }
     }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -142,20 +143,29 @@ namespace lib.Utils
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
 
-            var gReassembler = new Solution
-            {
-                Name = "RA+g+g",
-                ProblemPrioritizer = _ => ProblemPriority.High, 
-                Solver = () => new SimpleReassembler(
-                    new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix),
-                    new GreedyPartialSolver(problem.TargetMatrix, new ThrowableHelperFast(problem.TargetMatrix))
-                    ),
-                CompatibleProblemTypes = new[] { ProblemType.Reassemble }
-            };
+            (string name, Func<Matrix, IAmSolver> solver)[] solvers = {
+                    ("g", CreateGreedy),
+                    ("c", CreateColumns)
+                };
 
+            var raSolutions = new List<Solution>();
+            foreach (var disassembler in solvers)
+            foreach (var assembler in solvers)
+            {
+                raSolutions.Add(new Solution
+                    {
+                        Name = $"RA+{disassembler.name}+{assembler.name}",
+                        ProblemPrioritizer = _ => ProblemPriority.High,
+                        Solver = () => new SimpleReassembler(
+                                           new InvertorDisassembler(disassembler.solver(problem.SourceMatrix), problem.SourceMatrix),
+                                           assembler.solver(problem.TargetMatrix)
+                                           ),
+                        CompatibleProblemTypes = new[] { ProblemType.Reassemble }
+
+                });
+            }
             return new[]
                 {
-                    gReassembler,
                     stupidDisassembler,
                     invertorDisassembler,
                     invColDisassembler,
@@ -164,7 +174,16 @@ namespace lib.Utils
                     columns,
                     columnsBbx,
                     gForLarge
-                };
+                }.Concat(raSolutions).ToArray();
+        }
+
+        private static IAmSolver CreateGreedy(Matrix matrix)
+        {
+            return new GreedyPartialSolver(matrix, new ThrowableHelperFast(matrix));
+        }
+        private static IAmSolver CreateColumns(Matrix matrix)
+        {
+            return new DivideAndConquer(matrix, true);
         }
     }
 

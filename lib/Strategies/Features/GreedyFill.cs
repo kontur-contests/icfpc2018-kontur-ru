@@ -4,7 +4,6 @@ using System.Linq;
 
 using lib.Commands;
 using lib.Models;
-using lib.Primitives;
 using lib.Strategies.Features.Async;
 using lib.Utils;
 
@@ -31,15 +30,11 @@ namespace lib.Strategies.Features
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
                 {
-                    if (bot.Position != nearPosition)
-                    {
-                        if (!await new MoveSingleBot(state, bot, nearPosition))
-                            continue;
-                    }
+                    if (!await new FillVoxel(state, bot, candidate, nearPosition))
+                        continue;
 
-                    any = true;
-                    await Do(new Fill(new NearDifference(candidate - nearPosition)));
                     oracle.Fill(candidate);
+                    any = true;
 
                     candidates.Remove(candidate);
                     foreach (var neighbor in candidate.GetMNeighbours(state.Matrix))

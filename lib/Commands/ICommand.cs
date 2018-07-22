@@ -12,5 +12,7 @@ namespace lib.Commands
         bool AllPositionsAreValid([NotNull] IMatrix matrix, [NotNull] Bot bot);
         [NotNull]
         Vec[] GetVolatileCells([NotNull] Bot bot);
+
+        bool HasVolatileConflicts(Bot bot, DeluxeState state);
     }
 }
