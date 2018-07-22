@@ -76,6 +76,31 @@ namespace tests
                        filename);
         }
 
+        [TestCaseSource(nameof(GetDeconstructionModels))]
+        [Explicit]
+        public void TestFastDeconstructor(string filename)
+        {
+            DoRealTest(model => new FastDeconstructor(model), 
+                       (solver, commands, model) =>
+                           {
+                               var state = new DeluxeState(new Matrix(model.R), model);
+                               var queue = new Queue<ICommand>();
+                               var interpreter = new Interpreter(state);
+                               foreach (var command in solver.Solve())
+                               {
+                                   commands.Add(command);
+                                   queue.Enqueue(command);
+                                   if (state.Bots.Count <= queue.Count)
+                                       interpreter.Tick(queue);
+                               }
+                               interpreter.EnsureIsFinal();
+                               return state.Energy;
+                           },
+                       "fast-deconstructor",
+                       "test-form-crew",
+                       filename);
+        }
+
         public void DoRealTest(Func<Matrix, IAmSolver> solverFactory,
                                Func<IAmSolver, List<ICommand>, Matrix, long> energyFactory,
                                string scopeName,
@@ -148,5 +173,15 @@ namespace tests
                 yield return new TestCaseData(file).SetName(Path.GetFileNameWithoutExtension(file));
             }
         }
+
+        private static IEnumerable<TestCaseData> GetDeconstructionModels()
+        {
+            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsF");
+            foreach (string file in Directory.EnumerateFiles(problemsDir, "FD*.mdl"))
+            {
+                yield return new TestCaseData(file).SetName(Path.GetFileNameWithoutExtension(file));
+            }
+        }
+        
     }
 }
