@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -29,7 +30,7 @@ namespace lib.Strategies.Features
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
                 {
-                    if (!await new FillVoxel(state, bot, candidate, nearPosition))
+                    if (!await new FillVoxel(state, bot, candidate, nearPosition, () => oracle.CanFill(candidate, bot.Position, state)))
                         continue;
 
                     oracle.Fill(candidate);

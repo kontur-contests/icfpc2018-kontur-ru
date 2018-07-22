@@ -75,6 +75,7 @@ export class Visualizer extends React.Component {
       this.visualizer.setMatrixFn(([x, y, z]) => model[x][y][z]);
     }
     if (bots) {
+        console.log(bots);
       this.botsCache.forEach(x => this.visualizer.botRem(x));
       this.botsCache.length = 0;
       this.botsCache = bots.map(x => this.visualizer.botAdd(...x));

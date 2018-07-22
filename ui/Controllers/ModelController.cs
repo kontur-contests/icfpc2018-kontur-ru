@@ -97,10 +97,15 @@ namespace ui.Controllers
             }
             catch (Exception e)
             {
+                var arr = results.ToArray();
                 return new TraceResult
                     {
-                        Exception = e.ToString()
-                    };
+                        Exception = e.ToString(),
+                        R = problem.R,
+                        startTick = startTick,
+                        totalTicks = arr.Length - 1,
+                        Ticks = arr
+                };
             }
 
             var ticks = results.ToArray();

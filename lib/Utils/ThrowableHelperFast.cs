@@ -55,7 +55,9 @@ namespace lib.Utils
                 }
             }
 
-            return Closed[bot] != 0b11111;
+
+
+            return state.Bots.All(b => Closed[b.Position] != 0b11111);
         }
 
         public bool CanFill(Vec cell, Vec bot)
