@@ -20,39 +20,48 @@ namespace lib.Strategies
 
         public IEnumerable<ICommand> Solve()
         {
-            while (true)
+            while (state.Bots.Any())
             {
                 state.StartTick();
                 for (var i = activeStrategies.Count - 1; i >= 0; i--)
                 {
                     var strategy = activeStrategies[i];
                     var children = strategy.Tick();
-                    if (children != null)
+                    if (strategy.Status == StrategyStatus.Incomplete)
                     {
-                        while (children.Any())
+                        if (children != null)
                         {
-                            var newChildren = new List<IStrategy>();
-                            foreach (var child in children)
+                            while (children.Any())
                             {
-                                var descendants = child.Tick();
-                                if (child.Status == StrategyStatus.Incomplete)
+                                var newChildren = new List<IStrategy>();
+                                foreach (var child in children)
                                 {
-                                    activeStrategies.Add(child);
-                                    if (descendants != null)
-                                        newChildren.AddRange(descendants);
+                                    var descendants = child.Tick();
+                                    if (child.Status == StrategyStatus.Incomplete)
+                                    {
+                                        activeStrategies.Add(child);
+                                        if (descendants != null)
+                                            newChildren.AddRange(descendants);
+                                    }
+                                    else
+                                    {
+                                        if (descendants != null)
+                                            throw new InvalidOperationException($"Inactive strategy MUST NOT derive child strategies. Strategy: {child}; Derived: {string.Join("; ", descendants.Select(d => d.ToString()))}");
+                                    }
                                 }
-                                else
-                                {
-                                    if (descendants != null)
-                                        throw new InvalidOperationException($"Inactive strategy MUST NOT derive child strategies. Strategy: {child}; Derived: {string.Join("; ", descendants.Select(d => d.ToString()))}");
-                                }
+                                children = newChildren.ToArray();
                             }
-                            children = newChildren.ToArray();
                         }
                     }
-                    if (strategy.Status != StrategyStatus.Incomplete)
+                    else
+                    {
+                        if (children != null)
+                            throw new InvalidOperationException($"Inactive strategy MUST NOT derive child strategies. Strategy: {strategy}; Derived: {string.Join("; ", children.Select(d => d.ToString()))}");
                         activeStrategies.RemoveAt(i);
+                    }
                 }
+                if (activeStrategies.Count == 0 && state.Bots.Any())
+                    throw new InvalidOperationException("State is not completed, but root strategy is done??? Maybe you forgot to return to ZERO and HALT???");
                 foreach (var command in state.EndTick())
                     yield return command;
             }

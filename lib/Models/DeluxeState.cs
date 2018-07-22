@@ -85,6 +85,8 @@ namespace lib.Models
                 if (!botCommands.ContainsKey(bot))
                     SetBotCommand(bot, new Wait());
             }
+            if (botCommands.All(x => x.Value is Wait))
+                throw new InvalidOperationException("All commands are WAITS - it's wrong");
 
             foreach (var kvp in groupRegions)
             {

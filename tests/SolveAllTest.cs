@@ -11,6 +11,7 @@ using lib;
 using lib.Commands;
 using lib.Models;
 using lib.Strategies;
+using lib.Strategies.Features;
 using lib.Utils;
 
 using NUnit.Framework;
@@ -25,19 +26,18 @@ namespace tests
         [Explicit]
         //[Timeout(30000)]
         public void Disassemble(
-            [Values(42)] int problemId
+            [Values(1)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
-            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsF");
-            var resultsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/solutions");
-            var problemFile = Path.Combine(problemsDir, $"FD{problemId.ToString().PadLeft(3, '0')}_src.mdl");
+            var problemFile = Path.Combine(FileHelper.ProblemsDir, $"FA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
             //var solver = new StupidDisassembler(matrix);
             //var assembler = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(matrix));
-            var assembler = new DivideAndConquer(matrix, true);
-            var solver = new InvertorDisassembler(assembler, matrix);
+            //var solver = new InvertorDisassembler(assembler);
+            var state = new DeluxeState(null, matrix);
+            var solver = new Solver(state, new GreedyFill(state, state.Bots.Single(), new ThrowableHelperFast(matrix)));
             List<ICommand> commands = new List<ICommand>();
             try
             {
@@ -52,7 +52,7 @@ namespace tests
             finally
             {
                 var bytes = CommandSerializer.Save(commands.ToArray());
-                File.WriteAllBytes(GetSolutionPath(resultsDir, problemFile), bytes);
+                File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problemFile), bytes);
             }
         }
         [Test]

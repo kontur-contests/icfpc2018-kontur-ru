@@ -170,7 +170,7 @@ namespace lib.Utils
             return nears.Select(d => d + this);
         }
 
-        public IEnumerable<Vec> GetMNeighbours(Matrix matrix)
+        public IEnumerable<Vec> GetMNeighbours(IMatrix matrix)
         {
             return GetMNeighbours().Where(matrix.IsInside);
         }

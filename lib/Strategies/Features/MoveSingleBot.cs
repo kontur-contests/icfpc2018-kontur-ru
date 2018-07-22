@@ -1,67 +1,55 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using lib.Commands;
 using lib.Models;
 using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public class MoveSingleBot : IStrategy
+    public class MoveSingleBot : SimpleSingleBotStrategyBase
     {
-        private readonly DeluxeState state;
-        private readonly Bot bot;
         private readonly Vec target;
-        private List<ICommand> commands;
-
+        
         public MoveSingleBot(DeluxeState state, Bot bot, Vec target)
+            : base(state, bot)
         {
-            this.state = state;
-            this.bot = bot;
             this.target = target;
         }
 
-        public IStrategy[] Tick()
+        protected override IEnumerable<TickerResult> Run()
         {
-            var first = false;
+            var commands = new PathFinder(state, bot.Position, target).TryFindPath();
+            commands?.Reverse();
             if (commands == null)
             {
-                first = true;
-                commands = new PathFinder(state, bot.Position, target).TryFindPath();
-                commands?.Reverse();
-                if (commands == null)
-                {
-                    Status = StrategyStatus.Failed;
-                    return null;
-                }
+                yield return Failed();
+                yield break;
             }
 
-            if (commands.Count == 0)
+            var first = true;
+            while (commands.Count > 0)
             {
-                Status = StrategyStatus.Done;
-                return null;
-            }
-
-            if (!first)
-            {
-                var commandPositions = commands[commands.Count - 1].GetVolatileCells(bot);
-                if (commandPositions.Any(pos => state.VolatileCells.ContainsKey(pos)))
+                if (first)
+                    first = false;
+                else
                 {
-                    commands = new PathFinder(state, bot.Position, target).TryFindPath();
-                    commands?.Reverse();
-                    if (commands == null)
+                    var commandPositions = commands[commands.Count - 1].GetVolatileCells(bot);
+                    if (commandPositions.Any(pos => state.VolatileCells.ContainsKey(pos)))
                     {
-                        Status = StrategyStatus.Failed;
-                        return null;
+                        commands = new PathFinder(state, bot.Position, target).TryFindPath();
+                        commands?.Reverse();
+                        if (commands == null)
+                        {
+                            yield return Failed();
+                            yield break;
+                        }
                     }
                 }
+
+                yield return Do(commands[commands.Count - 1]);
+
+                commands.RemoveAt(commands.Count - 1);
             }
-
-            state.SetBotCommand(bot, commands[commands.Count - 1]);
-            commands.RemoveAt(commands.Count - 1);
-            return null;
         }
-
-        public StrategyStatus Status { get; private set; }
     }
 }
