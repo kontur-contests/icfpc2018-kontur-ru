@@ -95,7 +95,7 @@ namespace packer
                 var taskName = bucket.Key;
                 
                 // Allow only solutions for the Full round
-                if (!taskName.StartsWith("F")) continue;
+                if (!taskName.StartsWith("F") || taskName.EndsWith("tgt")) continue;
                 
                 var energySpent = bucket.Min("min_energy").Value;
 
@@ -109,6 +109,11 @@ namespace packer
                 
                 foreach (var document in docSearchResponse.Documents.Where(x => x.Solution != null))
                 {
+                    if (taskName != document.TaskName)
+                    {
+                        Console.WriteLine($"Wrong task name: {taskName} != {document.TaskName}");
+                        continue;
+                    }
                     
                     var solutionBase64 = document.Solution;
                     var solutionContent = solutionBase64.SerializeSolutionFromString();
