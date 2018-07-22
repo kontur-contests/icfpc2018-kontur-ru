@@ -19,9 +19,9 @@ namespace lib.Strategies
         private CorrectComponentTrackingMatrix buildingMatrix;
         private int crewXCount = 5;
         private int crewZCount = 4;
-        private int crewHeight = 6;
+        private int crewHeight = 15;
         private int halfCrewSize => crewZCount * crewXCount;
-        private int crewDistance = 3;
+        private int crewDistance = 10;
         private int maxSpeed = 15;
 
         public FastDeconstructor(Matrix targetMatrix)
@@ -46,9 +46,9 @@ namespace lib.Strategies
             foreach (var command in secondCrewFormationCommands)
                 yield return command;
 
-            var topY = N - 1;
             var crewWidth = crewDistance * (crewXCount - 1);
             var crewDepth = crewDistance * (crewZCount - 1);
+            var topY = N - 1;
             var rightX = 1 + crewWidth;
             var farZ = 1 + crewDepth;
             while (true)
@@ -117,13 +117,21 @@ namespace lib.Strategies
 
             foreach (var command in GoToVerticalFirstForFullCrew(new Vec(-(rightX - crewWidth - 1), 0, -(farZ - crewDepth - 1)), crewDistance - 2))
                 yield return command;
+
+            topY = N - 1;
+            rightX = 1 + crewWidth;
+            farZ = 1 + crewDepth;
             while (true)
             {
-                foreach (var command in GoToVerticalFirstForHalfCrew(0, new Vec(0, -crewHeight + 1, 0), maxSpeed))
+                for (var i = 0; i < N - 1; i++)
+                    foreach (var command in GoDownWithVoid(0))
+                        yield return command;
+                foreach (var command in GoToVerticalFirstForHalfCrew(0, new Vec(0, N - crewHeight, 0), maxSpeed))
                     yield return command;
+
                 foreach (var command in GoToVerticalFirstForHalfCrew(1, new Vec(1, 0, 1), maxSpeed))
                     yield return command;
-                
+
                 while (true)
                 {
                     var jumpDistance = Math.Min(crewHeight - 2, topY - crewHeight + 1);
@@ -165,6 +173,15 @@ namespace lib.Strategies
                     rightX += shiftX;
                 }
             }
+
+            foreach (var command in GoToVerticalFirstForFullCrew(new Vec(-(rightX - crewWidth - 1), 0, -(farZ - crewDepth - 1)), crewDistance - 2))
+                yield return command;
+
+            foreach (var command in GoHome(firstBotPositions.Concat(secondBotPositions.Select(v => v + new Vec(-1, 0, -1))).ToList()))
+                yield return command;
+            foreach (var command in GoToVerticalFirst(Vec.Zero, new Vec(-1, 0, -1), maxSpeed))
+                yield return command;
+            yield return new Halt();
         }
 
         private int GetBotId(int x, int z, int crewId)
@@ -197,42 +214,68 @@ namespace lib.Strategies
             return result;
         }
 
+        private IEnumerable<ICommand> GoHome([NotNull] List<Vec> bots)
+        {
+            var remainBotsCount = bots.Count;
+            for (var i = 0; i < bots.Count; i++)
+            {
+                var currentBot = bots[i];
+                var commands = new List<ICommand>();
+                if (currentBot.Y != N - 1)
+                    throw new Exception("Bot should be at the N - 1 y-coord");
+                var zCoord = i == 0 ? 0 : 1;
+                commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord), maxSpeed));
+                foreach (var command in commands)
+                {
+                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), remainBotsCount).ToArray();
+                    toApply[i == 0 ? 0 : 1] = command;
+                    foreach (var currentTickCommand in toApply)
+                        yield return currentTickCommand;
+                }
+                if (i != 0)
+                {
+                    var toApply = new ICommand[] {new FusionP(new NearDifference(new Vec(0, 0, 1))), new FusionS(new NearDifference(new Vec(0, 0, -1)))}
+                        .Concat(Enumerable.Repeat<ICommand>(new Wait(), remainBotsCount - 2))
+                        .ToArray();
+                    foreach (var currentTickCommand in toApply)
+                        yield return currentTickCommand;
+                    remainBotsCount--;
+                }
+            }
+        }
+
         private IEnumerable<ICommand> BuildWalls(Func<NearDifference, FarDifference, ICommand> commandCreator)
         {
             var result = new List<ICommand>();
             var cx = crewDistance - 2;
             var cy = crewHeight - 1;
-            for (var i = 0; i < crewXCount - 1; i++)
-            {
-                var toApply = Enumerable.Repeat<ICommand>(new Wait(), halfCrewSize * 2).ToArray();
-                toApply[GetBotId(i, 0, 0)] = commandCreator(new NearDifference(new Vec(1, 0, 0)), new FarDifference(new Vec(cx, cy, 0)));
-                toApply[GetBotId(i + 1, 0, 0)] = commandCreator(new NearDifference(new Vec(-1, 0, 0)), new FarDifference(new Vec(-cx, cy, 0)));
-                toApply[GetBotId(i, 0, 1)] = commandCreator(new NearDifference(new Vec(1, 0, 0)), new FarDifference(new Vec(cx, -cy, 0)));
-                toApply[GetBotId(i + 1, 0, 1)] = commandCreator(new NearDifference(new Vec(-1, 0, 0)), new FarDifference(new Vec(-cx, -cy, 0)));
+            for (var x = 0; x < crewXCount - 1; x++)
+                for (var z = 0; z < crewZCount - 1; z++)
+                {
+                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), halfCrewSize * 2).ToArray();
+                    toApply[GetBotId(x, z, 0)] = commandCreator(new NearDifference(new Vec(1, 0, 0)), new FarDifference(new Vec(cx, cy, 0)));
+                    toApply[GetBotId(x + 1, z, 0)] = commandCreator(new NearDifference(new Vec(-1, 0, 0)), new FarDifference(new Vec(-cx, cy, 0)));
+                    toApply[GetBotId(x, z, 1)] = commandCreator(new NearDifference(new Vec(1, 0, 0)), new FarDifference(new Vec(cx, -cy, 0)));
+                    toApply[GetBotId(x + 1, z, 1)] = commandCreator(new NearDifference(new Vec(-1, 0, 0)), new FarDifference(new Vec(-cx, -cy, 0)));
 
-                toApply[GetBotId(i, crewZCount - 1, 0)] = commandCreator(new NearDifference(new Vec(1, 0, 0)), new FarDifference(new Vec(cx, cy, 0)));
-                toApply[GetBotId(i + 1, crewZCount - 1, 0)] = commandCreator(new NearDifference(new Vec(-1, 0, 0)), new FarDifference(new Vec(-cx, cy, 0)));
-                toApply[GetBotId(i, crewZCount - 1, 1)] = commandCreator(new NearDifference(new Vec(1, 0, 0)), new FarDifference(new Vec(cx, -cy, 0)));
-                toApply[GetBotId(i + 1, crewZCount - 1, 1)] = commandCreator(new NearDifference(new Vec(-1, 0, 0)), new FarDifference(new Vec(-cx, -cy, 0)));
+                    toApply[GetBotId(x, z + 1, 0)] = commandCreator(new NearDifference(new Vec(1, 0, 0)), new FarDifference(new Vec(cx, cy, 0)));
+                    toApply[GetBotId(x + 1, z + 1, 0)] = commandCreator(new NearDifference(new Vec(-1, 0, 0)), new FarDifference(new Vec(-cx, cy, 0)));
+                    toApply[GetBotId(x, z + 1, 1)] = commandCreator(new NearDifference(new Vec(1, 0, 0)), new FarDifference(new Vec(cx, -cy, 0)));
+                    toApply[GetBotId(x + 1, z + 1, 1)] = commandCreator(new NearDifference(new Vec(-1, 0, 0)), new FarDifference(new Vec(-cx, -cy, 0)));
+                    result.AddRange(toApply);
 
-                result.AddRange(toApply);
-            }
+                    toApply[GetBotId(x, z, 0)] = commandCreator(new NearDifference(new Vec(0, 0, 1)), new FarDifference(new Vec(0, cy, cx)));
+                    toApply[GetBotId(x, z + 1, 0)] = commandCreator(new NearDifference(new Vec(0, 0, -1)), new FarDifference(new Vec(0, cy, -cx)));
+                    toApply[GetBotId(x, z, 1)] = commandCreator(new NearDifference(new Vec(0, 0, 1)), new FarDifference(new Vec(0, -cy, cx)));
+                    toApply[GetBotId(x, z + 1, 1)] = commandCreator(new NearDifference(new Vec(0, 0, -1)), new FarDifference(new Vec(0, -cy, -cx)));
 
-            for (var i = 0; i < crewZCount - 1; i++)
-            {
-                var toApply = Enumerable.Repeat<ICommand>(new Wait(), halfCrewSize * 2).ToArray();
-                toApply[GetBotId(0, i, 0)] = commandCreator(new NearDifference(new Vec(0, 0, 1)), new FarDifference(new Vec(0, cy, cx)));
-                toApply[GetBotId(0, i + 1, 0)] = commandCreator(new NearDifference(new Vec(0, 0, -1)), new FarDifference(new Vec(0, cy, -cx)));
-                toApply[GetBotId(0, i, 1)] = commandCreator(new NearDifference(new Vec(0, 0, 1)), new FarDifference(new Vec(0, -cy, cx)));
-                toApply[GetBotId(0, i + 1, 1)] = commandCreator(new NearDifference(new Vec(0, 0, -1)), new FarDifference(new Vec(0, -cy, -cx)));
+                    toApply[GetBotId(x + 1, z, 0)] = commandCreator(new NearDifference(new Vec(0, 0, 1)), new FarDifference(new Vec(0, cy, cx)));
+                    toApply[GetBotId(x + 1, z + 1, 0)] = commandCreator(new NearDifference(new Vec(0, 0, -1)), new FarDifference(new Vec(0, cy, -cx)));
+                    toApply[GetBotId(x + 1, z, 1)] = commandCreator(new NearDifference(new Vec(0, 0, 1)), new FarDifference(new Vec(0, -cy, cx)));
+                    toApply[GetBotId(x + 1, z + 1, 1)] = commandCreator(new NearDifference(new Vec(0, 0, -1)), new FarDifference(new Vec(0, -cy, -cx)));
 
-                toApply[GetBotId(crewXCount - 1, i, 0)] = commandCreator(new NearDifference(new Vec(0, 0, 1)), new FarDifference(new Vec(0, cy, cx)));
-                toApply[GetBotId(crewXCount - 1, i + 1, 0)] = commandCreator(new NearDifference(new Vec(0, 0, -1)), new FarDifference(new Vec(0, cy, -cx)));
-                toApply[GetBotId(crewXCount - 1, i, 1)] = commandCreator(new NearDifference(new Vec(0, 0, 1)), new FarDifference(new Vec(0, -cy, cx)));
-                toApply[GetBotId(crewXCount - 1, i + 1, 1)] = commandCreator(new NearDifference(new Vec(0, 0, -1)), new FarDifference(new Vec(0, -cy, -cx)));
-
-                result.AddRange(toApply);
-            }
+                    result.AddRange(toApply);
+                }
 
             return result;
         }

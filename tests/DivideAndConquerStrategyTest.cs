@@ -83,7 +83,7 @@ namespace tests
             DoRealTest(model => new FastDeconstructor(model), 
                        (solver, commands, model) =>
                            {
-                               var state = new DeluxeState(new Matrix(model.R), model);
+                               var state = new DeluxeState(model, new Matrix(model.R));
                                var queue = new Queue<ICommand>();
                                var interpreter = new Interpreter(state);
                                foreach (var command in solver.Solve())
@@ -97,7 +97,7 @@ namespace tests
                                return state.Energy;
                            },
                        "fast-deconstructor",
-                       "test-form-crew",
+                       "not-so-super-crew",
                        filename);
         }
 
