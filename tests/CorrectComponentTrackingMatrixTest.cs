@@ -78,5 +78,20 @@ namespace tests
             componentTrackingMatrix[1, 0, 0] = false;
             componentTrackingMatrix.HasNonGroundedVoxels.Should().BeTrue();
         }
+
+        [Test]
+        public void TrackComponents4()
+        {
+            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix("000|000|000", "000|000|000", "000|000|000").Voxels);
+            componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
+            componentTrackingMatrix[0, 0, 0] = true;
+            componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
+            componentTrackingMatrix[1, 0, 0] = true;
+            componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
+            componentTrackingMatrix[2, 0, 0] = true;
+            componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
+            componentTrackingMatrix[2, 0, 0] = false;
+            componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
+        }
     }
 }

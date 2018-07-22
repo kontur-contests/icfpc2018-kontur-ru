@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,20 +26,19 @@ namespace lib.Models
             get => Voxels[x, y, z];
             set
             {
-                if (value && !Voxels[x, y, z])
+                if (value == Voxels[x, y, z])
+                    return;
+                Voxels[x, y, z] = value;
+                if (value)
                 {
                     filledCellsCount++;
                     var groundedNeigh = GetGroundedOrSelf(new Vec(x, y, z));
                     if (groundedNeigh == null)
-                    {
-                        Voxels[x, y, z] = true;
                         return;
-                    }
                     Ground(new Vec(x, y, z), groundedNeigh);
                     Bfs(new List<Vec> {new Vec(x, y, z)});
-                    
                 }
-                else if (!value && Voxels[x, y, z])
+                else
                 {
                     filledCellsCount--;
                     var unknownCells = GetUnknownCells(new Vec(x, y, z));
@@ -47,7 +47,6 @@ namespace lib.Models
                     var groundedCells = unknownCells.Select(GetGroundedOrSelf).Where(cell => cell != null).ToList();
                     Bfs(groundedCells);
                 }
-                Voxels[x, y, z] = value;
             }
         }
 
@@ -82,6 +81,15 @@ namespace lib.Models
         private Vec[,,] parentCell;
         private readonly bool[,,] isGrounded;
         public bool HasNonGroundedVoxels => groundedCellsCount != filledCellsCount;
+
+        public bool CanVoidCell(Vec vec)
+        {
+            var oldValue = this[vec];
+            this[vec] = false;
+            var result = !HasNonGroundedVoxels;
+            this[vec] = oldValue;
+            return result;
+        }
 
         public CorrectComponentTrackingMatrix(bool[,,] matrix)
         {
@@ -126,7 +134,7 @@ namespace lib.Models
         public void Ground(Vec vec, Vec groundParent)
         {
             if (isGrounded.Get(vec))
-                return;
+                throw new Exception($"Try to Ground alread Grounded cell: {vec}");
             isGrounded.Set(vec, true);
             parentCell.Set(vec, groundParent);
             groundedCellsCount++;
@@ -135,7 +143,7 @@ namespace lib.Models
         public void Unground(Vec vec)
         {
             if (!isGrounded.Get(vec))
-                return;
+                throw new Exception($"Try to Unground alread Ungrounded cell: {vec}");
             isGrounded.Set(vec, false);
             parentCell.Set(vec, null);
             groundedCellsCount--;
