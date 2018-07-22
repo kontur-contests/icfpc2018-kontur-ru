@@ -24,7 +24,7 @@ namespace lib.Models
                 };
             var timer = Stopwatch.StartNew();
 
-            var solver = solution.Solver();
+            var solver = solution.Solver(problem);
 
             var commands = solver.Solve().ToArray();
             var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);

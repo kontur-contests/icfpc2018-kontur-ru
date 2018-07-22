@@ -24,11 +24,18 @@ namespace tests
     // ReSharper disable once InconsistentNaming
     public class SolveAndPostResults_USE_ME_TO_POST_SOLUTIONS_FROM_YOUR_COMPUTER
     {
+        private ResultsPoster poster = new ResultsPoster();
+        private Evaluator evaluator = new Evaluator();
+
         [Test]
         [Explicit]
-        public void SolveAndPost([Values("FD003")] string problemName)
+        public void SolveAndPost([Values("FD004")] string problemName)
         {
             var problem = ProblemSolutionFactory.LoadProblem(problemName);
+            var solution = ProblemSolutionFactory.blockDeconstructor;
+            var result = evaluator.Run(problem, solution);
+            Console.WriteLine(result);
+            poster.PostResult(result);
         }
     }
 }

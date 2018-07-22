@@ -19,6 +19,11 @@ namespace lib.ElasticDTO
         public bool IsSuccess;
         public string ExceptionInfo;
 
+        public override string ToString()
+        {
+            return $"{nameof(SecondsSpent)}: {SecondsSpent}, {nameof(EnergySpent)}: {EnergySpent}, {nameof(TaskName)}: {TaskName}, {nameof(SolverName)}: {SolverName}";
+        }
+
         [Binary(Store = false)]
         public string Solution { get; set; }
     }
