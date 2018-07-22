@@ -21,7 +21,6 @@ namespace tests
     [TestFixture]
     public class SolveAllTest
     {
-        public static int[] Problems = Enumerable.Range(1, 100).ToArray();
         [Test]
         [Explicit]
         //[Timeout(30000)]
@@ -55,6 +54,37 @@ namespace tests
                 File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problemFile), bytes);
             }
         }
+
+        [Test]
+        [Explicit]
+        //[Timeout(30000)]
+        public void Assemble()
+        {
+            var problemId = 1;
+            var problemFile = Path.Combine(FileHelper.ProblemsDir, $"FA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
+            var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
+            var state = new DeluxeState(null, matrix);
+            var solver = new Solver(state, new ParallelGredyFill(state, state.Bots.Single()));
+            List<ICommand> commands = new List<ICommand>();
+            try
+            {
+                commands.AddRange(solver.Solve());
+            }
+            catch (Exception e)
+            {
+                Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
+                throw;
+            }
+            finally
+            {
+                var bytes = CommandSerializer.Save(commands.ToArray());
+                File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problemFile), bytes);
+            }
+
+            var solutionEnergy = GetSolutionEnergy(matrix, commands.ToArray(), problemFile);
+            Console.WriteLine(solutionEnergy);
+        }
+
         [Test]
         [Explicit]
         //[Timeout(30000)]
