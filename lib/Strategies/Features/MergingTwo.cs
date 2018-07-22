@@ -1,9 +1,4 @@
-using System.Linq;
-using System.Threading.Tasks;
-
-using lib.Commands;
 using lib.Models;
-using lib.Primitives;
 using lib.Strategies.Features.Async;
 
 namespace lib.Strategies.Features
@@ -22,25 +17,17 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            if (await TryMerge(bot1, bot2))
+            if (await new MergeTwoNears(state, bot1, bot2))
                 return true;
 
-            if (await TryMerge(bot2, bot1))
-                return true;
+            var nears = bot1.Position.GetNears();
 
-            //TODO: move
-
-            return false;
-        }
-
-        private async Task<bool> TryMerge(Bot src, Bot dst)
-        {
-            if (src.Position.GetNears().Any(n => n == dst.Position))
+            foreach (var near in nears)
             {
-                state.SetBotCommand(src, new FusionP(new NearDifference(src.Position - dst.Position)));
-                state.SetBotCommand(dst, new FusionS(new NearDifference(dst.Position - src.Position)));
-                await WhenNextTurn();
-                return true;
+                if (await new MoveSingleBot(state, bot2, near))
+                {
+                    return await new MergeTwoNears(state, bot1, bot2);
+                }
             }
 
             return false;

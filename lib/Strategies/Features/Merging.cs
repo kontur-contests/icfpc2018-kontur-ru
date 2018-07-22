@@ -15,9 +15,6 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            if (state.Bots.Count == 1)
-                return true;
-
             while (state.Bots.Count > 1)
             {
                 var bots = state.Bots.ToList();

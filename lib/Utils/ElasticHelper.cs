@@ -32,6 +32,9 @@ namespace lib.Utils
                               terms => terms.Field("taskName.keyword")
                                             .Size(100000))));
 
+            if (!aggResponse.IsValid)
+                throw new Exception($"Could not fetch solved problem names: {aggResponse.DebugInformation}");
+                    
             return aggResponse.Aggregations.Terms("task_name").Buckets.Select(b => b.Key).ToHashSet();
         }
     }

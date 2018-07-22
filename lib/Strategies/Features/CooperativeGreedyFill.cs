@@ -31,18 +31,11 @@ namespace lib.Strategies.Features
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
                 {
-                    if (!await new FillVoxel(state, bot, candidate, nearPosition))
+                    if (!await new FillVoxel(state, bot, candidate, nearPosition, () => AfterFill(candidate)))
                         continue;
 
-                    oracle.Fill(candidate);
+                    AfterFill(candidate);
                     any = true;
-
-                    candidates.Remove(candidate);
-                    foreach (var neighbor in candidate.GetMNeighbours(state.Matrix))
-                    {
-                        if (state.TargetMatrix[neighbor] && !state.Matrix[neighbor])
-                            candidates.Add(neighbor);
-                    }
                     break;
                 }
 
@@ -51,6 +44,18 @@ namespace lib.Strategies.Features
             }
 
             return true;
+        }
+
+        private void AfterFill(Vec candidate)
+        {
+            oracle.Fill(candidate);
+            
+            candidates.Remove(candidate);
+            foreach (var neighbor in candidate.GetMNeighbours(state.Matrix))
+            {
+                if (state.TargetMatrix[neighbor] && !state.Matrix[neighbor])
+                    candidates.Add(neighbor);
+            }
         }
 
         private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates()
