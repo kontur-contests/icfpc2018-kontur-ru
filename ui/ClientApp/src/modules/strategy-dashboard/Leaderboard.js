@@ -4,6 +4,8 @@ import { getTotals, KONTUR_NAME } from "./StrategyDashboardApi";
 import happy from "./happy.wav";
 import sad from "./sad.wav";
 
+import "./Leaderboard.css";
+
 export class Leaderboard extends React.Component {
   state = {
     records: [],
@@ -30,12 +32,14 @@ export class Leaderboard extends React.Component {
     );
     const newKonturPos = records.findIndex(x => x.name === KONTUR_NAME);
 
-    if (newKonturPos < curKonturPos) {
-      this.happy && this.happy.play();
-    }
+    if (curKonturPos > -1) {
+      if (newKonturPos < curKonturPos) {
+        this.happy && this.happy.play();
+      }
 
-    if (newKonturPos > curKonturPos) {
-      this.sad && this.sad.play();
+      if (newKonturPos > curKonturPos) {
+        this.sad && this.sad.play();
+      }
     }
 
     this.setState({ records, diffs });
@@ -45,7 +49,7 @@ export class Leaderboard extends React.Component {
     return (
       <React.Fragment>
         <h1>Leaderboard</h1>
-        <table style={{ width: "100%" }}>
+        <table style={{ width: "100%" }} className="Leaderboard">
           <thead>{this.renderHead()}</thead>
           <tbody>{this.state.records.map(this.renderRow)}</tbody>
         </table>
@@ -58,11 +62,11 @@ export class Leaderboard extends React.Component {
   renderHead = () => {
     return (
       <tr>
-        <th>Place</th>
+        <th>#</th>
         <th>Name</th>
         <th>Energy</th>
         <th>Score</th>
-        <th>Score Change</th>
+        <th>Diff</th>
       </tr>
     );
   };
@@ -82,12 +86,12 @@ export class Leaderboard extends React.Component {
     return (
       <tr
         key={record.name}
-        style={{ background: record.name === KONTUR_NAME ? "orange" : "white" }}
+        className={record.name === KONTUR_NAME ? 'Leaderboard__isKontur' : ''}
       >
         <td>{index + 1}</td>
         <td>{record.name}</td>
-        <td>{record.energy}</td>
-        <td>{record.score}</td>
+        <td>{record.energy.toLocaleString()}</td>
+        <td>{record.score.toLocaleString()}</td>
         <td styles={diffStyles}>{diff}</td>
       </tr>
     );

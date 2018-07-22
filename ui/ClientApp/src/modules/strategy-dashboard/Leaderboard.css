@@ -1,0 +1,33 @@
+.Leaderboard {
+  border-collapse: collapse;
+  border: 1px solid #dfdede;
+  /* font-family: 'Courier New', Courier, monospace; */
+}
+
+.Leaderboard th {
+  text-align: left;
+  background:  #333;
+  color: white;
+}
+
+.Leaderboard th,
+.Leaderboard td {
+  padding: 8px 12px;
+}
+
+.Leaderboard tr:nth-child(2n) td {
+  background-color: #ededed;
+}
+
+.Leaderboard__isKontur td {
+  background-color: orange !important;
+}
+
+.Leaderboard th:nth-child(3),
+.Leaderboard th:nth-child(4),
+.Leaderboard th:nth-child(5),
+.Leaderboard td:nth-child(3),
+.Leaderboard td:nth-child(4),
+.Leaderboard td:nth-child(5) {
+  text-align: right;
+}
