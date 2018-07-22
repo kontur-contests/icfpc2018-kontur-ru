@@ -34,8 +34,8 @@ namespace tests
             var commonPart = problem.SourceMatrix.Intersect(problem.TargetMatrix);
             commonPart = new ComponentTrackingMatrix(commonPart).GetGroundedVoxels();
 
-            File.WriteAllBytes(Path.Combine(FileHelper.ProblemsDir,"FR666_tgt.mdl"), commonPart.Save());
-            File.WriteAllBytes(Path.Combine(FileHelper.ProblemsDir,"FR666_src.mdl"), commonPart.Save());
+            File.WriteAllBytes(Path.Combine(FileHelper.ProblemsDir, "FR666_tgt.mdl"), commonPart.Save());
+            File.WriteAllBytes(Path.Combine(FileHelper.ProblemsDir, "FR666_src.mdl"), commonPart.Save());
             var solver = new GreedyPartialSolver(problem.SourceMatrix, commonPart, new ThrowableHelperFast(commonPart, problem.SourceMatrix));
             List<ICommand> commands = new List<ICommand>();
             try
@@ -118,6 +118,8 @@ namespace tests
                 var bytes = CommandSerializer.Save(commands.ToArray());
                 File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
             }
+            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            new Interpreter(state).Run(commands);
         }
 
         [Test]
@@ -147,9 +149,11 @@ namespace tests
         [Explicit]
         public void Disassemble()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FD122");
+            var problem = ProblemSolutionFactory.LoadProblem("FD171");
             //var solver = new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix);
-            var solver = new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new Matrix(problem.R), new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix);
+            //var solver = new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new Matrix(problem.R), new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix);
+            var solver = new InvertorDisassembler(new HorizontalSlicer(problem.SourceMatrix, 6, 6, true), problem.SourceMatrix);
+            //var solver = new HorizontalSlicer(problem.SourceMatrix, 6, 6, true);
             List<ICommand> commands = new List<ICommand>();
             try
             {
@@ -215,7 +219,7 @@ namespace tests
             var problems = allProblems.Select(p =>
                 {
                     var matrix = Matrix.Load(File.ReadAllBytes(p));
-                    return new {m = matrix, p, weight = matrix.Voxels.Cast<bool>().Count(b => b)};
+                    return new { m = matrix, p, weight = matrix.Voxels.Cast<bool>().Count(b => b) };
                 }).Take(10).ToList();
             problems.Sort((p1, p2) => p1.weight.CompareTo(p2.weight));
             Log.For(this).Info(string.Join("\r\n", problems.Select(p => p.p)));
