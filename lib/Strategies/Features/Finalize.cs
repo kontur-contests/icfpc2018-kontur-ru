@@ -6,7 +6,7 @@ using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public class Finalize : SimpleStrategyBase
+    public class Finalize : Strategy
     {
         public Finalize(DeluxeState state)
             : base(state)

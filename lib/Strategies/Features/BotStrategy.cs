@@ -4,11 +4,11 @@ using lib.Strategies.Features.Async;
 
 namespace lib.Strategies.Features
 {
-    public abstract class SimpleSingleBotStrategyBase : SimpleStrategyBase
+    public abstract class BotStrategy : Strategy
     {
         protected readonly Bot bot;
 
-        protected SimpleSingleBotStrategyBase(DeluxeState state, Bot bot)
+        protected BotStrategy(DeluxeState state, Bot bot)
             : base(state)
         {
             this.bot = bot;

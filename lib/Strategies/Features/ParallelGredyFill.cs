@@ -7,7 +7,7 @@ using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public class ParallelGredyFill : SimpleSingleBotStrategyBase
+    public class ParallelGredyFill : BotStrategy
     {
         public ParallelGredyFill(DeluxeState state, Bot bot)
             : base(state, bot)
@@ -18,12 +18,14 @@ namespace lib.Strategies.Features
         {
             var split = new Split(state, bot, 40);
             await split;
-            
+
+            await new Spread(state, split.Bots);
+
+
             var helper = new ThrowableHelperFast(state.TargetMatrix);
             var candidates = new HashSet<Vec>(state.GetGroundedCellsToBuild());
-
-            var strategies = split.Bots.Select(b => (IStrategy)new CooperativeGreedyFill(state, b, candidates)).ToArray();
-            await WhenAll(strategies);
+            
+            await WhenAll(split.Bots.Select(b => new CooperativeGreedyFill(state, b, candidates)));
 
             return await Finalize();
         }
