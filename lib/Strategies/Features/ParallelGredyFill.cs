@@ -17,7 +17,7 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            await new Cloning(state, bot);
+            await new Split(state, bot);
 
             var helper = new ThrowableHelperFast(state.TargetMatrix);
             var candidates = new HashSet<Vec>(state.GetGroundedCellsToBuild());

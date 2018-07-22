@@ -5,14 +5,13 @@ using lib.Commands;
 using lib.Models;
 using lib.Primitives;
 using lib.Strategies.Features.Async;
+using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public class Cloning : SimpleSingleBotStrategyBase
+    public class Split : SimpleSingleBotStrategyBase
     {
-        public List<Bot> Bots = new List<Bot>();
-
-        public Cloning(DeluxeState state, Bot bot)
+        public Split(DeluxeState state, Bot bot)
             : base(state, bot)
         {
         }
@@ -21,23 +20,26 @@ namespace lib.Strategies.Features
         {
             if (bot.Seeds.Count == 1)
             {
-                Bots.Add(bot);
-                return true;
+                return false;
             }
 
-            var nearPositions = bot.Position.GetNears()
-                                   .Where(n => n.IsInCuboid(state.Matrix.R))
-                                   .Where(n => !state.VolatileCells.ContainsKey(n))
-                                   .ToList();
+            var to = NearPosition();
 
-            if (nearPositions.Any())
+            if (to != null)
             {
-                var to = nearPositions.First();
                 await Do(new Fission(new NearDifference(to - bot.Position), bot.Seeds[(bot.Seeds.Count + 1) / 2]));
                 return true;
             }
 
             return false;
+        }
+
+        private Vec NearPosition()
+        {
+            return bot.Position
+                      .GetNears()
+                      .Where(n => n.IsInCuboid(state.Matrix.R))
+                      .FirstOrDefault(n => !state.VolatileCells.ContainsKey(n));
         }
     }
 }

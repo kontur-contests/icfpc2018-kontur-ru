@@ -22,7 +22,7 @@ namespace lib.Strategies.Features
             /*if (await new MergeTwoNears(state, bot1, bot2))
                 return true;*/
 
-            var nears = bot1.Position.GetNears().Where(p => !state.Matrix[p]);
+            var nears = bot1.Position.GetNears().Where(p => p.IsInCuboid(state.Matrix.R) && !state.Matrix[p]);
 
             foreach (var near in nears)
             {

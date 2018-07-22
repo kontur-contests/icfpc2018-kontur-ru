@@ -100,7 +100,7 @@ namespace tests
         //[Timeout(30000)]
         public void AssembleKung()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FA004");
+            var problem = ProblemSolutionFactory.LoadProblem("FA011");
             var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
             var solver = new Solver(state, new ParallelGredyFill(state, state.Bots.First()));
             List<ICommand> commands = new List<ICommand>();
