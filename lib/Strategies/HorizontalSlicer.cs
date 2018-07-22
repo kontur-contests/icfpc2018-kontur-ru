@@ -19,23 +19,34 @@ namespace lib.Strategies
         public int CountX { get; }
         public int SizeZ { get; }
         public int CountZ { get; }
-        public int N { get; }
+        public int MinX { get; }
+        public int MinZ { get; }
+        public int XMatrixSize { get; }
+        public int ZMatrixSize { get; }
         public int CountLargeX { get; }
         public int CountLargeZ { get; }
 
-        public Grid(int sizeX, int countX, int sizeZ, int countZ, int n)
+        public Grid(int countX, int countZ, int minX, int minZ, int maxX, int maxZ)
         {
-            SizeX = sizeX;
+            XMatrixSize = maxX - minX + 1;
+            ZMatrixSize = maxZ - minZ + 1;
+
+            SizeX = XMatrixSize / countX;
             CountX = countX;
-            SizeZ = sizeZ;
+            SizeZ = ZMatrixSize / countZ;
             CountZ = countZ;
-            N = n;
-            if (SizeX * (CountX + 1) < n || SizeX * CountX > n)
-                throw new Exception("Wrong grid X parameters");
-            if (SizeZ * (CountZ + 1) < n || SizeZ * CountZ > n)
-                throw new Exception("Wrong grid Z parameters");
-            CountLargeX = n - SizeX * CountX;
-            CountLargeZ = n - SizeZ * CountZ;
+            MinX = minX;
+            MinZ = minZ;
+            if (CountX > XMatrixSize)
+                throw new Exception("CountX > XMatrixSize");
+            if (CountZ > ZMatrixSize)
+                throw new Exception("CountZ > ZMatrixSize");
+            if (SizeX * CountX > XMatrixSize)
+                throw new Exception("X range grid overflow");
+            if (SizeZ * CountZ > ZMatrixSize)
+                throw new Exception("Z range grid overflow");
+            CountLargeX = XMatrixSize - SizeX * CountX;
+            CountLargeZ = ZMatrixSize - SizeZ * CountZ;
         }
 
         [NotNull]
@@ -45,16 +56,18 @@ namespace lib.Strategies
             var (blockX, blockZ) = GetCellId(botPosition);
             var (startX, startZ) = GetCellStart((blockX, blockZ));
             var (currSizeX, currSizeZ) = GetCellSize((blockX, blockZ));
-            for (var x = startX; x < Math.Min(N, currSizeX + startX); x++)
-                for (var z = startZ; z < Math.Min(N, currSizeZ + startZ); z++)
+            for (var x = startX; x < Math.Min(MinX + XMatrixSize, currSizeX + startX); x++)
+                for (var z = startZ; z < Math.Min(MinZ + ZMatrixSize, currSizeZ + startZ); z++)
                     result.Add(new Vec(x, botPosition.Y, z));
             return result;
         }
 
         public (int, int) GetCellId(Vec position)
         {
-            return (CalculateCoord(position.X, SizeX, CountLargeX),
-                CalculateCoord(position.Z, SizeZ, CountLargeZ));
+            if (position.X < MinX || position.Z < MinZ || position.X >= MinX + XMatrixSize || position.Z > MinZ + ZMatrixSize)
+                throw new Exception("Try to GetCellId for position out of bounding box");
+            return (CalculateCoord(position.X - MinX, SizeX, CountLargeX),
+                CalculateCoord(position.Z - MinZ, SizeZ, CountLargeZ));
         }
 
         private int CalculateCoord(int coord, int rangeSize, int countLarge)
@@ -72,8 +85,8 @@ namespace lib.Strategies
 
         public (int X, int Z) GetCellStart((int X, int Z) cellId)
         {
-            return (cellId.X * SizeX + Math.Min(cellId.X, CountLargeX),
-                cellId.Z * SizeZ + Math.Min(cellId.Z, CountLargeZ));
+            return (cellId.X * SizeX + Math.Min(cellId.X, CountLargeX) + MinX,
+                cellId.Z * SizeZ + Math.Min(cellId.Z, CountLargeZ) + MinZ);
         }
     }
 
@@ -83,11 +96,54 @@ namespace lib.Strategies
         private int N => targetMatrix.R;
         private Grid grid;
         private int[,,] groundDistance;
+        private int minX, minZ, maxX, maxZ;
+        private readonly bool useBoundingBox;
 
-        public HorizontalSlicer(Matrix targetMatrix)
+        public HorizontalSlicer(Matrix targetMatrix, int gridCountX, int gridCountZ, bool useBoundingBox)
         {
             this.targetMatrix = targetMatrix;
-            grid = new Grid(N / 6, 6, N / 6, 6, N);
+            this.useBoundingBox = useBoundingBox;
+            CalcBoundingBox(gridCountX, gridCountZ);
+            grid = new Grid(gridCountX, gridCountZ, minX, minZ, maxX, maxZ);
+        }
+
+        private void CalcBoundingBox(int gridCountX, int gridCountZ)
+        {
+            minX = minZ = 100000;
+            for (int x = 0; x < targetMatrix.R; x++)
+            {
+                for (int y = 0; y < targetMatrix.R; y++)
+                {
+                    for (int z = 0; z < targetMatrix.R; z++)
+                    {
+                        if (targetMatrix[x, y, z])
+                        {
+                            minX = Math.Min(minX, x);
+                            minZ = Math.Min(minZ, z);
+                            maxX = Math.Max(maxX, x);
+                            maxZ = Math.Max(maxZ, z);
+                        }
+                    }
+                }
+            }
+            if (!useBoundingBox)
+            {
+                minX = 0;
+                minZ = 0;
+                maxX = targetMatrix.R - 1;
+                maxZ = targetMatrix.R - 1;
+            }
+
+            var xOverflow = gridCountX - (maxX - minX + 1);
+            var zOverflow = gridCountZ - (maxZ - minZ + 1);
+            if (xOverflow > 0 || zOverflow > 0)
+            {
+                maxX += Math.Max(0, xOverflow);
+                maxZ += Math.Max(0, zOverflow);
+                Log.For(this).Info($"Bounding box was enlarged due to overflow");
+                if (maxX >= N || maxZ >= N)
+                    throw new Exception("Too large bounding box after enlaging");
+            }
         }
 
         public IEnumerable<ICommand> Solve()
