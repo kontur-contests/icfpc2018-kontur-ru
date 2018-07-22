@@ -27,10 +27,6 @@ namespace packer
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Downloading solutions from Elastic...");
-            var elasticStats = DownloadSolutionsFromElastic();
-            Console.WriteLine($"  {elasticStats.Item1} solutions, {elasticStats.Item2} errors");
-
             var secretKey = Environment.GetEnvironmentVariable("ICFPC2018_SECRET_KEY");
             var uploadToken = Environment.GetEnvironmentVariable("ICFPC2018_UPLOAD_TOKEN");
 
@@ -39,19 +35,25 @@ namespace packer
                 Console.WriteLine("Secret key or upload token missing");
                 Environment.Exit(4000);
             }
+            
+            Console.WriteLine("Downloading solutions from Elastic...");
+            var elasticStats = DownloadSolutionsFromElastic();
+            Console.WriteLine($"  {elasticStats.Item1} solutions, {elasticStats.Item2} errors");
 
-            Console.WriteLine("Creating submission.zip...");
-            CreateSubmissionZip(secretKey);
+            Console.WriteLine("Creating submission ZIP...");
+            var fileName = CreateSubmissionZip(secretKey);
+            Console.WriteLine($"  {fileName}");
 
             Console.WriteLine("Calculating submission hash...");
-            var hash = CalculateSubmissionHash();
+            var hash = CalculateSubmissionHash(fileName);
             Console.WriteLine($"  {hash}");
 
-            Console.WriteLine("Uploading submission.zip...");
-            UploadSubmissionZip(uploadToken);
+            Console.WriteLine("Uploading submission ZIP...");
+            UploadSubmissionZip(fileName, uploadToken);
 
             Console.WriteLine("Getting download link...");
-            var link = GetDownloadLink(uploadToken);
+            var link = GetDownloadLink(fileName, uploadToken);
+            Console.WriteLine($"  {link}");
 
             Console.WriteLine("Submitting the solution...");
             var result = SubmitSolution(link, hash, secretKey);
@@ -164,8 +166,11 @@ namespace packer
             return new Tuple<int, int>(successCount, errorsCount);
         }
 
-        private static void CreateSubmissionZip(string secretKey)
+        private static string CreateSubmissionZip(string secretKey)
         {
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            string fileName = $"submission-{timestamp}.zip";
+            
             using (var zip = new ZipFile())
             {
                 zip.Password = secretKey;
@@ -175,38 +180,41 @@ namespace packer
                     zip.AddFile(file, "");
                 }
 
-                zip.Save("submission.zip");
+                zip.Save(fileName);
             }
+
+            return fileName;
         }
 
-        private static string CalculateSubmissionHash()
+        private static string CalculateSubmissionHash(string fileName)
         {
             var sha = SHA256.Create();
-            var fileStream = new FileStream("submission.zip", FileMode.Open) {Position = 0};
+            var fileStream = new FileStream(fileName, FileMode.Open) {Position = 0};
             var hashValue = sha.ComputeHash(fileStream);
             fileStream.Close();
             return GetHashSha256(hashValue);
         }
 
-        private static void UploadSubmissionZip(string token)
+        private static bool UploadSubmissionZip(string fileName, string token)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            client.DefaultRequestHeaders.Add("Dropbox-API-Arg", "{\"path\":\"/submission.zip\",\"mode\":{\".tag\":\"overwrite\"}}");
+            client.DefaultRequestHeaders.Add("Dropbox-API-Arg", "{\"path\":\"/" + fileName + "\",\"mode\":{\".tag\":\"overwrite\"}}");
 
-            var fileStream = new FileStream("submission.zip", FileMode.Open);
+            var fileStream = new FileStream(fileName, FileMode.Open);
             var content = new StreamContent(fileStream);
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
-            client.PostAsync("https://content.dropboxapi.com/2/files/upload", content);
+            var result = client.PostAsync("https://content.dropboxapi.com/2/files/upload", content).Result.Content.ReadAsStringAsync().Result;
             fileStream.Close();
+            return result.Contains(fileName);
         }
 
-        private static string GetDownloadLink(string token)
+        private static string GetDownloadLink(string fileName, string token)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var content = new StringContent("{\"path\":\"/submission.zip\"}");
+            var content = new StringContent("{\"path\":\"/" + fileName + "\"}");
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             var result = client.PostAsync("https://api.dropboxapi.com/2/files/get_temporary_link", content).Result.Content.ReadAsStringAsync().Result;
             return result.Split('"').SkipLast(1).TakeLast(1).First();
