@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 
 using lib.Models;
 using lib.Strategies;
+using lib.Strategies.Features;
 
 namespace lib.Utils
 {
@@ -167,6 +168,17 @@ namespace lib.Utils
                 Solver = () => new HorizontalSlicer(problem.TargetMatrix, 8, 5, true),
             };
 
+            var parallelGredy = new Solution
+                {
+                    Name = "ParallelGredy",
+                    ProblemPrioritizer = p => ProblemPriority.High,
+                    Solver = () =>
+                        {
+                            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+                            var solver = new Solver(state, new ParallelGredyFill(state, state.Bots.First()));
+                            return solver;
+                        }
+                };
             (string name, Func<Matrix, IAmSolver> solver)[] solvers = {
                     ("g", CreateGreedy),
                     ("c", CreateColumns),
