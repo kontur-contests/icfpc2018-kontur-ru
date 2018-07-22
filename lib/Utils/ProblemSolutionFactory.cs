@@ -154,6 +154,19 @@ namespace lib.Utils
             CompatibleProblemTypes = new[] { ProblemType.Disassemble },
         };
 
+        public static readonly Solution disassembler8 = new Solution
+        {
+            Name = "Disassembler8",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem =>
+                {
+                    var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+                    var solver = new Solver(state, new Disassembler(state));
+                    return solver;
+                },
+            CompatibleProblemTypes = new[] { ProblemType.Disassemble },
+        };
+
         public static readonly Solution parallelGredy = new Solution
         {
             Name = "ParallelGredy",
@@ -191,7 +204,8 @@ namespace lib.Utils
                 .Select(s => (name: s.name, solver: (Func<Problem, IAmSolver>)(problem => new InvertorDisassembler(s.solver(problem.SourceMatrix), problem.SourceMatrix) as IAmSolver)))
                 .Concat(new[]
                     {
-                        (name: "bd", solver: blockDeconstructor.Solver)
+                        (name: "bd", solver: blockDeconstructor.Solver),
+                        (name: "d8", solver: disassembler8.Solver),
                     });
 
             foreach (var disassembler in disassemblers)
@@ -222,6 +236,7 @@ namespace lib.Utils
 //                    columnsBbx,
                     gForLarge,
                     blockDeconstructor,
+                    disassembler8
                 }.Concat(raSolutions)
                  .Concat(slicers)
                  .ToArray();
