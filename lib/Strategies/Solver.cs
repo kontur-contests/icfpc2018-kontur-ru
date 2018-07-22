@@ -40,7 +40,7 @@ namespace lib.Strategies
         private void RecursiveTick(IStrategy strategy)
         {
             int attempts;
-            const int maxAttempts = 100;
+            const int maxAttempts = 1_000;
             for (attempts = 0; attempts < maxAttempts; attempts++)
             {
                 var children = strategy.Tick();
@@ -67,7 +67,7 @@ namespace lib.Strategies
                     break;
             }
             if (attempts >= maxAttempts)
-                throw new InvalidOperationException($"Too many tick attempts for one strategy: {strategy}");
+                Log.For(this).Warn($"Too many tick attempts for one strategy: {strategy}");
         }
     }
 }

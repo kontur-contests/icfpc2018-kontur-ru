@@ -46,7 +46,10 @@ namespace lib.Strategies.Features
                 }
 
                 if (!any)
-                    await new MoveSingleBot(state, bot, new Vec(0, bot.Bid, 0));
+                {
+                    if (!await new MoveSingleBot(state, bot, new Vec(0, bot.Bid, 0)))
+                        await WhenNextTurn();
+                }
             }
 
             return true;
