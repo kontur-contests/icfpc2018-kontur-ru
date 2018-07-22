@@ -89,5 +89,21 @@ namespace lib.Models
         {
             return new Matrix((bool[,,])voxels.Clone(), Weight);
         }
+
+        public Matrix Intersect(Matrix target)
+        {
+            var r = target.R;
+            var newVoxels = new bool[r,r,r];
+            var weight = 0;
+            for (int x = 0; x < r; x++)
+            for (int y = 0; y < r; y++)
+            for (int z = 0; z < r; z++)
+            {
+                var isFull = voxels[x, y, z] && target.voxels[x, y, z];
+                newVoxels[x, y, z] = isFull;
+                if (isFull) weight++;
+            }
+            return new Matrix(newVoxels, weight);
+        }
     }
 }

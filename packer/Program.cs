@@ -83,7 +83,7 @@ namespace packer
                           aggs => aggs.Terms(
                               "task_name",
                               terms => terms.Field("taskName.keyword")
-                                            .Size(10000)
+                                            .Size(100000)
                                             .Aggregations(
                                                 childAggs => childAggs.Min(
                                                     "min_energy",

@@ -27,6 +27,23 @@ namespace lib.Models
             FillComponentIndexes();
         }
 
+        public Matrix GetGroundedVoxels()
+        {
+            var vs = new bool[R, R, R];
+            var weight = 0;
+            for (int x = 0; x < R; x++)
+                for (int y = 0; y < R; y++)
+                    for (int z = 0; z < R; z++)
+                    {
+                        if (matrix[x, y, z] && groundedComponents.Contains(componentIndexes[x, y, z]))
+                        {
+                            vs[x, y, z] = true;
+                            weight++;
+                        }
+                    }
+            return new Matrix(vs, weight);
+        }
+
         private void FillComponentIndexes()
         {
             nextComponentIndex = 1;

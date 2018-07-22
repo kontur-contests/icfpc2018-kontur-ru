@@ -37,7 +37,9 @@ namespace houston
             context.Log.Info($"Replica # {replicaNumber} of {replicaCount}: preparing...");
 
             var client = new ElasticClient(new ConnectionSettings(new Uri(elasticUrl)).DisableDirectStreaming().DefaultIndex(elasticIndex));
-            var tasks = ProblemSolutionFactory.GetTasks().ToArray();
+            var tasks = ProblemSolutionFactory.GetTasks()
+                                              .Where(t => t.Solution.ProblemPrioritizer(t.Problem) != ProblemPriority.DoNotSolve)
+                                              .ToArray();
 
             var selectedTasks = tasks
                 .Where(task => ((uint)(task.Problem.Name + task.Solution.Name).GetHashCode()) % replicaCount == replicaNumber - 1)
@@ -47,8 +49,7 @@ namespace houston
                              $"running {selectedTasks.Length} of {tasks.Length} tasks");
 
             var completeTasksCounter = 0;
-            selectedTasks.Where(st => st.Solution.ProblemPrioritizer(st.Problem) != ProblemPriority.DoNotSolve)
-                         .OrderBy(st => st.Solution.ProblemPrioritizer(st.Problem))
+            selectedTasks.OrderBy(st => st.Solution.ProblemPrioritizer(st.Problem))
                          .ForEach(task =>
                 {
                     var solution = task.Solution;

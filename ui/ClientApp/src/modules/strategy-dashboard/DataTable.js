@@ -24,10 +24,8 @@ export class DataTable extends React.Component {
             Header: "Energy",
             accessor: d => [d.energy, d.rate],
             id: "energy",
-            aggregate: (values, rows) => {
-              const best = minBy(x => x.energy[0], rows);
-              return best.energy;
-            },
+            aggregate: (values, rows) => minBy(x => x.energy[0], rows).energy,
+            sortMethod: ([a], [b]) => a - b,
             Cell: EnergyCell
           },
           {
@@ -61,6 +59,7 @@ export class DataTable extends React.Component {
             Header: "Leader Energy",
             id: "leaderEnergy",
             accessor: d => [d.leaderEnergy, d.leaderRate],
+            sortMethod: ([a], [b]) => a - b,
             aggregate: ([valuee]) => valuee,
             Cell: EnergyCell
           }

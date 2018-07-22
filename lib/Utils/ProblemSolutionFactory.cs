@@ -13,9 +13,11 @@ namespace lib.Utils
     {
         public static ProblemSolutionPair[] GetTasks()
         {
+            var solvedProblemNames = ElasticHelper.FetchSolvedProblemNames();
+            
             return
                 (from p in GetProblems()
-                 from s in GetSolutions(p)
+                 from s in GetSolutions(p, solvedProblemNames)
                  where s.CompatibleProblemTypes.Contains(p.Type)
                  select new ProblemSolutionPair
                  {
@@ -62,14 +64,14 @@ namespace lib.Utils
             return Matrix.Load(File.ReadAllBytes(filename));
         }
 
-        private static Solution[] GetSolutions(Problem problem)
+        private static Solution[] GetSolutions(Problem problem, HashSet<string> solvedProblemNames)
         {
             var R = problem.TargetMatrix?.R ?? problem.SourceMatrix.R;
 
             var gFast = new Solution
             {
                 Name = "GS + TH Fast",
-                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
+                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
                 Solver = () => new GreedyPartialSolver(
                                           problem.TargetMatrix.Voxels,
                                           new bool[R, R, R],
@@ -80,7 +82,7 @@ namespace lib.Utils
             var gLayers = new Solution
             {
                 Name = "GS + Layers",
-                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
+                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
                 Solver = () => new GreedyPartialSolver(
                                           problem.TargetMatrix.Voxels,
                                           new bool[R, R, R],
@@ -92,21 +94,21 @@ namespace lib.Utils
             var columns = new Solution
             {
                 Name = "Columns",
-                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
+                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
                 Solver = () => new DivideAndConquer(problem.TargetMatrix, false),
             };
 
             var columnsBbx = new Solution
             {
                 Name = "ColumnsBbx",
-                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
+                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
                 Solver = () => new DivideAndConquer(problem.TargetMatrix, true),
             };
 
             var gForLarge = new Solution
             {
                 Name = "GreedyForLarge",
-                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
+                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
                 Solver = () => new GreedyPartialSolver(
                                    problem.TargetMatrix.Voxels,
                                    new bool[R, R, R],
@@ -118,7 +120,7 @@ namespace lib.Utils
             var stupidDisassembler = new Solution
             {
                 Name = "disasm",
-                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
+                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
                 Solver = () => new StupidDisassembler(problem.SourceMatrix),
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
@@ -126,7 +128,7 @@ namespace lib.Utils
             var invertorDisassembler = new Solution
             {
                 Name = "invertor",
-                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
+                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
                 Solver = () => new InvertorDisassembler(new GreedyPartialSolver(
                                                             problem.SourceMatrix.Voxels,
                                                             new bool[R, R, R],
@@ -138,7 +140,7 @@ namespace lib.Utils
             var invColDisassembler = new Solution
             {
                 Name = "invCol",
-                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
+                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
                 Solver = () => new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix),
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
@@ -155,7 +157,7 @@ namespace lib.Utils
                 raSolutions.Add(new Solution
                     {
                         Name = $"RA+{disassembler.name}+{assembler.name}",
-                        ProblemPrioritizer = _ => ProblemPriority.High,
+                        ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
                         Solver = () => new SimpleReassembler(
                                            new InvertorDisassembler(disassembler.solver(problem.SourceMatrix), problem.SourceMatrix),
                                            assembler.solver(problem.TargetMatrix)

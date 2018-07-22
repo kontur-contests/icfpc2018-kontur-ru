@@ -168,7 +168,7 @@ function raterFactory(solverSolutions, solverNames) {
     .filter(isFiniteValue)
     .sort((a, b) => getEnergySpent(a) - getEnergySpent(b));
   // console.log(rates);
-  return solverName => rates.indexOf(solverName) / (rates.length - 1);
+  return solverName => rates.indexOf(solverName) / Math.max((rates.length - 1), 1);
 }
 
 export function denormalizeData({ result, taskNames, solverNames }) {
@@ -183,14 +183,15 @@ export function denormalizeData({ result, taskNames, solverNames }) {
       }
 
       const energy = result[taskName][solverName];
+      const isSolved = energy !== 0 && energy !== undefined;
       const leaderEnergy = result[taskName][LEADERS_NAME] || Infinity;
       const record = {
-        energy: energy === 0 || energy === undefined ? Infinity : energy,
+        energy: isSolved ? energy : Infinity,
         taskName,
         solverName,
         leaderEnergy,
         rate: rater(solverName),
-        leaderRate: rater(LEADERS_NAME)
+        leaderRate: isSolved ? rater(LEADERS_NAME) : 0
       };
 
       data.push(record);

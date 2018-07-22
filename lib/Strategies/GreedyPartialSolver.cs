@@ -38,6 +38,12 @@ namespace lib.Strategies
 
         }
 
+        public GreedyPartialSolver(Matrix targetMatrix, Matrix sourceMatrix, IOracle oracle, ICandidatesOrdering candidatesOrdering = null)
+            : this(targetMatrix.Voxels, sourceMatrix.Voxels, Vec.Zero, oracle, candidatesOrdering)
+        {
+
+        }
+
         public GreedyPartialSolver(bool[,,] whatToFill, bool[,,] state, Vec pos, IOracle oracle, ICandidatesOrdering candidatesOrdering = null)
         {
             this.whatToFill = whatToFill;
