@@ -36,15 +36,5 @@ namespace lib.Strategies.Features
         {
             return new StrategyTask(null);
         }
-
-        //protected StrategyResult Wait(params IStrategy[] strategies)
-        //{
-        //    return new StrategyResult(StrategyStatus.Incomplete, strategies);
-        //}
-
-        //protected StrategyResult Failed()
-        //{
-        //    return new StrategyResult(StrategyStatus.Failed, null);
-        //}
     }
 }
