@@ -172,7 +172,7 @@ namespace lib.Utils
             {
                 Name = "BlockDeconstructor",
                 ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.Normal : ProblemPriority.High,
-                Solver = () => new FastDeconstructor(problem.TargetMatrix),
+                Solver = () => new FastDeconstructor(problem.SourceMatrix),
                 CompatibleProblemTypes = new [] {ProblemType.Disassemble},
             };
 
