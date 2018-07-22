@@ -1,8 +1,7 @@
-using System.Collections.Generic;
-
 using lib.Commands;
 using lib.Models;
 using lib.Primitives;
+using lib.Strategies.Features.Async;
 using lib.Utils;
 
 namespace lib.Strategies.Features
@@ -18,18 +17,16 @@ namespace lib.Strategies.Features
             this.whatToFill = whatToFill;
             this.fromPos = fromPos;
         }
-        
-        protected override IEnumerable<StrategyResult> Run()
+
+        protected override async StrategyTask<bool> Run()
         {
             if (bot.Position != fromPos)
             {
-                var move = new MoveSingleBot(state, bot, fromPos);
-                yield return Wait(move);
-
-                if (move.Status == StrategyStatus.Failed)
-                    yield return Failed();
+                if (!await new MoveSingleBot(state, bot, fromPos))
+                    return false;
             }
-            yield return Do(new Fill(new NearDifference(whatToFill - fromPos)));
+            await Do(new Fill(new NearDifference(whatToFill - fromPos)));
+            return true;
         }
     }
 }

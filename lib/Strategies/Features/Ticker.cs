@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+
+using lib.Commands;
+using lib.Models;
 
 namespace lib.Strategies.Features
 {

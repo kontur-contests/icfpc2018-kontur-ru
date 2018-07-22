@@ -5,6 +5,7 @@ using System.Linq;
 using lib.Commands;
 using lib.Models;
 using lib.Primitives;
+using lib.Strategies.Features.Async;
 using lib.Utils;
 
 namespace lib.Strategies.Features
@@ -21,7 +22,7 @@ namespace lib.Strategies.Features
             this.candidatesOrdering = candidatesOrdering ?? new BuildAllStayingStill();
         }
 
-        protected override IEnumerable<StrategyResult> Run()
+        protected override async StrategyTask<bool> Run()
         {
             var candidates = BuildCandidates();
             while (candidates.Any())
@@ -32,15 +33,12 @@ namespace lib.Strategies.Features
                 {
                     if (bot.Position != nearPosition)
                     {
-                        var move = new MoveSingleBot(state, bot, nearPosition);
-                        yield return Wait(move);
-
-                        if (move.Status == StrategyStatus.Failed)
+                        if (!await new MoveSingleBot(state, bot, nearPosition))
                             continue;
                     }
 
                     any = true;
-                    yield return Do(new Fill(new NearDifference(candidate - nearPosition)));
+                    await Do(new Fill(new NearDifference(candidate - nearPosition)));
                     oracle.Fill(candidate);
 
                     candidates.Remove(candidate);
@@ -54,8 +52,9 @@ namespace lib.Strategies.Features
                 if (!any)
                     throw new Exception("Can't move");
             }
-            yield return Wait(new MoveSingleBot(state, bot, Vec.Zero));
-            yield return Do(new Halt());
+            await new MoveSingleBot(state, bot, Vec.Zero);
+            await Do(new Halt());
+            return true;
         }
 
         private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(HashSet<Vec> candidates)

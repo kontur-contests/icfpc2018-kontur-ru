@@ -1,5 +1,6 @@
 using lib.Commands;
 using lib.Models;
+using lib.Strategies.Features.Async;
 
 namespace lib.Strategies.Features
 {
@@ -13,10 +14,10 @@ namespace lib.Strategies.Features
             this.bot = bot;
         }
 
-        protected StrategyResult Do(ICommand command)
+        protected StrategyTask Do(ICommand command)
         {
             state.SetBotCommand(bot, command);
-            return Wait();
+            return WhenNextTurn();
         }
     }
 }

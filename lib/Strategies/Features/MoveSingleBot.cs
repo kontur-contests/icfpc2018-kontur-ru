@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
 
 using lib.Models;
+using lib.Strategies.Features.Async;
 using lib.Utils;
 
 namespace lib.Strategies.Features
@@ -16,15 +16,12 @@ namespace lib.Strategies.Features
             this.target = target;
         }
 
-        protected override IEnumerable<StrategyResult> Run()
+        protected override async StrategyTask<bool> Run()
         {
             var commands = new PathFinder(state, bot.Position, target).TryFindPath();
             commands?.Reverse();
             if (commands == null)
-            {
-                yield return Failed();
-                yield break;
-            }
+                return false;
 
             var first = true;
             while (commands.Count > 0)
@@ -39,17 +36,15 @@ namespace lib.Strategies.Features
                         commands = new PathFinder(state, bot.Position, target).TryFindPath();
                         commands?.Reverse();
                         if (commands == null)
-                        {
-                            yield return Failed();
-                            yield break;
-                        }
+                            return false;
                     }
                 }
 
-                yield return Do(commands[commands.Count - 1]);
-
+                await Do(commands[commands.Count - 1]);
                 commands.RemoveAt(commands.Count - 1);
             }
+
+            return true;
         }
     }
 }

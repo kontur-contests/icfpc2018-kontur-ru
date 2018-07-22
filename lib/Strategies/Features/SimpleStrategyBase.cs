@@ -1,21 +1,22 @@
 using System.Collections.Generic;
 
 using lib.Models;
+using lib.Strategies.Features.Async;
 
 namespace lib.Strategies.Features
 {
     public abstract class SimpleStrategyBase : IStrategy
     {
         protected readonly DeluxeState state;
-        private readonly Ticker ticker;
+        private readonly AsyncTicker ticker;
 
         protected SimpleStrategyBase(DeluxeState state)
         {
             this.state = state;
-            ticker = new Ticker(Run);
+            ticker = new AsyncTicker(Run);
         }
 
-        protected abstract IEnumerable<StrategyResult> Run();
+        protected abstract StrategyTask<bool> Run();
 
         public StrategyStatus Status { get; private set; }
 
@@ -26,14 +27,24 @@ namespace lib.Strategies.Features
             return tickerResult.Strategies;
         }
 
-        protected StrategyResult Wait(params IStrategy[] strategies)
+        public StrategyTask WhenAll(params IStrategy[] strategies)
         {
-            return new StrategyResult(StrategyStatus.Incomplete, strategies);
+            return new StrategyTask(strategies);
         }
 
-        protected StrategyResult Failed()
+        public StrategyTask WhenNextTurn()
         {
-            return new StrategyResult(StrategyStatus.Failed, null);
+            return new StrategyTask(null);
         }
+
+        //protected StrategyResult Wait(params IStrategy[] strategies)
+        //{
+        //    return new StrategyResult(StrategyStatus.Incomplete, strategies);
+        //}
+
+        //protected StrategyResult Failed()
+        //{
+        //    return new StrategyResult(StrategyStatus.Failed, null);
+        //}
     }
 }
