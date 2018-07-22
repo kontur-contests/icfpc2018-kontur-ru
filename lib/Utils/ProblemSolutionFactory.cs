@@ -200,13 +200,18 @@ namespace lib.Utils
                                  .ToArray();
 
             var raSolutions = new List<Solution>();
-            var disassemblers = solvers
-                .Select(s => (name: s.name, solver: (Func<Problem, IAmSolver>)(problem => new InvertorDisassembler(s.solver(problem.SourceMatrix), problem.SourceMatrix) as IAmSolver)))
-                .Concat(new[]
-                    {
-                        (name: "bd", solver: blockDeconstructor.Solver),
-                        (name: "d8", solver: disassembler8.Solver),
-                    });
+//            var disassemblers = solvers
+//                .Select(s => (name: s.name, solver: (Func<Problem, IAmSolver>)(problem => new InvertorDisassembler(s.solver(problem.SourceMatrix), problem.SourceMatrix) as IAmSolver)))
+//                .Concat(new[]
+//                    {
+//                        (name: "bd", solver: blockDeconstructor.Solver),
+//                        (name: "d8", solver: disassembler8.Solver),
+//                    });
+            var disassemblers = new[]
+                {
+                    (name: "bd", solver: blockDeconstructor.Solver),
+                    (name: "d8", solver: disassembler8.Solver),
+                };
 
             foreach (var disassembler in disassemblers)
                 foreach (var assembler in solvers)
@@ -229,12 +234,12 @@ namespace lib.Utils
 //                    stupidDisassembler,
 //                    invertorDisassembler,
 //                    invColDisassembler,
-                    invSlice6x6Disassembler,
+//                    invSlice6x6Disassembler,
 //                    gFast,
 //                    gLayers,
 //                    columns,
 //                    columnsBbx,
-                    gForLarge,
+//                    gForLarge,
                     blockDeconstructor,
                     disassembler8
                 }.Concat(raSolutions)
