@@ -79,7 +79,12 @@ namespace lib.Utils
 
         public bool CanFill(Vec cell, Vec bot)
         {
-            if (filled[cell] || filled[bot])
+            return CanFill(cell, new List<Vec>() {bot});
+        }
+
+        public bool CanFill(Vec cell, List<Vec> bots)
+        {
+            if (filled[cell] || bots.Any(bot => filled[bot]))
                 return false;
             if (!HasConnectivityChangesInLocalCuboid(cell, 1))
             {
@@ -91,7 +96,7 @@ namespace lib.Utils
                 opt.Add(0);
             }
 
-            var result = Check(cell, bot);
+            var result = Check(cell, bots);
 
             if (!result)
                 filled[cell] = false;
@@ -99,16 +104,14 @@ namespace lib.Utils
             return result;
         }
 
-        private bool Check(Vec cell, Vec bot)
+        private bool Check(Vec cell, List<Vec> bots)
         {
             filled[cell] = true;
 
-            var hasFree = bot.GetMNeighbours(toFill).Any(v => !filled[v]);
-            if (!hasFree && bot != Vec.Zero)
-                return false;
-
             int comps = 0;
             var toCheck = cell.GetMNeighbours(toFill).Where(c => !filled[c]).ToList();
+
+            var botLocations = new HashSet<Vec>(bots);
 
             timer++;
             foreach (var v in toCheck)
@@ -125,7 +128,7 @@ namespace lib.Utils
                 if (cells.Any(c => c == Vec.Zero))
                     continue;
 
-                if (cells.Any(c => !filled[v] && toFill[v] || v == bot))
+                if (cells.Any(c => !filled[v] && toFill[v] || botLocations.Contains(v)))
                     return false;
             }
 
@@ -144,7 +147,7 @@ namespace lib.Utils
                         var v = new Vec(x, y, z);
                         if (used[v] == timer)
                             continue;
-                        if (!filled[v] && toFill[v] || v == bot)
+                        if (!filled[v] && toFill[v] || botLocations.Contains(v))
                             result = false;
                     }
                 }

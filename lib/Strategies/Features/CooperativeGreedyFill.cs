@@ -10,11 +10,11 @@ namespace lib.Strategies.Features
 {
     public class CooperativeGreedyFill : SimpleSingleBotStrategyBase
     {
-        private readonly ThrowableHelperFast oracle;
+        private readonly ThrowableHelper oracle;
         private readonly ICandidatesOrdering candidatesOrdering;
         private readonly HashSet<Vec> candidates;
 
-        public CooperativeGreedyFill(DeluxeState state, Bot bot, ThrowableHelperFast oracle, HashSet<Vec> candidates, ICandidatesOrdering candidatesOrdering = null)
+        public CooperativeGreedyFill(DeluxeState state, Bot bot, ThrowableHelper oracle, HashSet<Vec> candidates, ICandidatesOrdering candidatesOrdering = null)
             : base(state, bot)
         {
             this.oracle = oracle;
@@ -30,7 +30,7 @@ namespace lib.Strategies.Features
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
                 {
-                    if (!await new FillVoxel(state, bot, candidate, nearPosition, () => oracle.CanFill(candidate, bot.Position, state)))
+                    if (!await new FillVoxel(state, bot, candidate, nearPosition, () => oracle.CanFill(candidate, GetBots(nearPosition))))
                         continue;
 
                     oracle.Fill(candidate);
@@ -60,13 +60,21 @@ namespace lib.Strategies.Features
         {
             foreach (var candidate in candidatesOrdering.Order(candidates, bot.Position).Where(c => !state.VolatileCells.ContainsKey(c)))
             {
-                var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(state.Matrix.R) && !state.VolatileCells.ContainsKey(n));
+                var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(state.Matrix.R) && 
+                                                                    (!state.VolatileCells.ContainsKey(n) || n == bot.Position));
                 foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(bot.Position)))
                 {
-                    if (oracle.CanFill(candidate, nearPosition, state))
+                    if (oracle.CanFill(candidate, GetBots(nearPosition)))
                         yield return (candidate, nearPosition);
                 }
             }
+        }
+
+        private List<Vec> GetBots(Vec moveTo)
+        {
+            var others = state.Bots.Where(b => b != bot).Select(b => b.Position).ToList();
+            others.Add(moveTo);
+            return others;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace lib.Strategies.Features
         {
             await new Split(state, bot);
 
-            var helper = new ThrowableHelperFast(state.TargetMatrix);
+            var helper = new ThrowableHelper(state.TargetMatrix);
             var candidates = new HashSet<Vec>(state.GetGroundedCellsToBuild());
 
             var strategies = state.Bots.Select(b => (IStrategy)new CooperativeGreedyFill(state, b, helper, candidates)).ToArray();
