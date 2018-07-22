@@ -72,7 +72,7 @@ namespace tests
                                return state.Energy;
                            },
                        "horizontal-slicer",
-                       "bbox-slicer",
+                       "bbox-slicer-remove-sticks",
                        filename);
         }
 

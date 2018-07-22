@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 using JetBrains.Annotations;
 
@@ -98,6 +100,7 @@ namespace lib.Strategies
         private int[,,] groundDistance;
         private int minX, minZ, maxX, maxZ;
         private readonly bool useBoundingBox;
+        private bool[,,] buildingMatrix;
 
         public HorizontalSlicer(Matrix targetMatrix, int gridCountX, int gridCountZ, bool useBoundingBox)
         {
@@ -148,7 +151,7 @@ namespace lib.Strategies
 
         public IEnumerable<ICommand> Solve()
         {
-            var buildingMatrix = new bool[N, N, N];
+            buildingMatrix = new bool[N, N, N];
             var (transformedTargetMatrix, stickPositions) = TransformMatrix(targetMatrix);
             var (cloneCommands, initialBots) = Clone(grid.CountX * grid.CountZ); // todo (sivukhin, 22.07.2018): Constant
             foreach (var command in cloneCommands)
@@ -160,6 +163,7 @@ namespace lib.Strategies
 
             var botsToGenerateCommands = initialBots.ToList();
             for (var y = 0; y < N - 1; y++)
+            {
                 for (var botId = 0; botId < botsToGenerateCommands.Count; botId++)
                     foreach (var command in FillLayer(transformedTargetMatrix, botsToGenerateCommands[botId]))
                     {
@@ -170,6 +174,16 @@ namespace lib.Strategies
                         if (!beforeTransform.Equals(grid.GetCellId(botsToGenerateCommands[botId])))
                             throw new Exception("Wrong zone");
                     }
+            }
+            for (var botId = 0; botId < botsToGenerateCommands.Count; botId++)
+            {
+                foreach (var command in RemoveSticks(stickPositions, botsToGenerateCommands[botId]))
+                {
+                    botQueues[botId].Enqueue(command);
+                    if (command is SMove sMove)
+                        botsToGenerateCommands[botId] += sMove.Shift;
+                }
+            }
 
             var botsToEvaluate = initialBots.ToList();
             while (botQueues.Any(x => x.Count > 0))
@@ -207,8 +221,6 @@ namespace lib.Strategies
                     yield return commands[i];
                 }
             }
-            foreach (var command in RemoveSticks(stickPositions))
-                yield return command;
             foreach (var command in GoHome(botsToEvaluate))
                 yield return command;
             yield return new Halt();
@@ -239,9 +251,29 @@ namespace lib.Strategies
                 yield return new SMove(new LongLinearDifference(new Vec(0, 1, 0)));
         }
 
-        private IEnumerable<ICommand> RemoveSticks(List<Vec> stickPositions)
+        private IEnumerable<ICommand> RemoveSticks(List<Vec> stickPositions, Vec botPosition)
         {
-            return new ICommand[0];
+            var resultCommands = new List<ICommand>();
+            var currentPosition = botPosition;
+            foreach (var stickPosition in stickPositions.Where(stick => grid.GetCellId(stick).Equals(grid.GetCellId(botPosition))))
+            {
+                resultCommands.AddRange(GoToVerticalFirst(currentPosition, stickPosition));
+                currentPosition = stickPosition;
+                for (var y = N - 1; y > 0; y--)
+                {
+                    resultCommands.Add(new Voidd(new NearDifference(new Vec(0, -1, 0))));
+                    if (y > 1)
+                        resultCommands.Add(new SMove(new LongLinearDifference(new Vec(0, -1, 0))));
+                }
+                for (var y = 1; y < N; y++)
+                {
+                    if (targetMatrix[currentPosition.X, y - 1, currentPosition.Z])
+                        resultCommands.Add(new Fill(new NearDifference(new Vec(0, -1, 0))));
+                    if (y < N - 1)
+                        resultCommands.Add(new SMove(new LongLinearDifference(new Vec(0, 1, 0))));
+                }
+            }
+            return resultCommands;
         }
 
         private (Matrix Matrix, List<Vec> StickPositions) TransformMatrix([NotNull] Matrix matrix)
@@ -267,7 +299,7 @@ namespace lib.Strategies
                                     transformedMatrix[x, i, z] = true;
                             }
                             var queue = new Queue<Vec>();
-                            foreach (var cell in visitedCells.Where(cell => matrix.IsFilledVoxel(new Vec(cell.X, cell.Y - 1, cell.Z))))
+                            foreach (var cell in visitedCells.Where(cell => transformedMatrix.IsFilledVoxel(new Vec(cell.X, cell.Y - 1, cell.Z))))
                             {
                                 queue.Enqueue(cell);
                                 usedGrounded[cell.X, cell.Z] = true;
@@ -275,8 +307,8 @@ namespace lib.Strategies
                             while (queue.Count > 0)
                             {
                                 var position = queue.Dequeue();
-                                foreach (var newPosition in position.GetMNeighbours().Where(p => p.Y == position.Y).Where(matrix.IsInside))
-                                    if (matrix.IsFilledVoxel(newPosition) && !usedGrounded[newPosition.X, newPosition.Z])
+                                foreach (var newPosition in position.GetMNeighbours().Where(p => p.Y == position.Y).Where(transformedMatrix.IsInside))
+                                    if (transformedMatrix.IsFilledVoxel(newPosition) && !usedGrounded[newPosition.X, newPosition.Z])
                                     {
                                         groundDistance.Set(newPosition, groundDistance.Get(position) + 1);
                                         usedGrounded[newPosition.X, newPosition.Z] = true;
