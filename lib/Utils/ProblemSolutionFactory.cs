@@ -154,20 +154,26 @@ namespace lib.Utils
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
 
+
             var slicers = new List<Solution>();
+            var slicersParameters = new List<(int, int)>();
             for (var xSize = 2; xSize <= 40; xSize++)
                 for (var zSize = 2; zSize <= 40; zSize++)
                 {
+                    
                     var count = xSize * zSize;
                     var xSize1 = xSize;
                     var zSize1 = zSize;
-                    if (30 <= count && count <= 40)
+                    if (30 <= count && count <= 40 && count % 2 == 0)
+                    {
                         slicers.Add(new Solution
                             {
                                 Name = $"Slicer{xSize}x{zSize}",
                                 ProblemPrioritizer = p => ProblemPriority.Normal,
                                 Solver = () => new HorizontalSlicer(problem.TargetMatrix, xSize1, zSize1, true),
                             });
+                        slicersParameters.Add((xSize, zSize));
+                    }
                 }
 
             var blockDeconstructor = new Solution
@@ -197,12 +203,11 @@ namespace lib.Utils
                         return solver;
                     }
             };
-        
-            (string name, Func<Matrix, IAmSolver> solver)[] solvers = {
-                    ("g", CreateGreedy),
-//                    ("c", CreateColumns),
-                    ("s6x6", CreateSlicer6x6),
-                };
+
+            (string name, Func<Matrix, IAmSolver> solver)[] solvers =
+                slicersParameters.Select(p => ($"s{p.Item1}x{p.Item2}", 
+                                                  (Func<Matrix, IAmSolver>)(m => new HorizontalSlicer(m, p.Item1, p.Item2, true))))
+                                 .ToArray();
 
             var raSolutions = new List<Solution>();
             var disassemblers = solvers
