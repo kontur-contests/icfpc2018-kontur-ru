@@ -48,19 +48,27 @@ namespace ui.Controllers
         public TraceResult Trace(string file, int startTick = 0, int count = 2000)
         {
             var problemName = file.Split("-")[0];
-            var problem = Matrix.Load(System.IO.File.ReadAllBytes($"../data/problemsL/{problemName}_tgt.mdl"));
+            var problem = Matrix.Load(System.IO.File.ReadAllBytes($"../data/problemsF/{problemName}_tgt.mdl"));
             var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"../data/solutions/{file}.nbt"));
 
             var state = new DeluxeState(null, new Matrix(problem.R));
             var queue = new Queue<ICommand>(solution);
-            var totalTicks = queue.Count;
             var results = new List<TickResult>();
             var filledVoxels = new HashSet<Vec>();
+            var tickIndex = 0;
+
+            results.Add(new TickResult
+                {
+                    changes = new int[0][],
+                    bots = state.Bots
+                                .Select(x => new[] { x.Position.X, x.Position.Y, x.Position.Z })
+                                .ToArray(),
+                    tickIndex = tickIndex
+                });
 
             try
             {
                 var newFilledVoxels = new List<Vec>();
-                var tickIndex = 0;
                 var interpreter = new Interpreter(state);
                 while (queue.Any() && tickIndex < startTick + count)
                 {
@@ -97,7 +105,7 @@ namespace ui.Controllers
                 {
                     R = problem.R,
                     startTick = startTick,
-                    totalTicks = totalTicks,
+                    totalTicks = ticks.Length - 1,
                     Ticks = ticks
                 };
         }
