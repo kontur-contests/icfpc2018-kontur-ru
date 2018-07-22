@@ -6,7 +6,7 @@ using lib.Strategies.Features.Async;
 
 namespace lib.Strategies.Features
 {
-    public class Split : SimpleSingleBotStrategyBase
+    public class Split : BotStrategy
     {
         private readonly int count;
 

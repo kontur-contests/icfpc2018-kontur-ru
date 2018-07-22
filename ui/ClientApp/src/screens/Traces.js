@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Visualizer } from "../modules/visualizer";
 
-const ChunkSize = 250;
+const ChunkSize = 2500;
 
 export default class App extends Component {
   state = {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,21 +9,29 @@ namespace lib.Utils
 {
     public class PathFinderNeighbours
     {
-        private readonly Matrix state;
+        private readonly IMatrix state;
         private readonly Vec source;
         private readonly Vec target;
+        private readonly Predicate<Vec> isAllowedPosition;
         private readonly int R;
 
-        public PathFinderNeighbours(Matrix state, Vec source, Vec target)
+        public PathFinderNeighbours(IMatrix state, Vec source, Vec target, Predicate<Vec> isAllowedPosition = null)
         {
             this.state = state;
             this.source = source;
             this.target = target;
+            this.isAllowedPosition = isAllowedPosition ?? (vec => true);
             R = state.R;
         }
 
         public bool TryFindPath()
         {
+            return TryFindPath(out _);
+        }
+
+        public bool TryFindPath(out HashSet<Vec> used)
+        {
+            used = new HashSet<Vec>();
             if (source == target)
                 return true;
 
@@ -34,7 +43,6 @@ namespace lib.Utils
                     return Comparer<int>.Default.Compare(a.GetHashCode(), b.GetHashCode());
                 }));
             queue.Add(source);
-            var used = new HashSet<Vec>();
             used.Add(source);
             while (queue.Any())
             {
@@ -46,7 +54,7 @@ namespace lib.Utils
                 queue.Remove(current);
                 foreach (var next in current.GetMNeighbours(state))
                 {
-                    if (!state[next] && !used.Contains(next))
+                    if (!state[next] && !used.Contains(next) && isAllowedPosition(next))
                     {
                         used.Add(next);
                         queue.Add(next);

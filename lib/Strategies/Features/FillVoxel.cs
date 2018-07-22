@@ -8,7 +8,7 @@ using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public class FillVoxel : SimpleSingleBotStrategyBase
+    public class FillVoxel : BotStrategy
     {
         private readonly Vec whatToFill;
         private readonly Vec fromPos;

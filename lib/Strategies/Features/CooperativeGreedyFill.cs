@@ -10,7 +10,7 @@ using MoreLinq;
 
 namespace lib.Strategies.Features
 {
-    public class CooperativeGreedyFill : SimpleSingleBotStrategyBase
+    public class CooperativeGreedyFill : BotStrategy
     {
         private readonly ICandidatesOrdering candidatesOrdering;
         private readonly HashSet<Vec> candidates;

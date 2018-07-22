@@ -9,7 +9,7 @@ using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public class GreedyFill : SimpleSingleBotStrategyBase
+    public class GreedyFill : BotStrategy
     {
         private readonly IOracle oracle;
         private readonly ICandidatesOrdering candidatesOrdering;

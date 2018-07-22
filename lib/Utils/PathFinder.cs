@@ -37,6 +37,7 @@ namespace lib.Utils
 
         public List<ICommand> TryFindPath()
         {
+            var used = new Dictionary<Vec, (Vec prev, ICommand command)>();
             if (source == target)
                 return new List<ICommand>();
 
@@ -51,7 +52,6 @@ namespace lib.Utils
                     return Comparer<int>.Default.Compare(a.GetHashCode(), b.GetHashCode());
                 }));
             queue.Add(source);
-            var used = new Dictionary<Vec, (Vec prev, ICommand command)>();
             used.Add(source, (null, null));
             while (queue.Any())
             {

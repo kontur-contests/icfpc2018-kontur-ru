@@ -8,7 +8,7 @@ using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public class DeriveOne : SimpleSingleBotStrategyBase
+    public class DeriveOne : BotStrategy
     {
         public DeriveOne(DeluxeState state, Bot bot)
             : base(state, bot)

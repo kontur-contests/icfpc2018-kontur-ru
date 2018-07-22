@@ -4,7 +4,7 @@ using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public class Move : SimpleSingleBotStrategyBase
+    public class Move : BotStrategy
     {
         private readonly Vec target;
         

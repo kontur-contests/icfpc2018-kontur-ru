@@ -48,6 +48,7 @@ namespace lib.Strategies
                     else if (command is Fill fill) reversedTick.Add((bot.Position, new Voidd(fill.Shift)));
                     else if (command is Voidd voidd) reversedTick.Add((bot.Position, new Fill(voidd.Shift)));
                     else if (command is Wait wait) reversedTick.Add((bot.Position, wait));
+                    else if (command is Flip flip) reversedTick.Add((bot.Position, flip));
                     else if (command is LMove move) reversedTick.Add((bot.Position + move.firstShift.Shift + move.secondShift.Shift, new LMove(new ShortLinearDifference(-move.secondShift.Shift), new ShortLinearDifference(-move.firstShift.Shift))));
                     else if (command is Fission fission)
                     {

@@ -130,6 +130,32 @@ namespace tests
 
         [Test]
         [Explicit]
+        //[Timeout(180000)]
+        public void AssembleSpaceorc()
+        {
+            var problem = ProblemSolutionFactory.LoadProblem("FD103");
+            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var solver = new Solver(state, new Disassembler(state));
+            List<ICommand> commands = new List<ICommand>();
+            try
+            {
+                commands.AddRange(solver.Solve());
+            }
+            catch (Exception e)
+            {
+                Log.For(this).Error($"Unhandled exception in solver for {problem.Name}", e);
+                throw;
+            }
+            finally
+            {
+                var bytes = CommandSerializer.Save(commands.ToArray());
+                File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
+            }
+            Console.Out.WriteLine(state.Energy);
+        }
+
+        [Test]
+        [Explicit]
         //[Timeout(30000)]
         public void Assemble()
         {

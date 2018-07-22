@@ -24,18 +24,46 @@ namespace tests
     // ReSharper disable once InconsistentNaming
     public class SolveAndPostResults_USE_ME_TO_POST_SOLUTIONS_FROM_YOUR_COMPUTER
     {
-        private ResultsPoster poster = new ResultsPoster();
-        private Evaluator evaluator = new Evaluator();
+        private readonly ResultsPoster poster = new ResultsPoster();
+        private readonly Evaluator evaluator = new Evaluator();
 
         [Test]
         [Explicit]
-        public void SolveAndPost([Values("FD004")] string problemName)
+        public void AssembleAndPost([Values(4)] int problemId)
         {
-            var problem = ProblemSolutionFactory.LoadProblem(problemName);
-            var solution = ProblemSolutionFactory.blockDeconstructor;
+            var problem = ProblemSolutionFactory.LoadProblem($"FA{problemId:D3}");
+            var solution = ProblemSolutionFactory.CreateSlicerAssembler(2, 17);
+            Evaluate(problem, solution, postToElastic: true);
+        }
+
+        [Test]
+        [Explicit]
+        public void DisassembleAndPost([Values(4)] int problemId)
+        {
+            var problem = ProblemSolutionFactory.LoadProblem($"FD{problemId:D3}");
+            //var solution = ProblemSolutionFactory.blockDeconstructor;
+            var solution = ProblemSolutionFactory.CreateInvertingDisassembler(ProblemSolutionFactory.CreateSlicerAssembler(6, 6));
+            Evaluate(problem, solution, postToElastic: true);
+        }
+
+        [Test]
+        [Explicit]
+        public void ReassembleAndPost([Values(4)] int problemId)
+        {
+            var problem = ProblemSolutionFactory.LoadProblem($"FR{problemId:D3}");
+            //var solution = ProblemSolutionFactory.CreateReassembler(ProblemSolutionFactory.blockDeconstructor, ProblemSolutionFactory.CreateSlicerAssembler(6, 6));
+            var solution = ProblemSolutionFactory.CreateReassembler(
+                ProblemSolutionFactory.CreateInvertingDisassembler(ProblemSolutionFactory.CreateSlicerAssembler(6, 6)), 
+                ProblemSolutionFactory.CreateSlicerAssembler(6, 6));
+            Evaluate(problem, solution, postToElastic:true);
+        }
+
+        private void Evaluate(Problem problem, Solution solution, bool postToElastic = true)
+        {
             var result = evaluator.Run(problem, solution);
             Console.WriteLine(result);
-            poster.PostResult(result);
+            if (postToElastic)
+                poster.PostResult(result);
         }
     }
 }

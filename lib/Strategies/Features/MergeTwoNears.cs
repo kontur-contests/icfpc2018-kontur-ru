@@ -7,7 +7,7 @@ using lib.Strategies.Features.Async;
 
 namespace lib.Strategies.Features
 {
-    public class MergeTwoNears : SimpleStrategyBase
+    public class MergeTwoNears : Strategy
     {
         private readonly Bot master;
         private readonly Bot slave;

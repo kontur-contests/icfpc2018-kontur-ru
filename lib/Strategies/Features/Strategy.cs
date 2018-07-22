@@ -8,12 +8,12 @@ using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public abstract class SimpleStrategyBase : IStrategy
+    public abstract class Strategy : IStrategy
     {
         protected readonly DeluxeState state;
         private readonly AsyncTicker ticker;
 
-        protected SimpleStrategyBase(DeluxeState state)
+        protected Strategy(DeluxeState state)
         {
             this.state = state;
             ticker = new AsyncTicker(Run);
@@ -35,10 +35,17 @@ namespace lib.Strategies.Features
             return new StrategyTask(strategies);
         }
 
+        protected StrategyTask WhenAll(IEnumerable<IStrategy> strategies)
+        {
+            return new StrategyTask(strategies.ToArray());
+        }
+
         protected StrategyTask WhenNextTurn()
         {
             return new StrategyTask(null);
         }
+
+        protected int R => state.R;
 
         protected IStrategy Move(Bot bot, Vec target)
         {

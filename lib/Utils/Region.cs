@@ -70,6 +70,26 @@ namespace lib.Utils
             }
         }
 
+        public IEnumerable<Vec> Vertices()
+        {
+            yield return new Vec(Start.X, Start.Y, Start.Z);
+            yield return new Vec(Start.X, Start.Y, End.Z);
+            yield return new Vec(Start.X, End.Y, Start.Z);
+            yield return new Vec(Start.X, End.Y, End.Z);
+            yield return new Vec(End.X, Start.Y, Start.Z);
+            yield return new Vec(End.X, Start.Y, End.Z);
+            yield return new Vec(End.X, End.Y, Start.Z);
+            yield return new Vec(End.X, End.Y, End.Z);
+        }
+
+        public Vec Opposite(Vec vertex)
+        {
+            return new Vec(
+                vertex.X == Start.X ? End.X : Start.X,
+                vertex.Y == Start.Y ? End.Y : Start.Y,
+                vertex.Z == Start.Z ? End.Z : Start.Z);
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
