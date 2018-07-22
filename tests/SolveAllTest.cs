@@ -25,16 +25,62 @@ namespace tests
     {
         [Test]
         [Explicit]
-        public void Reassemble([Values(1)] int problemId)
+        public void Temp([Values(3)] int problemId)
         {
             var problem = ProblemSolutionFactory.LoadProblem($"FR{problemId:D3}");
-            var assembler = new GreedyPartialSolver(problem.TargetMatrix, new ThrowableHelperFast(problem.TargetMatrix));
-            var disassembler = new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix);
-            var solver = new SimpleReassembler(disassembler, assembler);
+            //var assembler = new GreedyPartialSolver(problem.TargetMatrix, new ThrowableHelperFast(problem.TargetMatrix));
+            //var disassembler = new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix);
+            //var solver = new SimpleReassembler(disassembler, assembler);
+            var commonPart = problem.SourceMatrix.Intersect(problem.TargetMatrix);
+            commonPart = new ComponentTrackingMatrix(commonPart).GetGroundedVoxels();
+
+            File.WriteAllBytes(Path.Combine(FileHelper.ProblemsDir,"FR666_tgt.mdl"), commonPart.Save());
+            File.WriteAllBytes(Path.Combine(FileHelper.ProblemsDir,"FR666_src.mdl"), commonPart.Save());
+            var solver = new GreedyPartialSolver(problem.SourceMatrix, commonPart, new ThrowableHelperFast(commonPart, problem.SourceMatrix));
             List<ICommand> commands = new List<ICommand>();
             try
             {
-                commands.AddRange(solver.Solve());
+                foreach (var command in solver.Solve())
+                {
+                    commands.Add(command);
+                }
+                //commands.AddRange(solver.Solve());
+            }
+            catch (Exception e)
+            {
+                Log.For(this).Error($"Unhandled exception in solver for {problem.Name}", e);
+                throw;
+            }
+            finally
+            {
+                Console.WriteLine(commands.Take(5000).ToDelimitedString("\n"));
+                var bytes = CommandSerializer.Save(commands.ToArray());
+                File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, "FR666"), bytes);
+            }
+        }
+
+        [Test]
+        [Explicit]
+        public void Reassemble([Values(3)] int problemId)
+        {
+            var problem = ProblemSolutionFactory.LoadProblem($"FR{problemId:D3}");
+            //var assembler = new GreedyPartialSolver(problem.TargetMatrix, new ThrowableHelperFast(problem.TargetMatrix));
+            //var disassembler = new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix);
+            //var solver = new SimpleReassembler(disassembler, assembler);
+            var solver = new SmartReassembler(
+                problem.SourceMatrix,
+                problem.TargetMatrix,
+                (s, t) => new InvertorDisassembler(new GreedyPartialSolver(s, t, new ThrowableHelperFast(t, s)), s, t),
+                (s, t) => new GreedyPartialSolver(t, s, new ThrowableHelperFast(s, t))
+                );
+            List<ICommand> commands = new List<ICommand>();
+            try
+            {
+                foreach (var command in solver.Solve())
+                {
+                    commands.Add(command);
+                }
+                //commands.AddRange(solver.Solve());
             }
             catch (Exception e)
             {
@@ -77,6 +123,28 @@ namespace tests
 
             var solutionEnergy = GetSolutionEnergy(matrix, commands.ToArray(), problemFile);
             Console.WriteLine(solutionEnergy);
+        }
+        [Test]
+        [Explicit]
+        public void Disassemble()
+        {
+            var problem = ProblemSolutionFactory.LoadProblem("FD120");
+            var solver = new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix);
+            List<ICommand> commands = new List<ICommand>();
+            try
+            {
+                commands.AddRange(solver.Solve());
+            }
+            catch (Exception e)
+            {
+                Log.For(this).Error($"Unhandled exception in solver for {problem.Name}", e);
+                throw;
+            }
+            finally
+            {
+                var bytes = CommandSerializer.Save(commands.ToArray());
+                File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
+            }
         }
 
         [Test]

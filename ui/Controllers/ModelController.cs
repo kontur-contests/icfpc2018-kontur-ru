@@ -49,7 +49,7 @@ namespace ui.Controllers
         {
             var problemName = file.Split("-")[0];
             var problem = ProblemSolutionFactory.CreateProblem($"../data/problemsF/{problemName}_tgt.mdl");
-            var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"../data/solutions/{file}.nbt"));
+            var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"../data/solutions/{problemName}.nbt"));
 
             var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
             var queue = new Queue<ICommand>(solution);
@@ -95,9 +95,12 @@ namespace ui.Controllers
                     tickIndex++;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // Ignore failed simulation
+                return new TraceResult
+                    {
+                        Exception = e.ToString()
+                    };
             }
 
             var ticks = results.ToArray();
@@ -113,6 +116,7 @@ namespace ui.Controllers
 
     public struct TraceResult
     {
+        public string Exception;
         public int startTick;
         public int totalTicks;
         public int R;

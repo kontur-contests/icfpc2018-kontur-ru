@@ -18,8 +18,17 @@ namespace lib.Utils
             n = toFill.R;
             this.toFill = toFill;
             filled = new Matrix(n);
-
             Closed = new Matrix<int>(n);
+        }
+
+        public ThrowableHelperFast(Matrix initial, Matrix toFill) : this(toFill)
+        {
+            var R = toFill.R;
+            for (int x = 0; x < R; x++)
+                for (int y = 0; y < R; y++)
+                    for (int z = 0; z < R; z++)
+                        if (initial[x,y,z])
+                            Fill(new Vec(x,y,z));
         }
 
         public bool CanFill(Vec cell, Vec bot, DeluxeState state)

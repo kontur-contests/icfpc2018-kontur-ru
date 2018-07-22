@@ -42,9 +42,9 @@ namespace tests
                 });
             var delimitedCommands = commands.ToDelimitedString(", ");
             Console.WriteLine(delimitedCommands);
-            var reversed = InvertorDisassembler.ReverseCommands(commands, new Matrix(5)).ToList();
+            var reversed = InvertorDisassembler.ReverseCommands(commands, new Matrix(5), new Matrix(5)).ToList();
             Console.WriteLine(reversed.ToDelimitedString(", "));
-            var reversedTwice = InvertorDisassembler.ReverseCommands(new Queue<ICommand>(reversed), new Matrix(5)).ToList();
+            var reversedTwice = InvertorDisassembler.ReverseCommands(new Queue<ICommand>(reversed), new Matrix(5), new Matrix(5)).ToList();
             Console.WriteLine(reversedTwice.ToDelimitedString(", "));
             Assert.AreEqual(delimitedCommands, reversedTwice.ToDelimitedString(", "));
         }
