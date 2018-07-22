@@ -18,7 +18,7 @@ namespace lib.Strategies.Features
             await new Cloning(state, bot);
 
             var helper = new ThrowableHelperFast(state.TargetMatrix);
-            var strategies = state.Bots.Select(b => (IStrategy)new GreedyFill(state, b, helper)).ToArray();
+            var strategies = state.Bots.Select(b => (IStrategy)new CooperativeGreedyFill(state, b, helper)).ToArray();
             await WhenAll(strategies);
 
             return true;
