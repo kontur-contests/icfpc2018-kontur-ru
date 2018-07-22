@@ -1,3 +1,5 @@
+using System.Linq;
+
 using lib.Models;
 using lib.Strategies.Features.Async;
 
@@ -17,10 +19,10 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            if (await new MergeTwoNears(state, bot1, bot2))
-                return true;
+            /*if (await new MergeTwoNears(state, bot1, bot2))
+                return true;*/
 
-            var nears = bot1.Position.GetNears();
+            var nears = bot1.Position.GetNears().Where(p => !state.Matrix[p]);
 
             foreach (var near in nears)
             {
