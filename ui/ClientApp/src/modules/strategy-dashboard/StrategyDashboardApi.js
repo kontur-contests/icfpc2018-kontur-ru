@@ -168,7 +168,7 @@ function raterFactory(solverSolutions, solverNames) {
     .filter(isFiniteValue)
     .sort((a, b) => getEnergySpent(a) - getEnergySpent(b));
   // console.log(rates);
-  return solverName => rates.indexOf(solverName) / (rates.length - 1);
+  return solverName => rates.indexOf(solverName) / Math.max((rates.length - 1), 1);
 }
 
 export function denormalizeData({ result, taskNames, solverNames }) {
