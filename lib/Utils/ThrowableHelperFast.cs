@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using lib.Models;
 
@@ -19,6 +20,33 @@ namespace lib.Utils
             filled = new Matrix(n);
 
             Closed = new Matrix<int>(n);
+        }
+
+        public bool CanFill(Vec cell, Vec bot, DeluxeState state)
+        {
+            if (filled[cell] || filled[bot])
+                return false;
+
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                var delta = deltas[i];
+
+                var v = cell;
+                while (true)
+                {
+                    v = v + delta;
+                    if (!toFill.IsInside(v))
+                        break;
+
+                    var needFill = toFill[v] && !filled[v];
+                    needFill |= state.Bots.Any(b => b.Position == v);
+
+                    if (needFill && !CanFill(v, i))
+                        return false;
+                }
+            }
+
+            return Closed[bot] != 0b11111;
         }
 
         public bool CanFill(Vec cell, Vec bot)

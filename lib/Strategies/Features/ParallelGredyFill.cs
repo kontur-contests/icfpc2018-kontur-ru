@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
 
+using lib.Commands;
 using lib.Models;
 using lib.Strategies.Features.Async;
 using lib.Utils;
@@ -18,9 +20,14 @@ namespace lib.Strategies.Features
             await new Cloning(state, bot);
 
             var helper = new ThrowableHelperFast(state.TargetMatrix);
-            var strategies = state.Bots.Select(b => (IStrategy)new CooperativeGreedyFill(state, b, helper)).ToArray();
+            var candidates = new HashSet<Vec>(state.GetGroundedCellsToBuild());
+
+            var strategies = state.Bots.Select(b => (IStrategy)new CooperativeGreedyFill(state, b, helper, candidates)).ToArray();
             await WhenAll(strategies);
 
+            await new Merging(state);
+            await new MoveSingleBot(state, state.Bots.Single(), Vec.Zero);
+            await Do(new Halt());
             return true;
         }
     }

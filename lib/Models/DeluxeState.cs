@@ -19,6 +19,7 @@ namespace lib.Models
         public long Energy { get; set; }
         public Harmonics Harmonics { get; set; }
         public Dictionary<Vec, (Bot bot, string message)> VolatileCells { get; } = new Dictionary<Vec, (Bot, string)>();
+        public int Tick = 0;
 
         private readonly Dictionary<Bot, ICommand> botCommands = new Dictionary<Bot, ICommand>();
         private readonly Dictionary<Region, (bool isFill, Dictionary<Vec, Bot> corners)> groupRegions = new Dictionary<Region, (bool isFill, Dictionary<Vec, Bot> corners)>();
@@ -85,6 +86,8 @@ namespace lib.Models
 
         public List<ICommand> EndTick()
         {
+            Tick++;
+
             foreach (var bot in Bots)
             {
                 if (!botCommands.ContainsKey(bot))
@@ -149,6 +152,25 @@ namespace lib.Models
         public IEnumerable<Vec> GetFilledVoxels()
         {
             return Matrix.GetFilledVoxels();
+        }
+
+        public IEnumerable<Vec> GetGroundedCellsToBuild()
+        {
+            var state = new HashSet<Vec>(GetFilledVoxels());
+            var result = new HashSet<Vec>();
+            for (int x = 0; x < Matrix.R; x++)
+                for (int y = 0; y < Matrix.R; y++)
+                    for (int z = 0; z < Matrix.R; z++)
+                    {
+                        var vec = new Vec(x, y, z);
+                        if (TargetMatrix[vec]
+                            && !state.Contains(vec)
+                            && (y == 0 || vec.GetMNeighbours(TargetMatrix).Any(nvec => state.Contains(nvec))))
+                        {
+                            result.Add(vec);
+                        }
+                    }
+            return result;
         }
     }
 }

@@ -11,22 +11,23 @@ namespace lib.Strategies.Features
 {
     public class CooperativeGreedyFill : SimpleSingleBotStrategyBase
     {
-        private readonly IOracle oracle;
+        private readonly ThrowableHelperFast oracle;
         private readonly ICandidatesOrdering candidatesOrdering;
+        private readonly HashSet<Vec> candidates;
 
-        public CooperativeGreedyFill(DeluxeState state, Bot bot, IOracle oracle, ICandidatesOrdering candidatesOrdering = null)
+        public CooperativeGreedyFill(DeluxeState state, Bot bot, ThrowableHelperFast oracle, HashSet<Vec> candidates, ICandidatesOrdering candidatesOrdering = null)
             : base(state, bot)
         {
             this.oracle = oracle;
+            this.candidates = candidates;
             this.candidatesOrdering = candidatesOrdering ?? new BuildAllStayingStill();
         }
 
         protected override async StrategyTask<bool> Run()
         {
-            var candidates = BuildCandidates();
             while (candidates.Any())
             {
-                var candidatesAndPositions = OrderCandidates(candidates);
+                var candidatesAndPositions = OrderCandidates();
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
                 {
@@ -44,46 +45,27 @@ namespace lib.Strategies.Features
                     }
                     break;
                 }
+
                 if (!any)
-                    throw new Exception("Can't move");
+                    await new MoveSingleBot(state, bot, new Vec(0, bot.Bid, 0));
             }
-            await new MoveSingleBot(state, bot, Vec.Zero);
-            await Do(new Halt());
+
             return true;
         }
 
-        private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(HashSet<Vec> candidates)
+        private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates()
         {
             foreach (var candidate in candidatesOrdering.Order(candidates, bot.Position))
             {
                 var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(state.Matrix.R));
                 foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(bot.Position)))
                 {
-                    if (oracle.CanFill(candidate, nearPosition))
+                    if (oracle.CanFill(candidate, nearPosition, state))
                     {
                         yield return (candidate, nearPosition);
                     }
                 }
             }
         }
-
-        private HashSet<Vec> BuildCandidates()
-        {
-            var result = new HashSet<Vec>();
-            for (int x = 0; x < state.Matrix.R; x++)
-                for (int y = 0; y < state.Matrix.R; y++)
-                    for (int z = 0; z < state.Matrix.R; z++)
-                    {
-                        var vec = new Vec(x, y, z);
-                        if (state.TargetMatrix[vec]
-                            && !state.Matrix[vec]
-                            && (y == 0 || vec.GetMNeighbours(state.Matrix).Any(nvec => state.Matrix[nvec])))
-                        {
-                            result.Add(vec);
-                        }
-                    }
-            return result;
-        }
-
     }
 }
