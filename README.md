@@ -14,3 +14,4 @@ kontur.ru team @ ICFPC 2018
 1. Houston: https://wst.dev.kontur/hmon/index#/instances/pageDaemons (search for icfpc)
 1. TeamCity: https://tc.skbkontur.ru/project.html?projectId=Icfpc18&tab=projectOverview
 1. Octopus: https://octo.skbkontur.ru/app#/projects/icfpc18/overview
+1. Отчёт с [самыми частыми экспешнами в Хьюстоне](http://efk2-kibana.efk2.10.217.14.7.xip.io/app/kibana#/visualize/edit/8af3ee80-8dd6-11e8-a15c-8df4033ed8a0?_g=(refreshInterval%3A(display%3AOff%2Cpause%3A!f%2Cvalue%3A0)%2Ctime%3A(from%3Anow-4h%2Cmode%3Aquick%2Cto%3Anow)))
