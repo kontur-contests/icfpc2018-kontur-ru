@@ -23,8 +23,8 @@ namespace lib.Strategies.Features
         {
             if (src.Position.GetNears().Any(n => n == dst.Position))
             {
-                state.SetBotCommand(src, new FusionP(new NearDifference(src.Position - dst.Position)));
-                state.SetBotCommand(dst, new FusionS(new NearDifference(dst.Position - src.Position)));
+                state.SetBotCommand(src, new FusionP(new NearDifference(dst.Position - src.Position)));
+                state.SetBotCommand(dst, new FusionS(new NearDifference(src.Position - dst.Position)));
                 await WhenNextTurn();
                 return true;
             }
