@@ -28,7 +28,26 @@ namespace lib.Strategies.Features
             if (await TryMerge(bot2, bot1))
                 return true;
 
-            //TODO: move
+            if (await TryMeetAndMerge(bot1, bot2))
+                return true;
+
+            if (await TryMeetAndMerge(bot2, bot1))
+                return true;
+
+            return false;
+        }
+
+        private async Task<bool> TryMeetAndMerge(Bot src, Bot dst)
+        {
+            var nears = src.Position.GetNears();
+
+            foreach (var near in nears)
+            {
+                if (await new MoveSingleBot(state, dst, near))
+                {
+                    return await TryMerge(src, dst);
+                }
+            }
 
             return false;
         }

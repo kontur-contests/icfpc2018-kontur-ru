@@ -30,7 +30,8 @@ namespace lib.Strategies.Features
                 {
                     // todo (kungurtsev, 22.07.2018): в каких-то стратах возможно лучше сразу вернуть управление и пересчитать глобальные цели
 
-                    if (commands[commands.Count - 1].HasVolatileConflicts(bot, state))
+                    if (commands[commands.Count - 1].HasVolatileConflicts(bot, state) ||
+                        !commands[commands.Count - 1].AllPositionsAreValid(state.Matrix, bot))
                     {
                         commands = new PathFinder(state, bot.Position, target).TryFindPath();
                         commands?.Reverse();
