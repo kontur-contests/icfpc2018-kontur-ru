@@ -28,19 +28,22 @@ namespace packer
         static void Main(string[] args)
         {
             Console.WriteLine("Downloading solutions from Elastic...");
-            var fileNames = DownloadSolutionsFromElastic();
-            Console.WriteLine($"  {fileNames.Count} solutions");
-            
+            var elasticStats = DownloadSolutionsFromElastic();
+            Console.WriteLine($"  {elasticStats.Item1} solutions, {elasticStats.Item2} errors");
+
             var secretKey = Environment.GetEnvironmentVariable("ICFPC2018_SECRET_KEY");
             var uploadToken = Environment.GetEnvironmentVariable("ICFPC2018_UPLOAD_TOKEN");
 
             if (string.IsNullOrEmpty(secretKey) || string.IsNullOrEmpty(uploadToken))
-                return;
-            
+            {
+                Console.WriteLine("Secret key or upload token missing");
+                Environment.Exit(4000);
+            }
+
             Console.WriteLine("Creating submission.zip...");
             CreateSubmissionZip(secretKey);
 
-            Console.WriteLine("Calculating submission hash..");
+            Console.WriteLine("Calculating submission hash...");
             var hash = CalculateSubmissionHash();
             Console.WriteLine($"  {hash}");
 
@@ -49,87 +52,116 @@ namespace packer
 
             Console.WriteLine("Getting download link...");
             var link = GetDownloadLink(uploadToken);
-            
+
             Console.WriteLine("Submitting the solution...");
             var result = SubmitSolution(link, hash, secretKey);
             Console.WriteLine($"  {result}");
 
             if (result.Contains("failure"))
             {
-                Environment.Exit(1);
+                Console.WriteLine("Got failure result from judge");
+                Environment.Exit(5000);
             }
+            
+            Environment.Exit(elasticStats.Item2);
         }
 
-        private static List<string> DownloadSolutionsFromElastic()
+        private static Tuple<int, int> DownloadSolutionsFromElastic()
         {
-            var client = new ElasticClient(new ConnectionSettings(new Uri(elasticUrl)).DefaultIndex(elasticIndex));
+            var client = new ElasticClient(
+                new ConnectionSettings(new Uri(elasticUrl))
+                    .DefaultIndex(elasticIndex)
+                    .DisableDirectStreaming()
+                );
 
             var searchResponse = client.Search<TaskRunMeta>(
-                s => s.RequestConfiguration(r => r.DisableDirectStreaming())
-                      .Query(q => q.Term(p => p.Field(f => f.IsSuccess).Value(true)))
+                s => s.Query(q => q.Term(p => p.Field(f => f.IsSuccess).Value(true)))
                       .Size(0)
                       .Aggregations(
                           aggs => aggs.Terms(
                               "task_name",
-                              terms => terms
-                                       .Field("taskName.keyword")
-                                       .Size(1000)
-                                       .Aggregations(
-                                           childAggs => childAggs
-                                               .Min("min_energy",
-                                                    min => min
-                                                        .Field("energySpent"))))));
-            
+                              terms => terms.Field("taskName.keyword")
+                                            .Size(10000)
+                                            .Aggregations(
+                                                childAggs => childAggs.Min(
+                                                    "min_energy",
+                                                    min => min.Field("energySpent"))))));
+
             if (Directory.Exists(FileHelper.SolutionsDir))
                 Directory.Delete(FileHelper.SolutionsDir, true);
-            
+
             Directory.CreateDirectory(FileHelper.SolutionsDir);
-            
+
             foreach (var traceFile in Directory.GetFiles(FileHelper.DefaultTracesDir))
                 File.Copy(traceFile, Path.Combine(FileHelper.SolutionsDir, Path.GetFileName(traceFile)));
 
-            var fileNames = new List<string>();
-            
+            var errorsCount = 0;
+            var successCount = 0;
             foreach (var bucket in searchResponse.Aggregations.Terms("task_name").Buckets)
             {
                 var taskName = bucket.Key;
-                
-                // Allow only solutions for the Full round
-                if (!taskName.StartsWith("F") || taskName.EndsWith("tgt")) continue;
-                
+
+                if (!taskName.StartsWith("F"))
+                {
+                    Console.WriteLine($"Skipping task {taskName}, it is not a task from Full round");
+                    continue;
+                }
+
+                if (taskName.EndsWith("tgt"))
+                {
+                    Console.WriteLine($"Skipping task {taskName}, it has old-style name with _tgt");
+                    continue;
+                }
+
                 var energySpent = bucket.Min("min_energy").Value;
 
-                var docSearchResponse = client.Search<TaskRunMeta>(
-                    s => s
-                             .Size(1)
-                             .RequestConfiguration(r => r.DisableDirectStreaming())
-                             .Query(q => q.Bool(b => b.Should(bs => bs.Term(p => p.Field("taskName.keyword").Value(taskName)),
-                                                              bs => bs.Term(p => p.Field(f => f.EnergySpent).Value(energySpent))))));
-
-                
-                foreach (var document in docSearchResponse.Documents.Where(x => x.Solution != null))
+                if (energySpent < 1)
                 {
-                    if (taskName != document.TaskName)
-                    {
-                        Console.WriteLine($"Wrong task name: {taskName} != {document.TaskName}");
-                        continue;
-                    }
-                    
-                    var solutionBase64 = document.Solution;
-                    var solutionContent = solutionBase64.SerializeSolutionFromString();
-                    var fileName = $"{document.TaskName.Split('_')[0]}.nbt";
-                    var targetSolutionPath = Path.Combine(FileHelper.SolutionsDir, fileName);
-                    
-                    var infoMessage = $"Saving solution for task '{document.TaskName}' to '{targetSolutionPath}'";
-//                    Console.Error.WriteLine(infoMessage);
-                    Log.For("packer").Info(infoMessage);
-                    
-                    fileNames.Add(fileName);
-                    File.WriteAllBytes(targetSolutionPath, solutionContent);
+                    Console.WriteLine($"Skipping task {taskName} with ERROR: energySpent cannot be zero");
+                    errorsCount++;
+                    continue;
                 }
+
+                var docSearchResponse = client.Search<TaskRunMeta>(
+                    s => s.Size(1)
+                          .Query(q => q.Bool(b => b.Should(bs => bs.Term(p => p.Field("taskName.keyword").Value(taskName)),
+                                                           bs => bs.Term(p => p.Field(f => f.EnergySpent).Value(energySpent))))));
+
+                if (docSearchResponse.Documents.Count == 0)
+                {
+                    Console.WriteLine($"Skipping task {taskName} with ERROR: bucket exists, but no documents found");
+                    errorsCount++;
+                    continue;
+                }
+                
+                var document = docSearchResponse.Documents.First();
+
+                if (taskName != document.TaskName)
+                {
+                    Console.WriteLine($"Skipping task {taskName} with ERROR: wrong document with TaskName {document.TaskName} found");
+                    errorsCount++;
+                    continue;
+                }
+                
+                if (document.Solution == null)
+                {
+                    Console.WriteLine($"Skipping task {taskName} with ERROR: document found, but solution is empty");
+                    errorsCount++;
+                    continue;
+                }
+
+                var solutionBase64 = document.Solution;
+                var solutionContent = solutionBase64.SerializeSolutionFromString();
+                var fileName = $"{document.TaskName}.nbt";
+                var targetSolutionPath = Path.Combine(FileHelper.SolutionsDir, fileName);
+
+                Console.WriteLine($"Saving solution for task {document.TaskName} to {targetSolutionPath}");
+
+                successCount++;
+                File.WriteAllBytes(targetSolutionPath, solutionContent);
             }
 
-            return fileNames;
+            return new Tuple<int, int>(successCount, errorsCount);
         }
 
         private static void CreateSubmissionZip(string secretKey)
@@ -146,7 +178,7 @@ namespace packer
                 zip.Save("submission.zip");
             }
         }
-        
+
         private static string CalculateSubmissionHash()
         {
             var sha = SHA256.Create();
@@ -155,7 +187,7 @@ namespace packer
             fileStream.Close();
             return GetHashSha256(hashValue);
         }
-        
+
         private static void UploadSubmissionZip(string token)
         {
             var client = new HttpClient();
@@ -165,10 +197,10 @@ namespace packer
             var fileStream = new FileStream("submission.zip", FileMode.Open);
             var content = new StreamContent(fileStream);
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
-            var result = client.PostAsync("https://content.dropboxapi.com/2/files/upload", content).Result;
+            client.PostAsync("https://content.dropboxapi.com/2/files/upload", content);
             fileStream.Close();
         }
-        
+
         private static string GetDownloadLink(string token)
         {
             var client = new HttpClient();
@@ -197,7 +229,7 @@ namespace packer
                 };
             return client.SendAsync(request).Result.Content.ReadAsStringAsync().Result;
         }
-        
+
         private static string GetHashSha256(byte[] array)
         {
             var builder = new StringBuilder();
