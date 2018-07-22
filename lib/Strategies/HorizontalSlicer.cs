@@ -19,29 +19,61 @@ namespace lib.Strategies
         public int CountX { get; }
         public int SizeZ { get; }
         public int CountZ { get; }
+        public int N { get; }
+        public int CountLargeX { get; }
+        public int CountLargeZ { get; }
 
-        public Grid(int sizeX, int countX, int sizeZ, int countZ)
+        public Grid(int sizeX, int countX, int sizeZ, int countZ, int n)
         {
             SizeX = sizeX;
             CountX = countX;
             SizeZ = sizeZ;
             CountZ = countZ;
+            N = n;
+            if (SizeX * (CountX + 1) < n || SizeX * CountX > n)
+                throw new Exception("Wrong grid X parameters");
+            if (SizeZ * (CountZ + 1) < n || SizeZ * CountZ > n)
+                throw new Exception("Wrong grid Z parameters");
+            CountLargeX = n - SizeX * CountX;
+            CountLargeZ = n - SizeZ * CountZ;
         }
 
         [NotNull]
-        public List<Vec> GetCells([NotNull] Vec botPosition, int n)
+        public List<Vec> GetCells([NotNull] Vec botPosition)
         {
             var result = new List<Vec>();
             var (blockX, blockZ) = GetCellId(botPosition);
-            for (var x = blockX * SizeX; x < Math.Min(n, (blockX + 1) * SizeX); x++)
-                for (var z = blockZ * SizeZ; z < Math.Min(n, (blockZ + 1) * SizeZ); z++)
+            var (startX, startZ) = GetCellStart((blockX, blockZ));
+            var (currSizeX, currSizeZ) = GetCellSize((blockX, blockZ));
+            for (var x = startX; x < Math.Min(N, currSizeX + startX); x++)
+                for (var z = startZ; z < Math.Min(N, currSizeZ + startZ); z++)
                     result.Add(new Vec(x, botPosition.Y, z));
             return result;
         }
 
         public (int, int) GetCellId(Vec position)
         {
-            return (position.X / SizeX, position.Z / SizeZ);
+            return (CalculateCoord(position.X, SizeX, CountLargeX),
+                CalculateCoord(position.Z, SizeZ, CountLargeZ));
+        }
+
+        private int CalculateCoord(int coord, int rangeSize, int countLarge)
+        {
+            if (coord < (rangeSize + 1) * countLarge)
+                return coord / (rangeSize + 1);
+            return countLarge + (coord - (rangeSize + 1) * countLarge) / rangeSize;
+        }
+
+        private (int, int) GetCellSize((int X, int Z) cellId)
+        {
+            return (cellId.X < CountLargeX ? SizeX + 1 : SizeX,
+                cellId.Z < CountLargeZ ? SizeZ + 1 : SizeZ);
+        }
+
+        public (int X, int Z) GetCellStart((int X, int Z) cellId)
+        {
+            return (cellId.X * SizeX + Math.Min(cellId.X, CountLargeX),
+                cellId.Z * SizeZ + Math.Min(cellId.Z, CountLargeZ));
         }
     }
 
@@ -55,7 +87,7 @@ namespace lib.Strategies
         public HorizontalSlicer(Matrix targetMatrix)
         {
             this.targetMatrix = targetMatrix;
-            grid = new Grid((N + 5) / 6, 6, (N + 5) / 6, 6);
+            grid = new Grid(N / 6, 6, N / 6, 6, N);
         }
 
         public IEnumerable<ICommand> Solve()
@@ -72,9 +104,7 @@ namespace lib.Strategies
 
             var botsToGenerateCommands = initialBots.ToList();
             for (var y = 0; y < N - 1; y++)
-            {
                 for (var botId = 0; botId < botsToGenerateCommands.Count; botId++)
-                {
                     foreach (var command in FillLayer(transformedTargetMatrix, botsToGenerateCommands[botId]))
                     {
                         var beforeTransform = grid.GetCellId(botsToGenerateCommands[botId]);
@@ -84,14 +114,12 @@ namespace lib.Strategies
                         if (!beforeTransform.Equals(grid.GetCellId(botsToGenerateCommands[botId])))
                             throw new Exception("Wrong zone");
                     }
-                }
-            }
 
             var botsToEvaluate = initialBots.ToList();
             while (botQueues.Any(x => x.Count > 0))
             {
                 var commands = new List<ICommand>();
-                for (int i = 0; i < botQueues.Count; i++)
+                for (var i = 0; i < botQueues.Count; i++)
                 {
                     if (botQueues[i].Count == 0)
                     {
@@ -100,14 +128,14 @@ namespace lib.Strategies
                     }
                     if (botQueues[i].Peek() is Fill fillCommand)
                     {
-                        if (CanFill(buildingMatrix, botsToEvaluate[i] + fillCommand.Shift))
+                        var fillPosition = botsToEvaluate[i] + fillCommand.Shift;
+                        if (CanFill(buildingMatrix, fillPosition))
                         {
+                            buildingMatrix.Set(fillPosition, true);
                             commands.Add(botQueues[i].Dequeue());
                         }
                         else
-                        {
                             commands.Add(new Wait());
-                        }
                     }
                     else
                     {
@@ -137,20 +165,22 @@ namespace lib.Strategies
 
         private IEnumerable<ICommand> FillLayer(Matrix matrix, Vec botPosition)
         {
-            var gridCells = grid.GetCells(botPosition, N)
+            var gridCells = grid.GetCells(new Vec(botPosition.X, botPosition.Y - 1, botPosition.Z))
                                 .Where(matrix.IsFilledVoxel)
                                 .OrderBy(position => groundDistance.Get(position))
                                 .ToList();
             var current = botPosition;
             foreach (var cell in gridCells)
             {
-                var commandsToGo = GoToVerticalFirst(current, cell);
-                current = cell;
+                var botCell = new Vec(cell.X, cell.Y + 1, cell.Z);
+                var commandsToGo = GoToVerticalFirst(current, botCell);
+                current = botCell;
                 foreach (var command in commandsToGo)
                     yield return command;
                 yield return new Fill(new NearDifference(new Vec(0, -1, 0)));
             }
-            yield return new SMove(new LongLinearDifference(new Vec(0, 1, 0)));
+            if (botPosition.Y != N - 1)
+                yield return new SMove(new LongLinearDifference(new Vec(0, 1, 0)));
         }
 
         private IEnumerable<ICommand> RemoveSticks(List<Vec> stickPositions)
@@ -166,17 +196,36 @@ namespace lib.Strategies
             for (var y = 1; y < N; y++)
             {
                 var used = new bool[N, N];
+                var usedGrounded = new bool[N, N];
                 for (var x = 0; x < N; x++)
                     for (var z = 0; z < N; z++)
                     {
                         if (transformedMatrix[x, y, z] && !used[x, z])
                         {
-                            if (!IsGrounded(x, y, z, used, transformedMatrix))
+                            var visitedCells = new List<Vec>();
+                            if (!IsGrounded(x, y, z, used, transformedMatrix, visitedCells))
                             {
                                 // todo (sivukhin, 21.07.2018): Добавить палку в место получше
                                 stickPositions.Add(new Vec(x, N - 1, z));
                                 for (var i = 0; i < N; i++)
                                     transformedMatrix[x, i, z] = true;
+                            }
+                            var queue = new Queue<Vec>();
+                            foreach (var cell in visitedCells.Where(cell => matrix.IsFilledVoxel(new Vec(cell.X, cell.Y - 1, cell.Z))))
+                            {
+                                queue.Enqueue(cell);
+                                usedGrounded[cell.X, cell.Z] = true;
+                            }
+                            while (queue.Count > 0)
+                            {
+                                var position = queue.Dequeue();
+                                foreach (var newPosition in position.GetMNeighbours().Where(p => p.Y == position.Y).Where(matrix.IsInside))
+                                    if (matrix.IsFilledVoxel(newPosition) && !usedGrounded[newPosition.X, newPosition.Z])
+                                    {
+                                        groundDistance.Set(newPosition, groundDistance.Get(position) + 1);
+                                        usedGrounded[newPosition.X, newPosition.Z] = true;
+                                        queue.Enqueue(newPosition);
+                                    }
                             }
                         }
                     }
@@ -184,7 +233,7 @@ namespace lib.Strategies
             return (transformedMatrix, stickPositions.DistinctBy(x => x).ToList());
         }
 
-        private bool IsGrounded(int x, int y, int z, [NotNull] bool[,] used, [NotNull] Matrix matrix)
+        private bool IsGrounded(int x, int y, int z, [NotNull] bool[,] used, [NotNull] Matrix matrix, List<Vec> visitedCells)
         {
             var queue = new Queue<Vec>(new[] {new Vec(x, y, z)});
             used[x, z] = true;
@@ -192,71 +241,97 @@ namespace lib.Strategies
             while (queue.Count > 0)
             {
                 var position = queue.Dequeue();
+                visitedCells.Add(position);
                 isGrounded |= matrix[position.X, position.Y - 1, position.Z];
                 foreach (var newPosition in position.GetMNeighbours().Where(p => p.Y == position.Y).Where(matrix.IsInside))
-                {
                     if (matrix.IsFilledVoxel(newPosition) && !used[newPosition.X, newPosition.Z])
                     {
-                        groundDistance.Set(newPosition, groundDistance.Get(position) + 1);
                         used[newPosition.X, newPosition.Z] = true;
                         queue.Enqueue(newPosition);
                     }
-                }
             }
             return isGrounded;
         }
 
-        private (List<ICommand> Commands, List<Vec> Bots) Clone(int count)
+        private (List<ICommand> Commands, List<Vec> Bots) Clone(int desiredCount)
         {
+            if (desiredCount % 2 != 0)
+                throw new Exception("desiredCount must be even");
+            if (grid.CountX * grid.CountZ < desiredCount)
+                throw new Exception("too small grid");
             var result = new List<ICommand>();
             var botPositions = new List<Vec>();
-            for (int i = 0; i < count - 1; i++)
+            result.Add(new Fission(new NearDifference(new Vec(0, 0, 1)), (desiredCount - 2) / 2 - 1));
+
+            result.Add(new Fission(new NearDifference(new Vec(1, 0, 0)), (desiredCount - 2) / 2));
+            result.Add(new Wait());
+
+            result.Add(new Wait());
+            result.Add(new Wait());
+            result.Add(new Fission(new NearDifference(new Vec(0, 0, 1)), (desiredCount - 2) / 2 - 1));
+
+            int rowCount = desiredCount / 2;
+            for (var i = 1; i < rowCount - 1; i++) // todo (sivukhin, 22.07.2018): 
             {
                 var currentTickCommands = Enumerable.Repeat<ICommand>(new Wait(), i)
-                                                    .Concat(new[] {new Fission(new NearDifference(new Vec(0, 0, 1)), count - i - 2)})
+                                                    .Concat(new[] {new Fission(new NearDifference(new Vec(0, 0, 1)), rowCount - i - 2)})
                                                     .ToArray();
                 result.AddRange(currentTickCommands);
+                result.AddRange(currentTickCommands);
             }
-            for (int i = count - 1; i >= 0; i--)
+
+            for (var i = 0; i < desiredCount; i++)
+            {
+                result.Add(new SMove(new LongLinearDifference(new Vec(0, i % 10 + 4, 0))));
+            }
+
+            for (var i = desiredCount - 1; i >= 0; i--)
             {
                 // todo (mpivko, 21.07.2018): Be careful with your brain
-                var botFinalPosition = new Vec(i % grid.CountX * grid.SizeX, 0, i / grid.CountX * grid.SizeZ);
+                int xCoord = i < rowCount ? 0 : 1;
+                var cellStart = grid.GetCellStart((i % grid.CountX, i / grid.CountX));
+                var botFinalPosition = new Vec(Math.Max(1, cellStart.X), 1, cellStart.Z);
                 botPositions.Add(botFinalPosition);
-                var commands = GoToVerticalFirst(new Vec(0, 0, i), botFinalPosition);
+                var commands = GoToVerticalLast(new Vec(xCoord, i % 10 + 4, i % rowCount),
+                                                botFinalPosition);
                 foreach (var command in commands)
                 {
-                    var currentTickCommands = Enumerable.Repeat<ICommand>(new Wait(), count).ToArray();
+                    var currentTickCommands = Enumerable.Repeat<ICommand>(new Wait(), desiredCount).ToArray();
                     currentTickCommands[i] = command;
                     result.AddRange(currentTickCommands);
                 }
             }
+            botPositions.Reverse();
             return (result, botPositions);
         }
 
         private IEnumerable<ICommand> GoHome([NotNull] List<Vec> bots)
         {
-            for (int i = 0; i < bots.Count; i++)
+            var remainBotsCount = bots.Count;
+            for (var i = 0; i < bots.Count; i++)
             {
                 var currentBot = bots[i];
                 var commands = new List<ICommand>();
                 if (currentBot.Y != N - 1)
                     throw new Exception("Bot should be at the N - 1 y-coord");
-                commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, i)));
+                var zCoord = i == 0 ? 0 : 1;
+                commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord)));
                 foreach (var command in commands)
                 {
-                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), N).ToArray();
-                    toApply[i] = command;
+                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), remainBotsCount).ToArray();
+                    toApply[i == 0 ? 0 : 1] = command;
                     foreach (var currentTickCommand in toApply)
                         yield return currentTickCommand;
                 }
-            }
-            for (int i = bots.Count - 1; i > 0; i--)
-            {
-                var toApply = Enumerable.Repeat<ICommand>(new Wait(), i - 1)
-                                        .Concat(new ICommand[] {new FusionP(new NearDifference(new Vec(0, 0, 1))), new FusionS(new NearDifference(new Vec(0, 0, -1)))})
-                                        .ToArray();
-                foreach (var currentTickCommand in toApply)
-                    yield return currentTickCommand;
+                if (i != 0)
+                {
+                    var toApply = new ICommand[] {new FusionP(new NearDifference(new Vec(0, 0, 1))), new FusionS(new NearDifference(new Vec(0, 0, -1)))}
+                        .Concat(Enumerable.Repeat<ICommand>(new Wait(), remainBotsCount - 2))
+                        .ToArray();
+                    foreach (var currentTickCommand in toApply)
+                        yield return currentTickCommand;
+                    remainBotsCount--;
+                }
             }
         }
 

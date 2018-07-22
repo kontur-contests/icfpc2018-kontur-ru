@@ -40,7 +40,12 @@ namespace tests
         public void TestDivideAndConquer(string filename)
         {
             DoRealTest(model => new DivideAndConquer(model, true),
-                       (solver, _) => ((DivideAndConquer)solver).State.Energy,
+                       (solver, commands, _) =>
+                           {
+                               foreach (var command in solver.Solve())
+                                   commands.Add(command);
+                               return ((DivideAndConquer)solver).State.Energy;
+                           },
                        null,
                        "lowceil-5x4-bbox",
                        filename);
@@ -51,16 +56,20 @@ namespace tests
         public void TestHorizontalSlicer(string filename)
         {
             DoRealTest(model => new HorizontalSlicer(model),
-                       (solver, model) =>
+                       (solver, commands, model) =>
                            {
+                               var state = new DeluxeState(new Matrix(model.R), model);
+                               var queue = new Queue<ICommand>();
+                               var interpreter = new Interpreter(state);
+                               foreach (var command in solver.Solve())
                                {
-                                   var state = new DeluxeState(new Matrix(model.R), model);
-                                   var queue = new Queue<ICommand>(solver.Solve().ToList());
-                                   var interpreter = new Interpreter(state);
-                                   interpreter.Tick(queue);
-                                   interpreter.EnsureIsFinal();
-                                   return state.Energy;
+                                   commands.Add(command);
+                                   queue.Enqueue(command);
+                                   if (state.Bots.Count <= queue.Count)
+                                       interpreter.Tick(queue);
                                }
+                               interpreter.EnsureIsFinal();
+                               return state.Energy;
                            },
                        "horizontal-slicer",
                        "no-features",
@@ -68,7 +77,7 @@ namespace tests
         }
 
         public void DoRealTest(Func<Matrix, IAmSolver> solverFactory,
-                               Func<IAmSolver, Matrix, long> energyFactory,
+                               Func<IAmSolver, List<ICommand>, Matrix, long> energyFactory,
                                string scopeName,
                                string algoName,
                                [NotNull] string filename)
@@ -81,10 +90,19 @@ namespace tests
             var solver = solverFactory(model);
 
             var shortname = Path.GetFileNameWithoutExtension(filename);
-            DoTest(solver, shortname);
-
+            List<ICommand> commands = new List<ICommand>();
+            long energy;
+            var targetDirectory = "failed";
+            try
+            {
+                energy = energyFactory(solver, commands, model);
+                targetDirectory = "res";
+            }
+            finally
+            {
+                File.WriteAllBytes($"C:\\workspace\\icfpc\\{targetDirectory}\\{shortname}-test.nbt", CommandSerializer.Save(commands.ToArray()));
+            }
             sw.Stop();
-            var energy = energyFactory(solver, model);
 
             var testResult = new ElasticTestResult
                 {
@@ -120,20 +138,10 @@ namespace tests
             Console.WriteLine($"Energy: {energy}");
         }
 
-        private void DoTest(IAmSolver solver, string shortname)
-        {
-            List<ICommand> commands = new List<ICommand>();
-            foreach (var command in solver.Solve())
-            {
-                commands.Add(command);
-            }
-            File.WriteAllBytes($"C:\\workspace\\icfpc\\res\\{shortname}-test.nbt", CommandSerializer.Save(commands.ToArray()));
-        }
-
         private static IEnumerable<TestCaseData> GetModels()
         {
-            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsL");
-            foreach (string file in Directory.EnumerateFiles(problemsDir, "*.mdl").Take(10))
+            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsF");
+            foreach (string file in Directory.EnumerateFiles(problemsDir, "FA*.mdl"))
             {
                 yield return new TestCaseData(file).SetName(Path.GetFileNameWithoutExtension(file));
             }
