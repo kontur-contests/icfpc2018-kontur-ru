@@ -14,8 +14,8 @@ namespace lib.Utils
     {
         public static ProblemSolutionPair[] GetTasks()
         {
-//            var solvedProblemNames = ElasticHelper.FetchSolvedProblemNames();
-            
+            //            var solvedProblemNames = ElasticHelper.FetchSolvedProblemNames();
+
             return
                 (from p in GetProblems()
                  from s in GetSolutions(p)
@@ -148,6 +148,7 @@ namespace lib.Utils
         public static readonly Solution blockDeconstructor = new Solution
         {
             Name = "BlockDeconstructor",
+            ShortName = "bd",
             ProblemPrioritizer = p => ProblemPriority.Normal,
             Solver = problem => new FastDeconstructor(problem.SourceMatrix),
             CompatibleProblemTypes = new[] { ProblemType.Disassemble },
@@ -171,24 +172,17 @@ namespace lib.Utils
             for (var xSize = 2; xSize <= 40; xSize++)
                 for (var zSize = 2; zSize <= 40; zSize++)
                 {
-                    
+
                     var count = xSize * zSize;
-                    var xSize1 = xSize;
-                    var zSize1 = zSize;
                     if (30 <= count && count <= 40 && count % 2 == 0)
                     {
-                        slicers.Add(new Solution
-                            {
-                                Name = $"Slicer{xSize}x{zSize}",
-                                ProblemPrioritizer = p => ProblemPriority.Normal,
-                                Solver = problem => new HorizontalSlicer(problem.TargetMatrix, xSize1, zSize1, true),
-                            });
+                        slicers.Add(CreateSlicerAssembler(xSize, zSize));
                         slicersParameters.Add((xSize, zSize));
                     }
                 }
 
             (string name, Func<Matrix, IAmSolver> solver)[] solvers =
-                slicersParameters.Select(p => ($"s{p.Item1}x{p.Item2}", 
+                slicersParameters.Select(p => ($"s{p.Item1}x{p.Item2}",
                                                   (Func<Matrix, IAmSolver>)(m => new HorizontalSlicer(m, p.Item1, p.Item2, true))))
                                  .ToArray();
 
@@ -199,11 +193,11 @@ namespace lib.Utils
                     {
                         (name: "bd", solver: blockDeconstructor.Solver)
                     });
-            
+
             foreach (var disassembler in disassemblers)
-            foreach (var assembler in solvers)
-            {
-                raSolutions.Add(new Solution
+                foreach (var assembler in solvers)
+                {
+                    raSolutions.Add(new Solution
                     {
                         Name = $"RA+{disassembler.name}+{assembler.name}",
                         ProblemPrioritizer = p => ProblemPriority.Normal,
@@ -214,8 +208,8 @@ namespace lib.Utils
                                            problem.TargetMatrix),
                         CompatibleProblemTypes = new[] { ProblemType.Reassemble }
 
-                });
-            }
+                    });
+                }
             return new[]
                 {
 //                    stupidDisassembler,
@@ -233,6 +227,17 @@ namespace lib.Utils
                  .ToArray();
         }
 
+        public static Solution CreateSlicerAssembler(int xSize = 6, int zSize = 6)
+        {
+            return new Solution
+            {
+                Name = $"Slicer{xSize}x{zSize}",
+                ShortName = $"s{xSize}x{zSize}",
+                ProblemPrioritizer = p => ProblemPriority.Normal,
+                Solver = problem => new HorizontalSlicer(problem.TargetMatrix, xSize, zSize, true),
+            };
+        }
+
         private static IAmSolver CreateGreedy(Matrix matrix)
         {
             return new GreedyPartialSolver(matrix, new ThrowableHelper(matrix), new NearToFarBottomToTopBuildingAround());
@@ -245,6 +250,57 @@ namespace lib.Utils
         public static IAmSolver CreateSlicer6x6(Matrix matrix)
         {
             return new HorizontalSlicer(matrix, 6, 6, true);
+        }
+
+        public static Solution CreateInvertingDisassembler(Solution assemblerSolution)
+        {
+            return new Solution
+            {
+                Name = $"inv{assemblerSolution.Name}",
+                Solver = problem => new InvertorDisassembler(
+                    assemblerSolution.Solver(
+                        new Problem
+                            {
+                                FileName = problem.FileName,
+                                Name = problem.Name,
+                                Type = ProblemType.Assemble,
+                                SourceMatrix = null,
+                                TargetMatrix = problem.SourceMatrix
+                            }),
+                    problem.SourceMatrix),
+                CompatibleProblemTypes = new[] { ProblemType.Disassemble }
+            };
+        }
+
+        public static Solution CreateReassembler(Solution disassembler, Solution assembler)
+        {
+            return new Solution
+                {
+                    Name = $"RA+{disassembler.ShortName ?? disassembler.Name}+{assembler.ShortName ?? assembler.Name}",
+                    ProblemPrioritizer = p => ProblemPriority.Normal,
+                    Solver = problem => new SimpleReassembler(
+                                            disassembler.Solver(
+                                                new Problem
+                                                    {
+                                                        Type = ProblemType.Disassemble,
+                                                        SourceMatrix = problem.SourceMatrix,
+                                                        TargetMatrix = null,
+                                                        FileName = problem.FileName,
+                                                        Name = problem.Name,
+                                                    }),
+                                            assembler.Solver(
+                                                new Problem
+                                                    {
+                                                        Type = ProblemType.Assemble,
+                                                        SourceMatrix = null,
+                                                        TargetMatrix = problem.TargetMatrix,
+                                                        FileName = problem.FileName,
+                                                        Name = problem.Name,
+                                                    }),
+                                            problem.SourceMatrix,
+                                            problem.TargetMatrix),
+                    CompatibleProblemTypes = new[] {ProblemType.Reassemble}
+                };
         }
     }
 
@@ -274,6 +330,7 @@ namespace lib.Utils
 
     public class Solution
     {
+        public string ShortName { get; set; }
         public string Name { get; set; }
         public Func<Problem, IAmSolver> Solver { get; set; }
         public ProblemType[] CompatibleProblemTypes { get; set; } = { ProblemType.Assemble };
