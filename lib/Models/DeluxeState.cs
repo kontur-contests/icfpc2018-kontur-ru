@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using lib.Commands;
+using lib.Primitives;
 using lib.Utils;
 
 using MoreLinq.Extensions;
@@ -143,6 +144,11 @@ namespace lib.Models
         {
             if (Harmonics == Harmonics.Low && Matrix.HasNonGroundedVoxels)
                 throw new InvalidOperationException("Low Harmonics while non grounded voxel present");
+        }
+
+        public IEnumerable<Vec> GetFilledVoxels()
+        {
+            return Matrix.GetFilledVoxels();
         }
     }
 }

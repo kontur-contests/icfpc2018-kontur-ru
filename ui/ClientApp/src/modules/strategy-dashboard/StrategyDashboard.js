@@ -1,11 +1,14 @@
 import React from "react";
-import { getSolutionResults, maxBy, minBy } from "./StrategyDashboardApi";
+import { getSolutionResults, denormalizeData } from "./StrategyDashboardApi";
+import { DataTable } from "./DataTable";
 
 export class StrategyDashboard extends React.Component {
   state = {
     result: {},
     taskNames: [],
-    solverNames: []
+    solverNames: [],
+    loading: true,
+    denormalizedData: []
   };
 
   componentDidMount() {
@@ -14,12 +17,16 @@ export class StrategyDashboard extends React.Component {
 
   fetchData = async () => {
     try {
+      this.setState({ loading: true });
       const data = await getSolutionResults();
+      console.log(denormalizeData(data));
       this.setState({
         result: data.result,
         taskNames: data.taskNames,
-        solverNames: data.solverNames
+        solverNames: data.solverNames,
+        denormalizedData: denormalizeData(data)
       });
+      this.setState({ loading: false });
     } catch (e) {}
 
     // await new Promise(resolve => setTimeout(resolve, 15000))
@@ -31,11 +38,20 @@ export class StrategyDashboard extends React.Component {
     return (
       <div>
         <h2>Solutions</h2>
-        <table style={{ width: "100%" }}>
-          <thead>{this.renderHeader()}</thead>
-          <tbody>{this.state.taskNames.map(this.renderSolutionRow)}</tbody>
-        </table>
+        <DataTable
+          data={this.state.denormalizedData}
+          loading={this.state.loading}
+        />
       </div>
+    );
+  }
+
+  renderOldTable() {
+    return (
+      <table style={{ width: "100%" }}>
+        <thead>{this.renderHeader()}</thead>
+        <tbody>{this.state.taskNames.map(this.renderSolutionRow)}</tbody>
+      </table>
     );
   }
 

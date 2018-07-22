@@ -124,8 +124,8 @@ namespace packer
 
                 var docSearchResponse = client.Search<TaskRunMeta>(
                     s => s.Size(1)
-                          .Query(q => q.Bool(b => b.Should(bs => bs.Term(p => p.Field("taskName.keyword").Value(taskName)),
-                                                           bs => bs.Term(p => p.Field(f => f.EnergySpent).Value(energySpent))))));
+                          .Query(q => q.Bool(b => b.Filter(bs => bs.Term(t => t.Field("taskName.keyword").Value(taskName)),
+                                                           bs => bs.Term(t => t.Field(fi => fi.EnergySpent).Value(energySpent))))));
 
                 if (docSearchResponse.Documents.Count == 0)
                 {
