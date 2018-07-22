@@ -183,14 +183,15 @@ export function denormalizeData({ result, taskNames, solverNames }) {
       }
 
       const energy = result[taskName][solverName];
+      const isSolved = energy !== 0 && energy !== undefined;
       const leaderEnergy = result[taskName][LEADERS_NAME] || Infinity;
       const record = {
-        energy: energy === 0 || energy === undefined ? Infinity : energy,
+        energy: isSolved ? energy : Infinity,
         taskName,
         solverName,
         leaderEnergy,
         rate: rater(solverName),
-        leaderRate: rater(LEADERS_NAME)
+        leaderRate: isSolved ? rater(LEADERS_NAME) : 0
       };
 
       data.push(record);
