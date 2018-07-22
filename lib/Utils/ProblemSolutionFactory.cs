@@ -32,6 +32,11 @@ namespace lib.Utils
                 .ToArray();
         }
 
+        public static Problem LoadProblem(string name)
+        {
+            return CreateProblem(Path.Combine(FileHelper.ProblemsDir, $"{name}_tgt.mdl"));
+        }
+
         public static Problem CreateProblem(string fullPath)
         {
             var fileName = Path.GetFileName(fullPath) ?? "";

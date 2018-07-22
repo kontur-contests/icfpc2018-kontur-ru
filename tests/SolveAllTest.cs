@@ -14,6 +14,8 @@ using lib.Strategies;
 using lib.Strategies.Features;
 using lib.Utils;
 
+using MoreLinq;
+
 using NUnit.Framework;
 
 namespace tests
@@ -23,35 +25,27 @@ namespace tests
     {
         [Test]
         [Explicit]
-        //[Timeout(30000)]
-        public void Disassemble(
-            [Values(1)] int problemId
-            //[ValueSource(nameof(Problems))] int problemId
-            )
+        public void Reassemble([Values(1)] int problemId)
         {
-            var problemFile = Path.Combine(FileHelper.ProblemsDir, $"FA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
-            var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
-            var R = matrix.R;
-            //var solver = new StupidDisassembler(matrix);
-            //var assembler = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelperFast(matrix));
-            //var solver = new InvertorDisassembler(assembler);
-            var state = new DeluxeState(null, matrix);
-            var solver = new Solver(state, new GreedyFill(state, state.Bots.Single(), new ThrowableHelperFast(matrix)));
+            var problem = ProblemSolutionFactory.LoadProblem($"FR{problemId:D3}");
+            var assembler = new GreedyPartialSolver(problem.TargetMatrix, new ThrowableHelperFast(problem.TargetMatrix));
+            var disassembler = new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix);
+            var solver = new SimpleReassembler(disassembler, assembler);
             List<ICommand> commands = new List<ICommand>();
             try
             {
-                var sw = Stopwatch.StartNew();
                 commands.AddRange(solver.Solve());
             }
             catch (Exception e)
             {
-                Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
+                Log.For(this).Error($"Unhandled exception in solver for {problem.Name}", e);
                 throw;
             }
             finally
             {
+                Console.WriteLine(commands.Take(5000).ToDelimitedString("\n"));
                 var bytes = CommandSerializer.Save(commands.ToArray());
-                File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problemFile), bytes);
+                File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
             }
         }
 
@@ -127,7 +121,7 @@ namespace tests
         [Test]
         public void Solve()
         {
-            var problemsDir =  FileHelper.ProblemsDir;
+            var problemsDir = FileHelper.ProblemsDir;
             var resultsDir = FileHelper.SolutionsDir;
             var allProblems = Directory.EnumerateFiles(problemsDir, "*.mdl");
             var problems = allProblems.Select(p =>
