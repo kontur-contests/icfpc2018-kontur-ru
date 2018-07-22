@@ -3,6 +3,7 @@ using System.Linq;
 
 using JetBrains.Annotations;
 
+using lib.Primitives;
 using lib.Utils;
 
 namespace lib.Models
@@ -138,6 +139,11 @@ namespace lib.Models
             isGrounded.Set(vec, false);
             parentCell.Set(vec, null);
             groundedCellsCount--;
+        }
+
+        public IEnumerable<Vec> GetFilledVoxels()
+        {
+            return new Cuboid(R).AllPoints().Where(v => this[v]);
         }
     }
 }
