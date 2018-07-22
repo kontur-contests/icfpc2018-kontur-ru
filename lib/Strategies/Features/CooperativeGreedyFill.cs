@@ -66,8 +66,7 @@ namespace lib.Strategies.Features
                                                                     n.Y >= lowest);
                 foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(bot.Position)))
                 {
-                    if (!state.Matrix[candidate] && !state.Matrix[nearPosition])
-                        yield return (candidate, nearPosition);
+                    yield return (candidate, nearPosition);
                 }
             }
         }

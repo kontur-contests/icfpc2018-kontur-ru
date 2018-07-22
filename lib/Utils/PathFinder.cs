@@ -40,6 +40,9 @@ namespace lib.Utils
             if (source == target)
                 return new List<ICommand>();
 
+            if (!isAllowedPosition(target) || state.Get(target))
+                return null;
+
             var queue = new SortedSet<Vec>(Comparer<Vec>.Create((a, b) =>
                 {
                     var compareTo = a.MDistTo(target).CompareTo(b.MDistTo(target));
