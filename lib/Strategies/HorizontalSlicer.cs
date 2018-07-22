@@ -100,7 +100,7 @@ namespace lib.Strategies
         private int[,,] groundDistance;
         private int minX, minZ, maxX, maxZ;
         private readonly bool useBoundingBox;
-        private bool[,,] buildingMatrix;
+        private CorrectComponentTrackingMatrix buildingMatrix;
 
         public HorizontalSlicer(Matrix targetMatrix, int gridCountX, int gridCountZ, bool useBoundingBox)
         {
@@ -151,7 +151,7 @@ namespace lib.Strategies
 
         public IEnumerable<ICommand> Solve()
         {
-            buildingMatrix = new bool[N, N, N];
+            buildingMatrix = new CorrectComponentTrackingMatrix(new bool[N, N, N]);
             var (transformedTargetMatrix, stickPositions) = TransformMatrix(targetMatrix);
             var (cloneCommands, initialBots) = Clone(grid.CountX * grid.CountZ); // todo (sivukhin, 22.07.2018): Constant
             foreach (var command in cloneCommands)
@@ -199,9 +199,9 @@ namespace lib.Strategies
                     if (botQueues[i].Peek() is Fill fillCommand)
                     {
                         var fillPosition = botsToEvaluate[i] + fillCommand.Shift;
-                        if (CanFill(buildingMatrix, fillPosition))
+                        if (CanFill(buildingMatrix.Voxels, fillPosition))
                         {
-                            buildingMatrix.Set(fillPosition, true);
+                            buildingMatrix[fillPosition] = true;
                             commands.Add(botQueues[i].Dequeue());
                         }
                         else

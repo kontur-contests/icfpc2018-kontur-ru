@@ -19,7 +19,7 @@ namespace tests
         [TestCase("101|101|101", "010|010|010", "100|100|100")]
         public void OnlyGrounded(params string[] matrix)
         {
-            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix(matrix));
+            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix(matrix).Voxels);
             componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
         }
 
@@ -30,14 +30,14 @@ namespace tests
         [TestCase("101|101|101", "000|010|010", "101|101|101")]
         public void HasNotGrounded(params string[] matrix)
         {
-            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix(matrix));
+            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix(matrix).Voxels);
             componentTrackingMatrix.HasNonGroundedVoxels.Should().BeTrue();
         }
 
         [Test]
         public void TrackComponents()
         {
-            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix("10|01", "00|00"));
+            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix("10|01", "00|00").Voxels);
             componentTrackingMatrix.HasNonGroundedVoxels.Should().BeTrue();
             componentTrackingMatrix[0, 1, 0] = true;
             componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
@@ -54,7 +54,7 @@ namespace tests
         public void TrackComponents2(int r, int seed, int iterations)
         {
             var matrix = new Matrix(r);
-            var correctCTM = new CorrectComponentTrackingMatrix(matrix.Clone());
+            var correctCTM = new CorrectComponentTrackingMatrix(matrix.Clone().Voxels);
             var usualCTM = new ComponentTrackingMatrix(matrix.Clone());
             var random = new Random(seed);
             for (var i = 0; i < iterations; i++)
@@ -69,7 +69,7 @@ namespace tests
         [Test]
         public void TrackComponents3()
         {
-            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix("000|101|000", "000|000|000", "000|000|000"));
+            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix("000|101|000", "000|000|000", "000|000|000").Voxels);
             componentTrackingMatrix.HasNonGroundedVoxels.Should().BeTrue();
             componentTrackingMatrix[1, 1, 0] = true;
             componentTrackingMatrix.HasNonGroundedVoxels.Should().BeTrue();

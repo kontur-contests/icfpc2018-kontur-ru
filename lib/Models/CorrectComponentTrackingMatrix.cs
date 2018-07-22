@@ -83,9 +83,9 @@ namespace lib.Models
         private readonly bool[,,] isGrounded;
         public bool HasNonGroundedVoxels => groundedCellsCount != filledCellsCount;
 
-        public CorrectComponentTrackingMatrix(Matrix matrix)
+        public CorrectComponentTrackingMatrix(bool[,,] matrix)
         {
-            Voxels = matrix.Voxels;
+            Voxels = matrix;
             parentCell = new Vec[R, R, R];
             isGrounded = new bool[R, R, R];
 
