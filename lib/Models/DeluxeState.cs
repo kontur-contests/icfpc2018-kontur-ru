@@ -11,7 +11,7 @@ namespace lib.Models
     {
         public Matrix SourceMatrix { get; }
         public Matrix TargetMatrix { get; }
-        public ComponentTrackingMatrix Matrix { get; }
+        public CorrectComponentTrackingMatrix Matrix { get; }
         public HashSet<Bot> Bots { get; }
         public long Energy { get; set; }
         public Harmonics Harmonics { get; set; }
@@ -24,7 +24,7 @@ namespace lib.Models
         {
             SourceMatrix = sourceMatrix ?? new Matrix(targetMatrix.R);
             TargetMatrix = targetMatrix ?? new Matrix(sourceMatrix.R);
-            Matrix = new ComponentTrackingMatrix(SourceMatrix.Clone());
+            Matrix = new CorrectComponentTrackingMatrix(SourceMatrix.Clone());
             Bots = new HashSet<Bot> { new Bot { Bid = 1, Position = Vec.Zero, Seeds = Enumerable.Range(2, 39).ToList() } };
             Energy = 0;
         }
