@@ -26,45 +26,48 @@ namespace lib.Strategies
                 for (var i = activeStrategies.Count - 1; i >= 0; i--)
                 {
                     var strategy = activeStrategies[i];
-                    var children = strategy.Tick();
-                    if (strategy.Status == StrategyStatus.Incomplete)
-                    {
-                        if (children != null)
-                        {
-                            while (children.Any())
-                            {
-                                var newChildren = new List<IStrategy>();
-                                foreach (var child in children)
-                                {
-                                    var descendants = child.Tick();
-                                    if (child.Status == StrategyStatus.Incomplete)
-                                    {
-                                        activeStrategies.Add(child);
-                                        if (descendants != null)
-                                            newChildren.AddRange(descendants);
-                                    }
-                                    else
-                                    {
-                                        if (descendants != null)
-                                            throw new InvalidOperationException($"Inactive strategy MUST NOT derive child strategies. Strategy: {child}; Derived: {string.Join("; ", descendants.Select(d => d.ToString()))}");
-                                    }
-                                }
-                                children = newChildren.ToArray();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (children != null)
-                            throw new InvalidOperationException($"Inactive strategy MUST NOT derive child strategies. Strategy: {strategy}; Derived: {string.Join("; ", children.Select(d => d.ToString()))}");
+                    RecursiveTick(strategy);
+                    if (strategy.Status != StrategyStatus.InProgress)
                         activeStrategies.RemoveAt(i);
-                    }
                 }
                 if (activeStrategies.Count == 0 && state.Bots.Any())
                     throw new InvalidOperationException("State is not completed, but root strategy is done??? Maybe you forgot to return to ZERO and HALT???");
                 foreach (var command in state.EndTick())
                     yield return command;
             }
+        }
+
+        private void RecursiveTick(IStrategy strategy)
+        {
+            int attempts;
+            const int maxAttempts = 100;
+            for (attempts = 0; attempts < maxAttempts; attempts++)
+            {
+                var children = strategy.Tick();
+                if (children == null)
+                    break;
+                if (strategy.Status != StrategyStatus.InProgress)
+                    throw new InvalidOperationException($"Inactive strategy MUST NOT derive child strategies. Strategy: {strategy}; Derived: {string.Join("; ", children.Select(d => d.ToString()))}");
+
+                var start = activeStrategies.Count;
+                activeStrategies.AddRange(children);
+
+                foreach (var child in children)
+                    RecursiveTick(child);
+
+                var allCompleted = true;
+                for (int j = start + children.Length - 1; j >= start; j--)
+                {
+                    if (activeStrategies[j].Status != StrategyStatus.InProgress)
+                        activeStrategies.RemoveAt(j);
+                    else
+                        allCompleted = false;
+                }
+                if (!allCompleted)
+                    break;
+            }
+            if (attempts >= maxAttempts)
+                throw new InvalidOperationException($"Too many tick attempts for one strategy: {strategy}");
         }
     }
 }

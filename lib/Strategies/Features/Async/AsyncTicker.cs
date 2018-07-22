@@ -15,8 +15,8 @@ namespace lib.Strategies.Features.Async
 
         public StrategyResult Tick()
         {
-            if (task?.Strategies != null && task.Strategies.Any(s => s.Status == StrategyStatus.Incomplete))
-                return new StrategyResult(StrategyStatus.Incomplete, null);
+            if (task?.Strategies != null && task.Strategies.Any(s => s.Status == StrategyStatus.InProgress))
+                return new StrategyResult(StrategyStatus.InProgress, null);
 
             if (task == null)
                 task = run();
@@ -25,7 +25,7 @@ namespace lib.Strategies.Features.Async
 
             if (task.IsComplete)
                 return task.Result ? new StrategyResult(StrategyStatus.Done, null) : new StrategyResult(StrategyStatus.Failed, null);
-            return new StrategyResult(StrategyStatus.Incomplete, task.Strategies);
+            return new StrategyResult(StrategyStatus.InProgress, task.Strategies);
         }
     }
 }

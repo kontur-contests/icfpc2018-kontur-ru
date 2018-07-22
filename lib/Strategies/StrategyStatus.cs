@@ -2,7 +2,7 @@ namespace lib.Strategies
 {
     public enum StrategyStatus
     {
-        Incomplete,
+        InProgress,
         Done,
         Failed
     }

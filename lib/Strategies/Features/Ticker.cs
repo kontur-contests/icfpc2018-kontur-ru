@@ -29,7 +29,7 @@ namespace lib.Strategies.Features
                 {
                     if (enumerator.MoveNext())
                     {
-                        if (enumerator.Current.Status == StrategyStatus.Incomplete)
+                        if (enumerator.Current.Status == StrategyStatus.InProgress)
                             waiting = true;
                         else
                             enumerator.Dispose();
@@ -39,8 +39,8 @@ namespace lib.Strategies.Features
                     return new StrategyResult(StrategyStatus.Done, null);
                 }
 
-                if (enumerator.Current.Strategies.Any(s => s.Status == StrategyStatus.Incomplete))
-                    return new StrategyResult(StrategyStatus.Incomplete, null);
+                if (enumerator.Current.Strategies.Any(s => s.Status == StrategyStatus.InProgress))
+                    return new StrategyResult(StrategyStatus.InProgress, null);
 
                 waiting = false;
             }
