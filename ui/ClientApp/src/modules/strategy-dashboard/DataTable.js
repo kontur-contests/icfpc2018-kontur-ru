@@ -15,7 +15,6 @@ export class DataTable extends React.Component {
           {
             Header: "Solver",
             accessor: "solverName",
-            sortable: false,
             aggregate: (values, rows) => {
               const best = minBy(x => x.energy, rows);
               return best.solverName + " (best)";
@@ -23,11 +22,13 @@ export class DataTable extends React.Component {
           },
           {
             Header: "Energy",
-            accessor: "energy",
+            accessor: d => [d.energy, d.rate],
+            id: "energy",
             aggregate: (values, rows) => {
-              const best = minBy(x => x.energy, rows);
+              const best = minBy(x => x.energy[0], rows);
               return best.energy;
-            }
+            },
+            Cell: EnergyCell
           },
           {
             Header: "Leader Diff",
@@ -41,12 +42,27 @@ export class DataTable extends React.Component {
               const min = Math.min(...values);
               return min;
             },
-            id: "leaderDiff"
+            id: "leaderDiff",
+            Cell: ({ value }) => (
+              <div
+                style={{
+                  background: isFinite(value)
+                    ? value < 0
+                      ? "rgb(0, 255, 0)"
+                      : "orange"
+                    : "white"
+                }}
+              >
+                {value}
+              </div>
+            )
           },
           {
             Header: "Leader Energy",
-            accessor: "leaderEnergy",
-            aggregate: ([valuee]) => valuee
+            id: "leaderEnergy",
+            accessor: d => [d.leaderEnergy, d.leaderRate],
+            aggregate: ([valuee]) => valuee,
+            Cell: EnergyCell
           }
         ]}
         pivotBy={["taskName"]}
@@ -54,4 +70,21 @@ export class DataTable extends React.Component {
       />
     );
   }
+}
+
+const EnergyCell = ({ value: [value, rate] }) => (
+  <div
+    style={{
+      background: isFinite(value) ? getColor(rate) : "black",
+      color: isFinite(value) ? "black" : "white"
+    }}
+  >
+    {value}
+  </div>
+);
+
+function getColor(value) {
+  //value from 0 to 1
+  var hue = ((1 - value) * 120).toString(10);
+  return ["hsl(", hue, ",100%,50%)"].join("");
 }
