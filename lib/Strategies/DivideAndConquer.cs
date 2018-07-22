@@ -286,7 +286,7 @@ namespace lib.Strategies
             }
             
             if (columns.Count > 0)
-                throw new Exception("Not all columns are used");
+                throw new Exception("Not all columns are used. Yest visyulki!");
 
             realColumns = realColumns.Select((x, i) => (x.From, x.To, i)).OrderBy(x => x, new Comparer()).Select(x => (x.From, x.To)).ToList();
 

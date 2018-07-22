@@ -35,7 +35,8 @@ namespace lib.Commands
         {
             if (!matrix.IsInside(bot.Position + Shift))
                 return false;
-            return GetCellsOnPath(bot.Position).All(matrix.IsVoidVoxel);
+            var obstacle = GetCellsOnPath(bot.Position).FirstOrDefault(v => !matrix.IsVoidVoxel(v));
+            return obstacle == null;
         }
 
         public override void Apply(DeluxeState state, Bot bot)

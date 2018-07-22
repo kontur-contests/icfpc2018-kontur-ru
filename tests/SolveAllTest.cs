@@ -100,11 +100,8 @@ namespace tests
         //[Timeout(30000)]
         public void Assemble()
         {
-            var problemId = 1;
-            var problemFile = Path.Combine(FileHelper.ProblemsDir, $"FA{problemId.ToString().PadLeft(3, '0')}_tgt.mdl");
-            var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
-            var state = new DeluxeState(null, matrix);
-            var solver = new Solver(state, new ParallelGredyFill(state, state.Bots.Single()));
+            var problem = ProblemSolutionFactory.LoadProblem("FD116");
+            var solver = new DivideAndConquer(problem.SourceMatrix, false);
             List<ICommand> commands = new List<ICommand>();
             try
             {
@@ -112,24 +109,22 @@ namespace tests
             }
             catch (Exception e)
             {
-                Log.For(this).Error($"Unhandled exception in solver for {Path.GetFileName(problemFile)}", e);
+                Log.For(this).Error($"Unhandled exception in solver for {problem.Name}", e);
                 throw;
             }
             finally
             {
                 var bytes = CommandSerializer.Save(commands.ToArray());
-                File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problemFile), bytes);
+                File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
             }
-
-            var solutionEnergy = GetSolutionEnergy(matrix, commands.ToArray(), problemFile);
-            Console.WriteLine(solutionEnergy);
         }
         [Test]
         [Explicit]
         public void Disassemble()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FD120");
-            var solver = new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix);
+            var problem = ProblemSolutionFactory.LoadProblem("FD122");
+            //var solver = new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix);
+            var solver = new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new Matrix(problem.R), new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix);
             List<ICommand> commands = new List<ICommand>();
             try
             {
@@ -151,7 +146,7 @@ namespace tests
         [Explicit]
         //[Timeout(30000)]
         public void SolveOne(
-            [Values(19)] int problemId
+            [Values(122)] int problemId
             //[ValueSource(nameof(Problems))] int problemId
             )
         {
@@ -161,8 +156,8 @@ namespace tests
             var matrix = Matrix.Load(File.ReadAllBytes(problemFile));
             var R = matrix.R;
             //var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), new BottomToTopBuildingAround());
-            //var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), new NearToFarBottomToTopBuildingAround());
-            var solver = new DivideAndConquer(matrix, true);
+            var solver = new GreedyPartialSolver(matrix.Voxels, new bool[R, R, R], new Vec(0, 0, 0), new ThrowableHelper(matrix), new NearToFarBottomToTopBuildingAround());
+            //var solver = new DivideAndConquer(matrix, true);
             List<ICommand> commands = new List<ICommand>();
             try
             {
