@@ -134,11 +134,15 @@ function applyChanges(data, anchorModel) {
   const steps = [];
 
   for (let i = 0; i < data.ticks.length; i++) {
-    const { changes, bots, tickIndex } = data.ticks[i];
+    const { filled, cleared, bots, tickIndex } = data.ticks[i];
 
-    changes.forEach(([x, y, z]) => {
-      model[x][y][z] = 1;
-    });
+      filled.forEach(([x, y, z]) => {
+          model[x][y][z] = 1;
+      });
+
+      cleared.forEach(([x, y, z]) => {
+          model[x][y][z] = 0;
+      });
 
     steps.push({
       model: model.map(x => x.map(y => y.slice(0))),

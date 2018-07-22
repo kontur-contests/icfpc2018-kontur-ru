@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 
 using lib.Commands;
+using lib.Models;
 using lib.Primitives;
 using lib.Utils;
 
@@ -30,6 +31,12 @@ namespace lib.Strategies
             };
 
         private readonly ICandidatesOrdering candidatesOrdering;
+
+        public GreedyPartialSolver(Matrix targetMatrix, IOracle oracle, ICandidatesOrdering candidatesOrdering = null)
+            : this(targetMatrix.Voxels, new bool[targetMatrix.R, targetMatrix.R, targetMatrix.R], Vec.Zero, oracle, candidatesOrdering)
+        {
+
+        }
 
         public GreedyPartialSolver(bool[,,] whatToFill, bool[,,] state, Vec pos, IOracle oracle, ICandidatesOrdering candidatesOrdering = null)
         {

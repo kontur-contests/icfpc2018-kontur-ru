@@ -47,7 +47,9 @@ namespace houston
                              $"running {selectedTasks.Length} of {tasks.Length} tasks");
 
             var completeTasksCounter = 0;
-            selectedTasks.ForEach(task =>
+            selectedTasks.Where(st => st.Solution.ProblemPrioritizer(st.Problem) != ProblemPriority.DoNotSolve)
+                         .OrderBy(st => st.Solution.ProblemPrioritizer(st.Problem))
+                         .ForEach(task =>
                 {
                     var solution = task.Solution;
 

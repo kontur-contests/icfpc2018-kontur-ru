@@ -17,7 +17,7 @@ namespace ui.Controllers
         [HttpGet("[action]")]
         public string[,,] Index(int i)
         {
-            const string problemsDir = "../data/problemsL";
+            const string problemsDir = "../data/problemsF";
             var filename = Directory.EnumerateFiles(problemsDir, "*.mdl").ToList()[i];
 
             if (filename == null) return null;
@@ -48,43 +48,43 @@ namespace ui.Controllers
         public TraceResult Trace(string file, int startTick = 0, int count = 2000)
         {
             var problemName = file.Split("-")[0];
-            var problem = Matrix.Load(System.IO.File.ReadAllBytes($"../data/problemsF/{problemName}_tgt.mdl"));
+            var problem = ProblemSolutionFactory.CreateProblem($"../data/problemsF/{problemName}_tgt.mdl");
             var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"../data/solutions/{file}.nbt"));
 
-            var state = new DeluxeState(null, new Matrix(problem.R));
+            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
             var queue = new Queue<ICommand>(solution);
             var results = new List<TickResult>();
-            var filledVoxels = new HashSet<Vec>();
+            var filledVoxels = new HashSet<Vec>(state.GetFilledVoxels());
             var tickIndex = 0;
-
-            results.Add(new TickResult
-                {
-                    changes = new int[0][],
-                    bots = state.Bots
-                                .Select(x => new[] { x.Position.X, x.Position.Y, x.Position.Z })
-                                .ToArray(),
-                    tickIndex = tickIndex
-                });
-
             try
             {
-                var newFilledVoxels = new List<Vec>();
+                var newFilledVoxels = new List<Vec>(state.GetFilledVoxels());
+                var newClearedVoxels = new List<Vec>();
                 var interpreter = new Interpreter(state);
                 while (queue.Any() && tickIndex < startTick + count)
                 {
                     interpreter.Tick(queue);
 
                     foreach (var vec in interpreter.LastChangedCells)
-                        if (state.Matrix[vec] && !filledVoxels.Contains(vec))
+                        if (state.Matrix[vec])
                         {
-                            newFilledVoxels.Add(vec);
-                            filledVoxels.Add(vec);
+                            if (!filledVoxels.Contains(vec))
+                            {
+                                newFilledVoxels.Add(vec);
+                                filledVoxels.Add(vec);
+                            }
+                        }
+                        else if (filledVoxels.Contains(vec))
+                        {
+                            newClearedVoxels.Add(vec);
+                            filledVoxels.Remove(vec);
                         }
                     if (tickIndex >= startTick)
                     {
                         results.Add(new TickResult
                             {
-                                changes = newFilledVoxels.Select(v => new[] {v.X, v.Y, v.Z}).ToArray(),
+                                filled = newFilledVoxels.Select(v => new[] {v.X, v.Y, v.Z}).ToArray(),
+                                cleared = newClearedVoxels.Select(v => new[] {v.X, v.Y, v.Z}).ToArray(),
                                 bots = state.Bots
                                             .Select(x => new[] {x.Position.X, x.Position.Y, x.Position.Z})
                                             .ToArray(),
@@ -121,7 +121,8 @@ namespace ui.Controllers
 
     public struct TickResult
     {
-        public int[][] changes;
+        public int[][] filled;
+        public int[][] cleared;
         public int[][] bots;
         public int tickIndex;
     }
