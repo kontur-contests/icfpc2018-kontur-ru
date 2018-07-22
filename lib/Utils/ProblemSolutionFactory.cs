@@ -149,7 +149,7 @@ namespace lib.Utils
             {
                 Name = "invSlice6x6",
                 ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = () => new InvertorDisassembler(new HorizontalSlicer(problem.TargetMatrix, 6, 6, true), problem.SourceMatrix),
+                Solver = () => new InvertorDisassembler(new HorizontalSlicer(problem.SourceMatrix, 6, 6, true), problem.SourceMatrix),
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
 
