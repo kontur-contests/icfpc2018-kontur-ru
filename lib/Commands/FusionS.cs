@@ -43,8 +43,7 @@ namespace lib.Commands
 
         public override Vec[] GetVolatileCells(Bot bot)
         {
-            // Both volatile cells are in FusionP
-            return new Vec[0];
+            return new[] { bot.Position };
         }
     }
 }

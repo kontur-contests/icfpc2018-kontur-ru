@@ -50,7 +50,7 @@ namespace lib.Commands
         [NotNull]
         public override Vec[] GetVolatileCells([NotNull] Bot bot)
         {
-            return new[] {bot.Position, bot.Position + shift };
+            return new[] {bot.Position };
         }
 
         [NotNull]
