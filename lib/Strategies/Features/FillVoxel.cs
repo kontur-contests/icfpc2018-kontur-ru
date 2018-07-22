@@ -22,7 +22,7 @@ namespace lib.Strategies.Features
         {
             if (bot.Position != fromPos)
             {
-                if (!await new MoveSingleBot(state, bot, fromPos))
+                if (!await new Move(state, bot, fromPos))
                     return false;
             }
 

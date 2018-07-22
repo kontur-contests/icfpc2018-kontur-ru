@@ -9,27 +9,25 @@ namespace lib.Strategies.Features
 {
     public class MergeTwoNears : SimpleStrategyBase
     {
-        private readonly Bot src;
-        private readonly Bot dst;
+        private readonly Bot master;
+        private readonly Bot slave;
 
-        public MergeTwoNears(DeluxeState state, Bot src, Bot dst)
+        public MergeTwoNears(DeluxeState state, Bot master, Bot slave)
             : base(state)
         {
-            this.src = src;
-            this.dst = dst;
+            this.master = master;
+            this.slave = slave;
         }
 
         protected override async StrategyTask<bool> Run()
         {
-            if (src.Position.GetNears().Any(n => n == dst.Position))
-            {
-                state.SetBotCommand(src, new FusionP(new NearDifference(dst.Position - src.Position)));
-                state.SetBotCommand(dst, new FusionS(new NearDifference(src.Position - dst.Position)));
-                await WhenNextTurn();
-                return true;
-            }
+            if (master.Position.GetNears().All(n => n != slave.Position))
+                return false;
 
-            return false;
+            state.SetBotCommand(master, new FusionP(new NearDifference(slave.Position - master.Position)));
+            state.SetBotCommand(slave, new FusionS(new NearDifference(master.Position - slave.Position)));
+            await WhenNextTurn();
+            return true;
         }
     }
 }

@@ -4,11 +4,11 @@ using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public class MoveSingleBot : SimpleSingleBotStrategyBase
+    public class Move : SimpleSingleBotStrategyBase
     {
         private readonly Vec target;
         
-        public MoveSingleBot(DeluxeState state, Bot bot, Vec target)
+        public Move(DeluxeState state, Bot bot, Vec target)
             : base(state, bot)
         {
             this.target = target;
