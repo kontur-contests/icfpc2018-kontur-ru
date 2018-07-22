@@ -195,8 +195,9 @@ namespace lib.Utils
                         ProblemPrioritizer = p => ProblemPriority.High,
                         Solver = () => new SimpleReassembler(
                                            new InvertorDisassembler(disassembler.solver(problem.SourceMatrix), problem.SourceMatrix),
-                                           assembler.solver(problem.TargetMatrix)
-                                           ),
+                                           assembler.solver(problem.TargetMatrix),
+                                           problem.SourceMatrix,
+                                           problem.TargetMatrix),
                         CompatibleProblemTypes = new[] { ProblemType.Reassemble }
 
                 });
@@ -225,7 +226,8 @@ namespace lib.Utils
         {
             return new DivideAndConquer(matrix, true);
         }
-        private static IAmSolver CreateSlicer6x6(Matrix matrix)
+
+        public static IAmSolver CreateSlicer6x6(Matrix matrix)
         {
             return new HorizontalSlicer(matrix, 6, 6, true);
         }

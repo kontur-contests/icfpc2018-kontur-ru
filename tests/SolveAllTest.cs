@@ -61,18 +61,23 @@ namespace tests
 
         [Test]
         [Explicit]
-        public void Reassemble([Values(3)] int problemId)
+        public void Reassemble([Values(75)] int problemId)
         {
             var problem = ProblemSolutionFactory.LoadProblem($"FR{problemId:D3}");
             //var assembler = new GreedyPartialSolver(problem.TargetMatrix, new ThrowableHelperFast(problem.TargetMatrix));
             //var disassembler = new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix);
-            //var solver = new SimpleReassembler(disassembler, assembler);
-            var solver = new SmartReassembler(
+            var solver = new SimpleReassembler(
+                new InvertorDisassembler(ProblemSolutionFactory.CreateSlicer6x6(problem.SourceMatrix), problem.SourceMatrix),
+                ProblemSolutionFactory.CreateSlicer6x6(problem.TargetMatrix),
                 problem.SourceMatrix,
-                problem.TargetMatrix,
-                (s, t) => new InvertorDisassembler(new GreedyPartialSolver(s, t, new ThrowableHelperFast(t, s)), s, t),
-                (s, t) => new GreedyPartialSolver(t, s, new ThrowableHelperFast(s, t))
+                problem.TargetMatrix
                 );
+            //var solver = new SmartReassembler(
+            //    problem.SourceMatrix,
+            //    problem.TargetMatrix,
+            //    (s, t) => new InvertorDisassembler(new GreedyPartialSolver(s, t, new ThrowableHelperFast(t, s)), s, t),
+            //    (s, t) => new GreedyPartialSolver(t, s, new ThrowableHelperFast(s, t))
+            //    );
             List<ICommand> commands = new List<ICommand>();
             try
             {
@@ -93,6 +98,8 @@ namespace tests
                 var bytes = CommandSerializer.Save(commands.ToArray());
                 File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
             }
+            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            new Interpreter(state).Run(commands);
         }
 
         [Test]

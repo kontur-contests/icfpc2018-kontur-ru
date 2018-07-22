@@ -20,10 +20,15 @@ namespace lib.Models
 
         public void Run(IEnumerable<ICommand> trace)
         {
+            RunPartially(trace);
+            EnsureIsFinal();
+        }
+
+        public void RunPartially(IEnumerable<ICommand> trace)
+        {
             var traceQueue = new Queue<ICommand>(trace);
             while (traceQueue.Any())
                 Tick(traceQueue);
-            EnsureIsFinal();
         }
 
         public void Tick(Queue<ICommand> trace)
