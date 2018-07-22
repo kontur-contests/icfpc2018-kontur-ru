@@ -63,6 +63,7 @@ namespace lib.Utils
             var gFast = new Solution
             {
                 Name = "GS + TH Fast",
+                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
                 Solver = () => new GreedyPartialSolver(
                                           problem.TargetMatrix.Voxels,
                                           new bool[R, R, R],
@@ -73,6 +74,7 @@ namespace lib.Utils
             var gLayers = new Solution
             {
                 Name = "GS + Layers",
+                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
                 Solver = () => new GreedyPartialSolver(
                                           problem.TargetMatrix.Voxels,
                                           new bool[R, R, R],
@@ -84,18 +86,21 @@ namespace lib.Utils
             var columns = new Solution
             {
                 Name = "Columns",
+                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
                 Solver = () => new DivideAndConquer(problem.TargetMatrix, false),
             };
 
             var columnsBbx = new Solution
             {
                 Name = "ColumnsBbx",
+                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
                 Solver = () => new DivideAndConquer(problem.TargetMatrix, true),
             };
 
             var gForLarge = new Solution
             {
                 Name = "GreedyForLarge",
+                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
                 Solver = () => new GreedyPartialSolver(
                                    problem.TargetMatrix.Voxels,
                                    new bool[R, R, R],
@@ -107,6 +112,7 @@ namespace lib.Utils
             var stupidDisassembler = new Solution
             {
                 Name = "disasm",
+                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
                 Solver = () => new StupidDisassembler(problem.SourceMatrix),
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
@@ -114,6 +120,7 @@ namespace lib.Utils
             var invertorDisassembler = new Solution
             {
                 Name = "invertor",
+                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
                 Solver = () => new InvertorDisassembler(new GreedyPartialSolver(
                                                             problem.SourceMatrix.Voxels,
                                                             new bool[R, R, R],
@@ -125,6 +132,7 @@ namespace lib.Utils
             var invColDisassembler = new Solution
             {
                 Name = "invCol",
+                ProblemPrioritizer = _ => ProblemPriority.Normal, // solve problems in any order
                 Solver = () => new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix),
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
@@ -160,11 +168,19 @@ namespace lib.Utils
         Reassemple
     }
 
+    public enum ProblemPriority
+    {
+        High,
+        Normal,
+        DoNotSolve
+    }
+
     public class Solution
     {
         public string Name { get; set; }
         public Func<IAmSolver> Solver { get; set; }
         public ProblemType[] CompatibleProblemTypes { get; set; } = { ProblemType.Assemble };
+        public Func<Problem, ProblemPriority> ProblemPrioritizer { get; set; }
     }
 
     public class ProblemSolutionPair
