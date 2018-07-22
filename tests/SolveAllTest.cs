@@ -98,6 +98,31 @@ namespace tests
         [Test]
         [Explicit]
         //[Timeout(30000)]
+        public void AssembleKung()
+        {
+            var problem = ProblemSolutionFactory.LoadProblem("FA004");
+            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var solver = new Solver(state, new ParallelGredyFill(state, state.Bots.First()));
+            List<ICommand> commands = new List<ICommand>();
+            try
+            {
+                commands.AddRange(solver.Solve());
+            }
+            catch (Exception e)
+            {
+                Log.For(this).Error($"Unhandled exception in solver for {problem.Name}", e);
+                throw;
+            }
+            finally
+            {
+                var bytes = CommandSerializer.Save(commands.ToArray());
+                File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
+            }
+        }
+
+        [Test]
+        [Explicit]
+        //[Timeout(30000)]
         public void Assemble()
         {
             var problem = ProblemSolutionFactory.LoadProblem("FD116");

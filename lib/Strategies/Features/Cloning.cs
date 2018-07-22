@@ -34,9 +34,10 @@ namespace lib.Strategies.Features
             {
                 var to = nearPositions.First();
                 await Do(new Fission(new NearDifference(to - bot.Position), bot.Seeds[(bot.Seeds.Count + 1) / 2]));
+                return true;
             }
-            
-            return true;
+
+            return false;
         }
     }
 }
