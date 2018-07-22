@@ -10,22 +10,22 @@ namespace lib.Commands
 {
     public class SMove : BaseCommand
     {
-        public readonly LongLinearDifference shift;
+        public LongLinearDifference Shift { get; }
 
         public SMove(LongLinearDifference shift)
         {
-            this.shift = shift;
+            this.Shift = shift;
         }
 
         public override string ToString()
         {
-            return $"SMove({shift})";
+            return $"SMove({Shift})";
         }
 
         [NotNull]
         public override byte[] Encode()
         {
-            var (a, i) = shift.GetParameters();
+            var (a, i) = Shift.GetParameters();
             byte firstByte = (byte)((a << 4) | 0b0100);
             byte secondByte = (byte)i;
             return new[] {firstByte, secondByte};
@@ -33,15 +33,16 @@ namespace lib.Commands
 
         public override bool AllPositionsAreValid([NotNull] IMatrix matrix, Bot bot)
         {
-            if (!matrix.IsInside(bot.Position + shift))
+            if (!matrix.IsInside(bot.Position + Shift))
                 return false;
-            return GetCellsOnPath(bot.Position).All(matrix.IsVoidVoxel);
+            var obstacle = GetCellsOnPath(bot.Position).FirstOrDefault(v => !matrix.IsVoidVoxel(v));
+            return obstacle == null;
         }
 
         public override void Apply(DeluxeState state, Bot bot)
         {
-            bot.Position = bot.Position + shift;
-            state.Energy += 2 * shift.Shift.MLen();
+            bot.Position = bot.Position + Shift;
+            state.Energy += 2 * Shift.Shift.MLen();
         }
 
         [NotNull]
@@ -53,7 +54,7 @@ namespace lib.Commands
         [NotNull]
         public Vec[] GetCellsOnPath([NotNull] Vec position)
         {
-            return shift.GetTrace(position);
+            return Shift.GetTrace(position);
         }
     }
 }

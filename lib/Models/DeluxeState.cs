@@ -14,7 +14,7 @@ namespace lib.Models
     {
         public Matrix SourceMatrix { get; }
         public Matrix TargetMatrix { get; }
-        public ComponentTrackingMatrix Matrix { get; }
+        public CorrectComponentTrackingMatrix Matrix { get; }
         public HashSet<Bot> Bots { get; }
         public long Energy { get; set; }
         public Harmonics Harmonics { get; set; }
@@ -28,7 +28,7 @@ namespace lib.Models
         {
             SourceMatrix = sourceMatrix ?? new Matrix(targetMatrix.R);
             TargetMatrix = targetMatrix ?? new Matrix(sourceMatrix.R);
-            Matrix = new ComponentTrackingMatrix(SourceMatrix.Clone());
+            Matrix = new CorrectComponentTrackingMatrix(SourceMatrix.Clone().Voxels);
             Bots = new HashSet<Bot> { new Bot { Bid = 1, Position = Vec.Zero, Seeds = Enumerable.Range(2, 39).ToList() } };
             Energy = 0;
         }
@@ -48,83 +48,97 @@ namespace lib.Models
 
         public void SetBotCommand(Bot bot, ICommand command)
         {
-            if (!Bots.Contains(bot))
-                throw new InvalidOperationException($"Unknown bot {bot}; Command: {command}");
-            if (botCommands.TryGetValue(bot, out var duplicateCommand))
-                throw new InvalidOperationException($"Bot {bot} has duplicate commands {command} and {duplicateCommand}");
-            botCommands.Add(bot, command);
-
-            if (!command.AllPositionsAreValid(Matrix, bot))
-                throw new InvalidOperationException($"Incorrect command {command}");
-
-            if (command is GroupCommand groupCommand)
+            try
             {
-                var region = groupCommand.GetRegion(bot.Position);
-                Dictionary<Vec, Bot> corners;
-                if (!groupRegions.TryGetValue(region, out var others))
-                {
-                    groupRegions.Add(region, (command is GFill, corners = new Dictionary<Vec, Bot>()));
-                    AddVolatileCells(bot, command, region);
-                }
-                else
-                {
-                    corners = others.corners;
-                    if (others.isFill && !(command is GFill))
-                        throw new InvalidOperationException($"Common volatile region {region}. " +
-                                                            $"Bots: {bot}; {string.Join("; ", corners.Values)}. " +
-                                                            $"Command: {command};");
-                }
-                var corner = bot.Position + groupCommand.NearShift;
-                if (corners.TryGetValue(corner, out var conflictingBot))
-                    throw new InvalidOperationException($"Common group region cell {corner}. " +
-                                                        $"Bots: {bot}; {conflictingBot}.");
-                corners.Add(corner, bot);
-            }
+                if (!Bots.Contains(bot))
+                    throw new InvalidOperationException($"Unknown bot {bot}; Command: {command}");
+                if (botCommands.TryGetValue(bot, out var duplicateCommand))
+                    throw new InvalidOperationException($"Bot {bot} has duplicate commands {command} and {duplicateCommand}");
+                botCommands.Add(bot, command);
 
-            AddVolatileCells(bot, command, command.GetVolatileCells(bot));
+                if (!command.AllPositionsAreValid(Matrix, bot))
+                    throw new InvalidOperationException($"Incorrect command {command}");
+
+                if (command is GroupCommand groupCommand)
+                {
+                    var region = groupCommand.GetRegion(bot.Position);
+                    Dictionary<Vec, Bot> corners;
+                    if (!groupRegions.TryGetValue(region, out var others))
+                    {
+                        groupRegions.Add(region, (command is GFill, corners = new Dictionary<Vec, Bot>()));
+                        AddVolatileCells(bot, command, region);
+                    }
+                    else
+                    {
+                        corners = others.corners;
+                        if (others.isFill && !(command is GFill))
+                            throw new InvalidOperationException($"Common volatile region {region}. " +
+                                                                $"Bots: {bot}; {string.Join("; ", corners.Values)}. " +
+                                                                $"Command: {command};");
+                    }
+                    var corner = bot.Position + groupCommand.NearShift;
+                    if (corners.TryGetValue(corner, out var conflictingBot))
+                        throw new InvalidOperationException($"Common group region cell {corner}. " +
+                                                            $"Bots: {bot}; {conflictingBot}.");
+                    corners.Add(corner, bot);
+                }
+
+                AddVolatileCells(bot, command, command.GetVolatileCells(bot));
+            }
+            catch (InvalidOperationException e)
+            {
+                throw new InvalidOperationException($"Tick #{Tick}. {e.Message}", e);
+            }
         }
 
         public List<ICommand> EndTick()
         {
-            Tick++;
-
-            foreach (var bot in Bots)
+            try
             {
-                if (!botCommands.ContainsKey(bot))
-                    SetBotCommand(bot, new Wait());
-            }
-            if (botCommands.All(x => x.Value is Wait))
-                throw new InvalidOperationException("All commands are WAITS - it's wrong");
+                Tick++;
 
-            foreach (var kvp in groupRegions)
-            {
-                var region = kvp.Key;
-                var cornersCount = 1 << region.Dim;
-                if (kvp.Value.corners.Count != cornersCount)
-                    throw new InvalidOperationException($"Not enough bots to construct region {region} for {(kvp.Value.isFill ? nameof(GFill) : nameof(GVoid))}. " +
-                                                        $"Bots: {string.Join("; ", kvp.Value.corners.Values)}");
-                var bot = kvp.Value.corners.First().Value;
-                botCommands[bot].Apply(this, bot);
-            }
-
-            // todo check fusionS and fusionP and fisson
-
-            foreach (var kvp in botCommands)
-            {
-                if (kvp.Value is GroupCommand)
-                    continue;
-                if (kvp.Value is Halt)
+                foreach (var bot in Bots)
                 {
-                    if (Bots.Count > 1)
-                        throw new InvalidOperationException($"Couldn't halt. Too many bots left: {string.Join("; ", Bots)}");
-                    if (Harmonics != Harmonics.Low)
-                        throw new InvalidOperationException("Couldn't halt in high harmonics");
+                    if (!botCommands.ContainsKey(bot))
+                        SetBotCommand(bot, new Wait());
                 }
-                kvp.Value.Apply(this, kvp.Key);
-            }
+                if (botCommands.All(x => x.Value is Wait))
+                    throw new InvalidOperationException("All commands are WAITS - it's wrong");
 
-            EnsureWellFormed();
-            return botCommands.OrderBy(kvp => kvp.Key.Bid).Select(kvp => kvp.Value).ToList();
+                foreach (var kvp in groupRegions)
+                {
+                    var region = kvp.Key;
+                    var cornersCount = 1 << region.Dim;
+                    if (kvp.Value.corners.Count != cornersCount)
+                        throw new InvalidOperationException($"Not enough bots to construct region {region} for {(kvp.Value.isFill ? nameof(GFill) : nameof(GVoid))}. " +
+                                                            $"Bots: {string.Join("; ", kvp.Value.corners.Values)}");
+                    var bot = kvp.Value.corners.First().Value;
+                    botCommands[bot].Apply(this, bot);
+                }
+
+                // todo check fusionS and fusionP and fisson
+
+                foreach (var kvp in botCommands)
+                {
+                    if (kvp.Value is GroupCommand)
+                        continue;
+                    if (kvp.Value is Halt)
+                    {
+                        if (Bots.Count > 1)
+                            throw new InvalidOperationException($"Couldn't halt. Too many bots left: {string.Join("; ", Bots)}");
+                        if (Harmonics != Harmonics.Low)
+                            throw new InvalidOperationException("Couldn't halt in high harmonics");
+                    }
+                    kvp.Value.Apply(this, kvp.Key);
+                }
+
+                EnsureWellFormed();
+                return botCommands.OrderBy(kvp => kvp.Key.Bid).Select(kvp => kvp.Value).ToList();
+            }
+            catch (InvalidOperationException e)
+            {
+                throw new InvalidOperationException($"EndOfTick #{Tick-1}. {e.Message}", e);
+            }
         }
 
 

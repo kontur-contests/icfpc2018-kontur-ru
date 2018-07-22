@@ -144,10 +144,33 @@ namespace lib.Utils
                 Solver = () => new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix),
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
+            
+            var invSlice6x6Disassembler = new Solution
+            {
+                Name = "invSlice6x6",
+                ProblemPrioritizer = p => ProblemPriority.High,
+                Solver = () => new InvertorDisassembler(new HorizontalSlicer(problem.TargetMatrix, 6, 6, true), problem.SourceMatrix),
+                CompatibleProblemTypes = new[] { ProblemType.Disassemble }
+            };
+
+            var slicer6x6 = new Solution
+            {
+                Name = "Slicer6x6",
+                ProblemPrioritizer = p => ProblemPriority.High,
+                Solver = () => new HorizontalSlicer(problem.TargetMatrix, 6, 6, true),
+            };
+
+            var slicer8x5 = new Solution
+            {
+                Name = "Slicer8x5",
+                ProblemPrioritizer = p => ProblemPriority.High,
+                Solver = () => new HorizontalSlicer(problem.TargetMatrix, 8, 5, true),
+            };
 
             (string name, Func<Matrix, IAmSolver> solver)[] solvers = {
                     ("g", CreateGreedy),
-                    ("c", CreateColumns)
+                    ("c", CreateColumns),
+                    ("s6x6", CreateSlicer6x6),
                 };
 
             var raSolutions = new List<Solution>();
@@ -157,7 +180,7 @@ namespace lib.Utils
                 raSolutions.Add(new Solution
                     {
                         Name = $"RA+{disassembler.name}+{assembler.name}",
-                        ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
+                        ProblemPrioritizer = p => ProblemPriority.High,
                         Solver = () => new SimpleReassembler(
                                            new InvertorDisassembler(disassembler.solver(problem.SourceMatrix), problem.SourceMatrix),
                                            assembler.solver(problem.TargetMatrix)
@@ -171,11 +194,14 @@ namespace lib.Utils
                     stupidDisassembler,
                     invertorDisassembler,
                     invColDisassembler,
+                    invSlice6x6Disassembler,
                     gFast,
                     gLayers,
                     columns,
                     columnsBbx,
-                    gForLarge
+                    gForLarge,
+                    slicer6x6,
+                    slicer8x5,
                 }.Concat(raSolutions).ToArray();
         }
 
@@ -186,6 +212,10 @@ namespace lib.Utils
         private static IAmSolver CreateColumns(Matrix matrix)
         {
             return new DivideAndConquer(matrix, true);
+        }
+        private static IAmSolver CreateSlicer6x6(Matrix matrix)
+        {
+            return new HorizontalSlicer(matrix, 6, 6, true);
         }
     }
 

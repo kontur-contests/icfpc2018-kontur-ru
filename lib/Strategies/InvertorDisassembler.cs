@@ -44,7 +44,7 @@ namespace lib.Strategies
                 {
                     var bid = bot.Bid;
                     var command = commands.Dequeue();
-                    if (command is SMove smove) reversedTick.Add((bid, new SMove(new LongLinearDifference(-smove.shift.Shift))));
+                    if (command is SMove smove) reversedTick.Add((bid, new SMove(new LongLinearDifference(-smove.Shift.Shift))));
                     if (command is Fill fill) reversedTick.Add((bid, new Voidd(fill.Shift)));
                     if (command is Wait wait) reversedTick.Add((bid, wait));
                     if (command is LMove move) reversedTick.Add((bid, new LMove(new ShortLinearDifference(-move.secondShift.Shift), new ShortLinearDifference(-move.firstShift.Shift))));
