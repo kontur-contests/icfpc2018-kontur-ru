@@ -40,7 +40,7 @@ namespace lib.Utils
         public static Problem CreateProblem(string fullPath)
         {
             var fileName = Path.GetFileName(fullPath) ?? "";
-            var type = fileName.StartsWith("FA") ? ProblemType.Assemble : fileName.StartsWith("FD") ? ProblemType.Disassemble : ProblemType.Reassemple;
+            var type = fileName.StartsWith("FA") ? ProblemType.Assemble : fileName.StartsWith("FD") ? ProblemType.Disassemble : ProblemType.Reassemble;
 
             // ReSharper disable once PossibleNullReferenceException
             var name = Path.GetFileNameWithoutExtension(fullPath).Split('_')[0]; // no tgt and src suffix
@@ -142,8 +142,20 @@ namespace lib.Utils
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
 
+            var gReassembler = new Solution
+            {
+                Name = "RA+g+g",
+                ProblemPrioritizer = _ => ProblemPriority.High, 
+                Solver = () => new SimpleReassembler(
+                    new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix),
+                    new GreedyPartialSolver(problem.TargetMatrix, new ThrowableHelperFast(problem.TargetMatrix))
+                    ),
+                CompatibleProblemTypes = new[] { ProblemType.Reassemble }
+            };
+
             return new[]
                 {
+                    gReassembler,
                     stupidDisassembler,
                     invertorDisassembler,
                     invColDisassembler,
@@ -170,7 +182,7 @@ namespace lib.Utils
     {
         Assemble,
         Disassemble,
-        Reassemple
+        Reassemble
     }
 
     public enum ProblemPriority
