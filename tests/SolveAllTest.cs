@@ -97,10 +97,10 @@ namespace tests
 
         [Test]
         [Explicit]
-        //[Timeout(30000)]
+        [Timeout(60000)]
         public void AssembleKung()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FA004");
+            var problem = ProblemSolutionFactory.LoadProblem("FA060");
             var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
             var solver = new Solver(state, new ParallelGredyFill(state, state.Bots.First()));
             List<ICommand> commands = new List<ICommand>();
@@ -118,6 +118,7 @@ namespace tests
                 var bytes = CommandSerializer.Save(commands.ToArray());
                 File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
             }
+            Console.Out.WriteLine(state.Energy);
         }
 
         [Test]
