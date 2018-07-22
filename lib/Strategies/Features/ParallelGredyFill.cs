@@ -22,7 +22,7 @@ namespace lib.Strategies.Features
             var helper = new ThrowableHelper(state.TargetMatrix);
             var candidates = new HashSet<Vec>(state.GetGroundedCellsToBuild());
 
-            var strategies = state.Bots.Select(b => (IStrategy)new CooperativeGreedyFill(state, b, helper, candidates)).ToArray();
+            var strategies = state.Bots.Select(b => (IStrategy)new CooperativeGreedyFill(state, b, candidates)).ToArray();
             await WhenAll(strategies);
 
             await new Merging(state);

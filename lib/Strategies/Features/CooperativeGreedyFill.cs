@@ -10,16 +10,14 @@ namespace lib.Strategies.Features
 {
     public class CooperativeGreedyFill : SimpleSingleBotStrategyBase
     {
-        private readonly ThrowableHelper oracle;
         private readonly ICandidatesOrdering candidatesOrdering;
         private readonly HashSet<Vec> candidates;
 
-        public CooperativeGreedyFill(DeluxeState state, Bot bot, ThrowableHelper oracle, HashSet<Vec> candidates, ICandidatesOrdering candidatesOrdering = null)
+        public CooperativeGreedyFill(DeluxeState state, Bot bot, HashSet<Vec> candidates, ICandidatesOrdering candidatesOrdering = null)
             : base(state, bot)
         {
-            this.oracle = oracle;
             this.candidates = candidates;
-            this.candidatesOrdering = candidatesOrdering ?? new BuildAllStayingStill();
+            this.candidatesOrdering = candidatesOrdering ?? new BottomToTopBuildingAround();
         }
 
         protected override async StrategyTask<bool> Run()
@@ -30,11 +28,9 @@ namespace lib.Strategies.Features
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
                 {
-                    if (!await new FillVoxel(state, bot, candidate, nearPosition, () => oracle.CanFill(candidate, GetBots(nearPosition))))
+                    if (!await new FillVoxel(state, bot, candidate, nearPosition))
                         continue;
-
-                    oracle.Fill(candidate);
-
+                    
                     candidates.Remove(candidate);
                     foreach (var neighbor in candidate.GetMNeighbours(state.Matrix))
                     {
@@ -64,17 +60,9 @@ namespace lib.Strategies.Features
                                                                     (!state.VolatileCells.ContainsKey(n) || n == bot.Position));
                 foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(bot.Position)))
                 {
-                    if (oracle.CanFill(candidate, GetBots(nearPosition)))
-                        yield return (candidate, nearPosition);
+                    yield return (candidate, nearPosition);
                 }
             }
-        }
-
-        private List<Vec> GetBots(Vec moveTo)
-        {
-            var others = state.Bots.Where(b => b != bot).Select(b => b.Position).ToList();
-            others.Add(moveTo);
-            return others;
         }
     }
 }

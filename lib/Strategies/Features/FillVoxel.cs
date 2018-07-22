@@ -14,7 +14,7 @@ namespace lib.Strategies.Features
         private readonly Vec fromPos;
         private readonly Func<bool> canFill;
 
-        public FillVoxel(DeluxeState state, Bot bot, Vec whatToFill, Vec fromPos, Func<bool> canFill = null)
+        public FillVoxel(DeluxeState state, Bot bot, Vec whatToFill, Vec fromPos)
             : base(state, bot)
         {
             this.whatToFill = whatToFill;
