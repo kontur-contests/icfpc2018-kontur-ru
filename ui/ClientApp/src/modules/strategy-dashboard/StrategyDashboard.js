@@ -38,10 +38,13 @@ export class StrategyDashboard extends React.Component {
     return (
       <div>
         <h2>Solutions</h2>
-        <DataTable
-          data={this.state.denormalizedData}
-          loading={this.state.loading}
-        />
+        {!this.props.old && (
+          <DataTable
+            data={this.state.denormalizedData}
+            loading={this.state.loading}
+          />
+        )}
+        {this.props.old && this.renderOldTable()}
       </div>
     );
   }

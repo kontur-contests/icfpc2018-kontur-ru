@@ -56,12 +56,12 @@ export class DzinDzin extends React.Component {
         <ul>
           {this.state.lastSolved.map(x => (
             <li key={x}>
-              {x}: {this.state.solutions[x]}
+              {x}
             </li>
           ))}
         </ul>
         <hr />
-        <h2>Non solved</h2>
+        <h2>Non solved ({this.state.problems.length})</h2>
         <ul>{this.state.problems.map(x => <li key={x}>{x}</li>)}</ul>
       </div>
     );
