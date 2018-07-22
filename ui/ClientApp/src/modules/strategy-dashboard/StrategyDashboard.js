@@ -8,7 +8,8 @@ export class StrategyDashboard extends React.Component {
     taskNames: [],
     solverNames: [],
     loading: true,
-    denormalizedData: []
+    denormalizedData: [],
+    selectedSolver: "all"
   };
 
   componentDidMount() {
@@ -38,9 +39,26 @@ export class StrategyDashboard extends React.Component {
     return (
       <div>
         <h2>Solutions</h2>
+        <label>
+          Solver:{' '}
+          <select
+            value={this.state.selectedSolver}
+            onChange={({ target }) =>
+              this.setState({ selectedSolver: target.value })
+            }
+          >
+            <option value="all">All</option>
+            {this.state.solverNames.map(x => (
+              <option value={x} key={x}>
+                {x}
+              </option>
+            ))}
+          </select>
+        </label>
+        <hr/>
         {!this.props.old && (
           <DataTable
-            data={this.state.denormalizedData}
+            data={this.state.denormalizedData.filter(this.filterData)}
             loading={this.state.loading}
           />
         )}
@@ -48,6 +66,14 @@ export class StrategyDashboard extends React.Component {
       </div>
     );
   }
+
+  filterData = row => {
+    if (this.state.selectedSolver === "all") {
+      return true;
+    }
+
+    return row.solverName === this.state.selectedSolver;
+  };
 
   renderOldTable() {
     return (
