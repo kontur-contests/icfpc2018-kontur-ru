@@ -150,10 +150,33 @@ export const getSolutionResults = async () => {
   };
 };
 
+function raterFactory(solverSolutions, solverNames) {
+  const getEnergySpent = solverName =>
+    solverSolutions[solverName] === 0 ||
+    solverSolutions[solverName] === undefined
+      ? Infinity
+      : solverSolutions[solverName];
+
+  const isFiniteValue = solverName => {
+    return (
+      solverSolutions[solverName] !== 0 &&
+      solverSolutions[solverName] !== undefined
+    );
+  };
+
+  const rates = solverNames
+    .filter(isFiniteValue)
+    .sort((a, b) => getEnergySpent(a) - getEnergySpent(b));
+  // console.log(rates);
+  return solverName => rates.indexOf(solverName) / (rates.length - 1);
+}
+
 export function denormalizeData({ result, taskNames, solverNames }) {
   const data = [];
 
   for (const taskName of taskNames) {
+    const rater = raterFactory(result[taskName], solverNames);
+
     for (const solverName of solverNames) {
       if (solverName === LEADERS_NAME) {
         continue;
@@ -165,7 +188,9 @@ export function denormalizeData({ result, taskNames, solverNames }) {
         energy: energy === 0 || energy === undefined ? Infinity : energy,
         taskName,
         solverName,
-        leaderEnergy
+        leaderEnergy,
+        rate: rater(solverName),
+        leaderRate: rater(LEADERS_NAME)
       };
 
       data.push(record);
