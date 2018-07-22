@@ -2,6 +2,8 @@ const ELASTIC_URL = "/api/elastic";
 
 const MAX_RETRIES = 5;
 
+const LEADERS_NAME = "ZZZ ICFP Leaders";
+
 const makeRequest = (query, retries = 0) => {
   return fetch(`${ELASTIC_URL}`, {
     method: "POST",
@@ -45,7 +47,7 @@ const searchSolutionsForProblem = problemName => {
     size: 1000,
     query: {
       bool: {
-        should: [{ match: { "taskName.keyword": problemName } }]
+        filter: [{ term: { "taskName.keyword": problemName } }]
       }
     },
     _source: ["energySpent", "taskName", "solverName"]
@@ -72,9 +74,9 @@ function selectData(taskNameGroup, leadersGroup) {
       solverNames.add(solverName);
     }
 
-    solverNames.add("ZZZ ICFP Leaders");
+    solverNames.add(LEADERS_NAME);
     if (taskName in leadersGroup) {
-      result[taskName]["ZZZ ICFP Leaders"] = minBy(
+      result[taskName][LEADERS_NAME] = minBy(
         x => x.energy,
         leadersGroup[taskName]
       ).energy;
@@ -118,7 +120,7 @@ export const getSolutionResults = async () => {
 
   const problemNames = solutionsWithMinimalEnergy.aggregations.task_name.buckets
     .map(x => x.key)
-    .filter(x => !x.startsWith("LA"));
+    .filter(x => !x.startsWith("LA") && !x.includes("_tgt"));
 
   const searchResults = await Promise.all(
     problemNames.map(searchSolutionsForProblem)
@@ -147,6 +149,31 @@ export const getSolutionResults = async () => {
     )
   };
 };
+
+export function denormalizeData({ result, taskNames, solverNames }) {
+  const data = [];
+
+  for (const taskName of taskNames) {
+    for (const solverName of solverNames) {
+      if (solverName === LEADERS_NAME) {
+        continue;
+      }
+
+      const energy = result[taskName][solverName];
+      const leaderEnergy = result[taskName][LEADERS_NAME] || Infinity;
+      const record = {
+        energy: energy === 0 || energy === undefined ? Infinity : energy,
+        taskName,
+        solverName,
+        leaderEnergy
+      };
+
+      data.push(record);
+    }
+  }
+
+  return data;
+}
 
 export function minBy(fn, xs) {
   let min;
