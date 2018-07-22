@@ -55,7 +55,7 @@ namespace tests
         [Explicit]
         public void TestHorizontalSlicer(string filename)
         {
-            DoRealTest(model => new HorizontalSlicer(model),
+            DoRealTest(model => new HorizontalSlicer(model, 6, 6, useBoundingBox : true),
                        (solver, commands, model) =>
                            {
                                var state = new DeluxeState(new Matrix(model.R), model);
@@ -104,6 +104,8 @@ namespace tests
             }
             sw.Stop();
 
+            if (targetDirectory == "failed")
+                return;
             var testResult = new ElasticTestResult
                 {
                     TestName = shortname,
