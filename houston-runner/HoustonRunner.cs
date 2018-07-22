@@ -71,7 +71,7 @@ namespace houston
                     {
                         var timer = Stopwatch.StartNew();
 
-                        var solver = solution.Solver();
+                        var solver = solution.Solver(task.Problem);
 
                         var commands = new List<ICommand>();
                         var started = new ManualResetEvent(false);

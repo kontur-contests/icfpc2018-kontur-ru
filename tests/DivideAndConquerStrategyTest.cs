@@ -72,7 +72,32 @@ namespace tests
                                return state.Energy;
                            },
                        "horizontal-slicer",
-                       "bbox-slicer-remove-sticks",
+                       "bbox-slicer-remove-sticks-lmoves",
+                       filename);
+        }
+
+        [TestCaseSource(nameof(GetDeconstructionModels))]
+        [Explicit]
+        public void TestFastDeconstructor(string filename)
+        {
+            DoRealTest(model => new FastDeconstructor(model), 
+                       (solver, commands, model) =>
+                           {
+                               var state = new DeluxeState(model, new Matrix(model.R));
+                               var queue = new Queue<ICommand>();
+                               var interpreter = new Interpreter(state);
+                               foreach (var command in solver.Solve())
+                               {
+                                   commands.Add(command);
+                                   queue.Enqueue(command);
+                                   if (state.Bots.Count <= queue.Count)
+                                       interpreter.Tick(queue);
+                               }
+                               interpreter.EnsureIsFinal();
+                               return state.Energy;
+                           },
+                       "fast-deconstructor",
+                       "not-so-super-crew",
                        filename);
         }
 
@@ -148,5 +173,15 @@ namespace tests
                 yield return new TestCaseData(file).SetName(Path.GetFileNameWithoutExtension(file));
             }
         }
+
+        private static IEnumerable<TestCaseData> GetDeconstructionModels()
+        {
+            var problemsDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../data/problemsF");
+            foreach (string file in Directory.EnumerateFiles(problemsDir, "FD*.mdl"))
+            {
+                yield return new TestCaseData(file).SetName(Path.GetFileNameWithoutExtension(file));
+            }
+        }
+        
     }
 }

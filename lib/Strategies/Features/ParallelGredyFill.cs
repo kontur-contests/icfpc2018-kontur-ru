@@ -16,12 +16,13 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            await new Split(state, bot);
-
-            var helper = new ThrowableHelper(state.TargetMatrix);
+            var split = new Split(state, bot, 40);
+            await split;
+            
+            var helper = new ThrowableHelperFast(state.TargetMatrix);
             var candidates = new HashSet<Vec>(state.GetGroundedCellsToBuild());
 
-            var strategies = state.Bots.Select(b => (IStrategy)new CooperativeGreedyFill(state, b, candidates)).ToArray();
+            var strategies = split.Bots.Select(b => (IStrategy)new CooperativeGreedyFill(state, b, candidates)).ToArray();
             await WhenAll(strategies);
 
             return await Finalize();

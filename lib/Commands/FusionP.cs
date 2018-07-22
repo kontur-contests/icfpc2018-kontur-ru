@@ -44,6 +44,7 @@ namespace lib.Commands
             state.Bots.Remove(secondaryBot);
             bot.Seeds.Add(secondaryBot.Bid);
             bot.Seeds.AddRange(secondaryBot.Seeds);
+            bot.Seeds.Sort();
             state.Energy -= 24;
         }
 

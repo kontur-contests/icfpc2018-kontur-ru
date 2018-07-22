@@ -14,11 +14,11 @@ namespace lib.Utils
     {
         public static ProblemSolutionPair[] GetTasks()
         {
-            var solvedProblemNames = ElasticHelper.FetchSolvedProblemNames();
+//            var solvedProblemNames = ElasticHelper.FetchSolvedProblemNames();
             
             return
                 (from p in GetProblems()
-                 from s in GetSolutions(p, solvedProblemNames)
+                 from s in GetSolutions(p)
                  where s.CompatibleProblemTypes.Contains(p.Type)
                  select new ProblemSolutionPair
                  {
@@ -65,167 +65,184 @@ namespace lib.Utils
             return Matrix.Load(File.ReadAllBytes(filename));
         }
 
-        private static Solution[] GetSolutions(Problem problem, HashSet<string> solvedProblemNames)
+        public static readonly Solution gFast = new Solution
         {
-            var R = problem.TargetMatrix?.R ?? problem.SourceMatrix.R;
+            Name = "GS + TH Fast",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem => new GreedyPartialSolver(
+                                      problem.TargetMatrix,
+                                      problem.SourceMatrix,
+                                      new ThrowableHelperFast(problem.TargetMatrix))
+        };
 
-            var gFast = new Solution
-            {
-                Name = "GS + TH Fast",
-                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
-                Solver = () => new GreedyPartialSolver(
-                                          problem.TargetMatrix.Voxels,
-                                          new bool[R, R, R],
-                                          new Vec(0, 0, 0),
-                                          new ThrowableHelperFast(problem.TargetMatrix))
-            };
+        public static readonly Solution gLayers = new Solution
+        {
+            Name = "GS + Layers",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem => new GreedyPartialSolver(
+                                    problem.TargetMatrix,
+                                    problem.SourceMatrix,
+                                      new ThrowableHelper(problem.TargetMatrix),
+                                      new BottomToTopBuildingAround())
+        };
 
-            var gLayers = new Solution
-            {
-                Name = "GS + Layers",
-                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
-                Solver = () => new GreedyPartialSolver(
-                                          problem.TargetMatrix.Voxels,
-                                          new bool[R, R, R],
-                                          new Vec(0, 0, 0),
-                                          new ThrowableHelper(problem.TargetMatrix),
-                                          new BottomToTopBuildingAround())
-            };
+        public static readonly Solution columns = new Solution
+        {
+            Name = "Columns",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem => new DivideAndConquer(problem.TargetMatrix, false),
+        };
 
-            var columns = new Solution
-            {
-                Name = "Columns",
-                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
-                Solver = () => new DivideAndConquer(problem.TargetMatrix, false),
-            };
+        public static readonly Solution columnsBbx = new Solution
+        {
+            Name = "ColumnsBbx",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem => new DivideAndConquer(problem.TargetMatrix, true),
+        };
 
-            var columnsBbx = new Solution
-            {
-                Name = "ColumnsBbx",
-                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
-                Solver = () => new DivideAndConquer(problem.TargetMatrix, true),
-            };
+        public static readonly Solution gForLarge = new Solution
+        {
+            Name = "GreedyForLarge",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem => new GreedyPartialSolver(
+                                    problem.TargetMatrix,
+                                    problem.SourceMatrix,
+                               new ThrowableHelper(problem.TargetMatrix),
+                               new NearToFarBottomToTopBuildingAround())
+        };
 
-            var gForLarge = new Solution
-            {
-                Name = "GreedyForLarge",
-                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
-                Solver = () => new GreedyPartialSolver(
-                                   problem.TargetMatrix.Voxels,
-                                   new bool[R, R, R],
-                                   new Vec(0, 0, 0),
-                                   new ThrowableHelper(problem.TargetMatrix),
-                                   new NearToFarBottomToTopBuildingAround())
-            };
+        public static readonly Solution stupidDisassembler = new Solution
+        {
+            Name = "disasm",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem => new StupidDisassembler(problem.SourceMatrix),
+            CompatibleProblemTypes = new[] { ProblemType.Disassemble }
+        };
 
-            var stupidDisassembler = new Solution
-            {
-                Name = "disasm",
-                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
-                Solver = () => new StupidDisassembler(problem.SourceMatrix),
-                CompatibleProblemTypes = new[] { ProblemType.Disassemble }
-            };
-            
-            var invertorDisassembler = new Solution
-            {
-                Name = "invertor",
-                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
-                Solver = () => new InvertorDisassembler(new GreedyPartialSolver(
-                                                            problem.SourceMatrix.Voxels,
-                                                            new bool[R, R, R],
-                                                            new Vec(0, 0, 0),
-                                                            new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix),
-                CompatibleProblemTypes = new[] { ProblemType.Disassemble }
-            };
-            
-            var invColDisassembler = new Solution
-            {
-                Name = "invCol",
-                ProblemPrioritizer = p => solvedProblemNames.Contains(p.Name) ? ProblemPriority.DoNotSolve : ProblemPriority.Normal,
-                Solver = () => new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix),
-                CompatibleProblemTypes = new[] { ProblemType.Disassemble }
-            };
-            
-            var invSlice6x6Disassembler = new Solution
-            {
-                Name = "invSlice6x6",
-                ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = () => new InvertorDisassembler(new HorizontalSlicer(problem.SourceMatrix, 6, 6, true), problem.SourceMatrix),
-                CompatibleProblemTypes = new[] { ProblemType.Disassemble }
-            };
+        public static readonly Solution invertorDisassembler = new Solution
+        {
+            Name = "invertor",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem => new InvertorDisassembler(new GreedyPartialSolver(
+                                                             problem.TargetMatrix,
+                                                             problem.SourceMatrix,
+                                                        new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix),
+            CompatibleProblemTypes = new[] { ProblemType.Disassemble }
+        };
 
-            var slicer6x6 = new Solution
-            {
-                Name = "Slicer6x6",
-                ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = () => new HorizontalSlicer(problem.TargetMatrix, 6, 6, true),
-            };
+        public static readonly Solution invColDisassembler = new Solution
+        {
+            Name = "invCol",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem => new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix),
+            CompatibleProblemTypes = new[] { ProblemType.Disassemble }
+        };
 
-            var slicer8x5 = new Solution
-            {
-                Name = "Slicer8x5",
-                ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = () => new HorizontalSlicer(problem.TargetMatrix, 8, 5, true),
-            };
+        public static readonly Solution invSlice6x6Disassembler = new Solution
+        {
+            Name = "invSlice6x6",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem => new InvertorDisassembler(new HorizontalSlicer(problem.SourceMatrix, 6, 6, true), problem.SourceMatrix),
+            CompatibleProblemTypes = new[] { ProblemType.Disassemble }
+        };
+        public static readonly Solution blockDeconstructor = new Solution
+        {
+            Name = "BlockDeconstructor",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem => new FastDeconstructor(problem.SourceMatrix),
+            CompatibleProblemTypes = new[] { ProblemType.Disassemble },
+        };
 
-            var parallelGredy = new Solution
+        public static readonly Solution parallelGredy = new Solution
+        {
+            Name = "ParallelGredy",
+            ProblemPrioritizer = p => ProblemPriority.Normal,
+            Solver = problem =>
+            {
+                var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+                var solver = new Solver(state, new ParallelGredyFill(state, state.Bots.First()));
+                return solver;
+            }
+        };
+        private static Solution[] GetSolutions(Problem problem1)
+        {
+            var slicers = new List<Solution>();
+            var slicersParameters = new List<(int, int)>();
+            for (var xSize = 2; xSize <= 40; xSize++)
+                for (var zSize = 2; zSize <= 40; zSize++)
                 {
-                    Name = "ParallelGredy",
-                    ProblemPrioritizer = p => ProblemPriority.High,
-                    Solver = () =>
-                        {
-                            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
-                            var solver = new Solver(state, new ParallelGredyFill(state, state.Bots.First()));
-                            return solver;
-                        }
-                };
-            (string name, Func<Matrix, IAmSolver> solver)[] solvers = {
-                    ("g", CreateGreedy),
-                    ("c", CreateColumns),
-                    ("s6x6", CreateSlicer6x6),
-                };
+                    
+                    var count = xSize * zSize;
+                    var xSize1 = xSize;
+                    var zSize1 = zSize;
+                    if (30 <= count && count <= 40 && count % 2 == 0)
+                    {
+                        slicers.Add(new Solution
+                            {
+                                Name = $"Slicer{xSize}x{zSize}",
+                                ProblemPrioritizer = p => ProblemPriority.Normal,
+                                Solver = problem => new HorizontalSlicer(problem.TargetMatrix, xSize1, zSize1, true),
+                            });
+                        slicersParameters.Add((xSize, zSize));
+                    }
+                }
+
+            (string name, Func<Matrix, IAmSolver> solver)[] solvers =
+                slicersParameters.Select(p => ($"s{p.Item1}x{p.Item2}", 
+                                                  (Func<Matrix, IAmSolver>)(m => new HorizontalSlicer(m, p.Item1, p.Item2, true))))
+                                 .ToArray();
 
             var raSolutions = new List<Solution>();
-            foreach (var disassembler in solvers)
+            var disassemblers = solvers
+                .Select(s => (name: s.name, solver: (Func<Problem, IAmSolver>)(problem => new InvertorDisassembler(s.solver(problem.SourceMatrix), problem.SourceMatrix) as IAmSolver)))
+                .Concat(new[]
+                    {
+                        (name: "bd", solver: blockDeconstructor.Solver)
+                    });
+            
+            foreach (var disassembler in disassemblers)
             foreach (var assembler in solvers)
             {
                 raSolutions.Add(new Solution
                     {
                         Name = $"RA+{disassembler.name}+{assembler.name}",
-                        ProblemPrioritizer = p => ProblemPriority.High,
-                        Solver = () => new SimpleReassembler(
-                                           new InvertorDisassembler(disassembler.solver(problem.SourceMatrix), problem.SourceMatrix),
-                                           assembler.solver(problem.TargetMatrix)
-                                           ),
+                        ProblemPrioritizer = p => ProblemPriority.Normal,
+                        Solver = problem => new SimpleReassembler(
+                                           disassembler.solver(problem),
+                                           assembler.solver(problem.TargetMatrix),
+                                           problem.SourceMatrix,
+                                           problem.TargetMatrix),
                         CompatibleProblemTypes = new[] { ProblemType.Reassemble }
 
                 });
             }
             return new[]
                 {
-                    stupidDisassembler,
-                    invertorDisassembler,
-                    invColDisassembler,
+//                    stupidDisassembler,
+//                    invertorDisassembler,
+//                    invColDisassembler,
                     invSlice6x6Disassembler,
-                    gFast,
-                    gLayers,
-                    columns,
-                    columnsBbx,
+//                    gFast,
+//                    gLayers,
+//                    columns,
+//                    columnsBbx,
                     gForLarge,
-                    slicer6x6,
-                    slicer8x5,
-                }.Concat(raSolutions).ToArray();
+                    blockDeconstructor,
+                }.Concat(raSolutions)
+                 .Concat(slicers)
+                 .ToArray();
         }
 
         private static IAmSolver CreateGreedy(Matrix matrix)
         {
-            return new GreedyPartialSolver(matrix, new ThrowableHelperFast(matrix));
+            return new GreedyPartialSolver(matrix, new ThrowableHelper(matrix), new NearToFarBottomToTopBuildingAround());
         }
         private static IAmSolver CreateColumns(Matrix matrix)
         {
             return new DivideAndConquer(matrix, true);
         }
-        private static IAmSolver CreateSlicer6x6(Matrix matrix)
+
+        public static IAmSolver CreateSlicer6x6(Matrix matrix)
         {
             return new HorizontalSlicer(matrix, 6, 6, true);
         }
@@ -258,7 +275,7 @@ namespace lib.Utils
     public class Solution
     {
         public string Name { get; set; }
-        public Func<IAmSolver> Solver { get; set; }
+        public Func<Problem, IAmSolver> Solver { get; set; }
         public ProblemType[] CompatibleProblemTypes { get; set; } = { ProblemType.Assemble };
         public Func<Problem, ProblemPriority> ProblemPrioritizer { get; set; }
     }

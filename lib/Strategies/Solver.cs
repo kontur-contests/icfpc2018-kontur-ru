@@ -34,6 +34,7 @@ namespace lib.Strategies
                     throw new InvalidOperationException("State is not completed, but root strategy is done??? Maybe you forgot to return to ZERO and HALT???");
                 foreach (var command in state.EndTick())
                     yield return command;
+                Log.For(this).Info($"Tick #{state.Tick} done");
             }
         }
 

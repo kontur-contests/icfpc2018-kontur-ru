@@ -171,6 +171,8 @@ namespace lib.Strategies
                         botQueues[botId].Enqueue(command);
                         if (command is SMove sMove)
                             botsToGenerateCommands[botId] += sMove.Shift;
+                        if (command is LMove lMove)
+                            botsToGenerateCommands[botId] += lMove.firstShift.Shift + lMove.secondShift.Shift;
                         if (!beforeTransform.Equals(grid.GetCellId(botsToGenerateCommands[botId])))
                             throw new Exception("Wrong zone");
                     }
@@ -182,13 +184,26 @@ namespace lib.Strategies
                     botQueues[botId].Enqueue(command);
                     if (command is SMove sMove)
                         botsToGenerateCommands[botId] += sMove.Shift;
+                    if (command is LMove lMove)
+                        botsToGenerateCommands[botId] += lMove.firstShift.Shift + lMove.secondShift.Shift;
                 }
             }
 
             var botsToEvaluate = initialBots.ToList();
+            bool isHighEnergy = false;
+            bool firstHigh = false;
             while (botQueues.Any(x => x.Count > 0))
             {
                 var commands = new List<ICommand>();
+                if (isHighEnergy && !firstHigh && !buildingMatrix.HasNonGroundedVoxels)
+                {
+                    commands = new ICommand[] {new Flip()}.Concat(Enumerable.Repeat<ICommand>(new Wait(), botsToEvaluate.Count - 1)).ToList();
+                    isHighEnergy = false;
+                    foreach (var command in commands)
+                        yield return command;
+                    continue;
+                }
+                firstHigh = false;
                 for (var i = 0; i < botQueues.Count; i++)
                 {
                     if (botQueues[i].Count == 0)
@@ -199,7 +214,7 @@ namespace lib.Strategies
                     if (botQueues[i].Peek() is Fill fillCommand)
                     {
                         var fillPosition = botsToEvaluate[i] + fillCommand.Shift;
-                        if (CanFill(buildingMatrix.Voxels, fillPosition))
+                        if (CanFill(buildingMatrix.Voxels, fillPosition) || isHighEnergy)
                         {
                             buildingMatrix[fillPosition] = true;
                             commands.Add(botQueues[i].Dequeue());
@@ -211,7 +226,7 @@ namespace lib.Strategies
                     {
                         var voidPosition = botsToEvaluate[i] + voidCommand.Shift;
 
-                        if (buildingMatrix.CanVoidCell(voidPosition))
+                        if (buildingMatrix.CanVoidCell(voidPosition) || isHighEnergy)
                         {
                             buildingMatrix[voidPosition] = false;
                             commands.Add(botQueues[i].Dequeue());
@@ -226,12 +241,15 @@ namespace lib.Strategies
                 }
                 if (commands.All(x => x is Wait))
                 {
-                    throw new Exception("commands.All(x => x is Wait) == true");
+                    firstHigh = isHighEnergy = true;
+                    commands[0] = new Flip();
                 }
                 for (var i = 0; i < commands.Count; i++)
                 {
                     if (commands[i] is SMove sMove)
                         botsToEvaluate[i] += sMove.Shift;
+                    if (commands[i] is LMove lMove)
+                        botsToEvaluate[i] += lMove.firstShift.Shift + lMove.secondShift.Shift;
                     yield return commands[i];
                 }
             }
@@ -440,6 +458,14 @@ namespace lib.Strategies
         [NotNull]
         private List<ICommand> GoToVerticalFirst([NotNull] Vec pos, [NotNull] Vec target)
         {
+            var shift = target - pos;
+            if (Math.Abs(shift.X) <= 5 && Math.Abs(shift.Z) <= 5 && shift.Y == 0 && shift.X != 0 && shift.Z != 0)
+            {
+                return new List<ICommand>
+                    {
+                        new LMove(new ShortLinearDifference(new Vec(shift.X, 0, 0)), new ShortLinearDifference(new Vec(0, 0, shift.Z)))
+                    };
+            }
             var result = new List<ICommand>();
             result.AddRange(StraightGoTo(pos, new Vec(pos.X, target.Y, pos.Z)));
             pos = new Vec(pos.X, target.Y, pos.Z);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using Nest;
@@ -15,9 +15,14 @@ namespace lib.ElasticDTO
         public List<long> EnergyHistory;
         public string TaskName;
         public string SolverName;
-        public string RunningHostName;
+        public string RunningHostName = Environment.MachineName;
         public bool IsSuccess;
         public string ExceptionInfo;
+
+        public override string ToString()
+        {
+            return $"{nameof(SecondsSpent)}: {SecondsSpent}, {nameof(EnergySpent)}: {EnergySpent}, {nameof(TaskName)}: {TaskName}, {nameof(SolverName)}: {SolverName}";
+        }
 
         [Binary(Store = false)]
         public string Solution { get; set; }

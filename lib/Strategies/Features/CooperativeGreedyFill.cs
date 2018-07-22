@@ -6,6 +6,8 @@ using lib.Models;
 using lib.Strategies.Features.Async;
 using lib.Utils;
 
+using MoreLinq;
+
 namespace lib.Strategies.Features
 {
     public class CooperativeGreedyFill : SimpleSingleBotStrategyBase
@@ -44,7 +46,7 @@ namespace lib.Strategies.Features
 
                 if (!any)
                 {
-                    if (!await new Move(state, bot, new Vec(0, bot.Bid, 0)))
+                    if (!await new Move(state, bot, new Vec(bot.Bid / state.R, bot.Bid % state.R, 0)))
                         await WhenNextTurn();
                 }
             }
@@ -54,10 +56,14 @@ namespace lib.Strategies.Features
 
         private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates()
         {
-            foreach (var candidate in candidatesOrdering.Order(candidates, bot.Position).Where(c => !state.VolatileCells.ContainsKey(c)))
+            var lowest = candidates.Min(c => c.Y);
+            var filtered = candidates.Where(c => c.Y == lowest).ToHashSet();
+
+            foreach (var candidate in candidatesOrdering.Order(filtered, bot.Position).Where(c => !state.VolatileCells.ContainsKey(c)))
             {
                 var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(state.Matrix.R) && 
-                                                                    (!state.VolatileCells.ContainsKey(n) || n == bot.Position));
+                                                                    (!state.VolatileCells.ContainsKey(n) || n == bot.Position) &&
+                                                                    n.Y >= lowest);
                 foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(bot.Position)))
                 {
                     yield return (candidate, nearPosition);
