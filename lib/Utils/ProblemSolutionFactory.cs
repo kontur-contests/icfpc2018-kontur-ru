@@ -168,6 +168,41 @@ namespace lib.Utils
                 Solver = () => new HorizontalSlicer(problem.TargetMatrix, 8, 5, true),
             };
 
+            var blockDeconstructor3d = new Solution
+                {
+                    Name = "BlockDeconstructor",
+                    ProblemPrioritizer = p => p.Type == ProblemType.Disassemble ? ProblemPriority.High : ProblemPriority.DoNotSolve,
+                    Solver = () => new FastDeconstructor(problem.TargetMatrix, 5, 4, 3, 3),
+                };
+
+            var blockDeconstructor5d = new Solution
+                {
+                    Name = "BlockDeconstructor",
+                    ProblemPrioritizer = p => p.Type == ProblemType.Disassemble ? ProblemPriority.High : ProblemPriority.DoNotSolve,
+                    Solver = () => new FastDeconstructor(problem.TargetMatrix, 5, 4, 5, 5),
+                };
+
+            var blockDeconstructor10d = new Solution
+                {
+                    Name = "BlockDeconstructor",
+                    ProblemPrioritizer = p => p.Type == ProblemType.Disassemble ? ProblemPriority.High : ProblemPriority.DoNotSolve,
+                    Solver = () => new FastDeconstructor(problem.TargetMatrix, 5, 4, 10, 10),
+                };
+
+            var blockDeconstructor15d = new Solution
+                {
+                    Name = "BlockDeconstructor",
+                    ProblemPrioritizer = p => p.Type == ProblemType.Disassemble ? ProblemPriority.High : ProblemPriority.DoNotSolve,
+                    Solver = () => new FastDeconstructor(problem.TargetMatrix, 5, 4, 15, 15),
+                };
+
+            var blockDeconstructor29d = new Solution
+                {
+                    Name = "BlockDeconstructor",
+                    ProblemPrioritizer = p => p.Type == ProblemType.Disassemble ? ProblemPriority.High : ProblemPriority.DoNotSolve,
+                    Solver = () => new FastDeconstructor(problem.TargetMatrix, 5, 4, 29, 29),
+                };
+
             var parallelGredy = new Solution
                 {
                     Name = "ParallelGredy",
@@ -215,6 +250,11 @@ namespace lib.Utils
                     gForLarge,
                     slicer6x6,
                     slicer8x5,
+                    blockDeconstructor3d,
+                    blockDeconstructor5d,
+                    blockDeconstructor10d,
+                    blockDeconstructor15d,
+                    blockDeconstructor29d,
                 }.Concat(raSolutions).ToArray();
         }
 

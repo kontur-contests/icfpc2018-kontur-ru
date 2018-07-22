@@ -80,7 +80,7 @@ namespace tests
         [Explicit]
         public void TestFastDeconstructor(string filename)
         {
-            DoRealTest(model => new FastDeconstructor(model), 
+            DoRealTest(model => new FastDeconstructor(model, 5, 4, 29, 29), 
                        (solver, commands, model) =>
                            {
                                var state = new DeluxeState(model, new Matrix(model.R));

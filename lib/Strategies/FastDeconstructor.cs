@@ -17,15 +17,19 @@ namespace lib.Strategies
         private int N => targetMatrix.R;
         private Grid grid;
         private CorrectComponentTrackingMatrix buildingMatrix;
-        private int crewXCount = 5;
-        private int crewZCount = 4;
-        private int crewHeight = 15;
+        private int crewXCount;
+        private int crewZCount;
+        private int crewHeight;
         private int halfCrewSize => crewZCount * crewXCount;
-        private int crewDistance = 10;
+        private int crewDistance;
         private int maxSpeed = 15;
 
-        public FastDeconstructor(Matrix targetMatrix)
+        public FastDeconstructor(Matrix targetMatrix, int crewXCount, int crewZCount, int crewHeight, int crewDistance)
         {
+            this.crewXCount = crewXCount;
+            this.crewZCount = crewZCount;
+            this.crewHeight = crewHeight;
+            this.crewDistance = crewDistance;
             this.targetMatrix = targetMatrix;
         }
 
@@ -402,6 +406,7 @@ namespace lib.Strategies
         [NotNull]
         private List<ICommand> StraightGoTo(Vec botPosition, Vec target, int stepLength)
         {
+            stepLength = Math.Min(stepLength, maxSpeed);
             var res = new List<ICommand>();
             var step = (target - botPosition).Sign();
             var pos = botPosition;
