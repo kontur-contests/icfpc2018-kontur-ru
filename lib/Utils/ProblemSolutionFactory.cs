@@ -145,6 +145,20 @@ namespace lib.Utils
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
 
+            var slicer6x6 = new Solution
+                {
+                    Name = "Slicer6x6",
+                    ProblemPrioritizer = p => ProblemPriority.High,
+                    Solver = () => new HorizontalSlicer(problem.TargetMatrix, 6, 6, true),
+                };
+
+            var slicer8x5 = new Solution
+                {
+                    Name = "Slicer8x5",
+                    ProblemPrioritizer = p => ProblemPriority.High,
+                    Solver = () => new HorizontalSlicer(problem.TargetMatrix, 8, 5, true),
+                };
+
             (string name, Func<Matrix, IAmSolver> solver)[] solvers = {
                     ("g", CreateGreedy),
                     ("c", CreateColumns)
@@ -175,7 +189,9 @@ namespace lib.Utils
                     gLayers,
                     columns,
                     columnsBbx,
-                    gForLarge
+                    gForLarge,
+                    slicer6x6,
+                    slicer8x5,
                 }.Concat(raSolutions).ToArray();
         }
 
