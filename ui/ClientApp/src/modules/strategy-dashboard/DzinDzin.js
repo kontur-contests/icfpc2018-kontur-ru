@@ -36,8 +36,8 @@ export class DzinDzin extends React.Component {
       }
     }
 
-    this.setState(
-      { problems, lastSolved },
+    this.setState(state =>
+      ({ problems, lastSolved: lastSolved.length ? lastSolved : state.lastSolved }),
       () => lastSolved.length && this.dzinDzin()
     );
   };
