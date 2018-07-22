@@ -47,25 +47,6 @@ namespace tests
             componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
         }
 
-        [TestCase(10, 0, 100)]
-        [TestCase(20, 1, 1000000)]
-        [TestCase(100, 2, 10000)]
-        [TestCase(200, 3, 1000000)]
-        public void TrackComponents2(int r, int seed, int iterations)
-        {
-            var matrix = new Matrix(r);
-            var correctCTM = new CorrectComponentTrackingMatrix(matrix.Clone().Voxels);
-            var usualCTM = new ComponentTrackingMatrix(matrix.Clone());
-            var random = new Random(seed);
-            for (var i = 0; i < iterations; i++)
-            {
-                var position = new Vec(random.Next(r), random.Next(r), random.Next(r));
-                correctCTM[position] = true;
-                usualCTM[position] = true;
-                correctCTM.HasNonGroundedVoxels.Should().Be(usualCTM.HasNonGroundedVoxels);
-            }
-        }
-
         [Test]
         public void TrackComponents3()
         {
@@ -91,6 +72,30 @@ namespace tests
             componentTrackingMatrix[2, 0, 0] = true;
             componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
             componentTrackingMatrix[2, 0, 0] = false;
+            componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
+        }
+
+        [Test]
+        public void TrackComponents6()
+        {
+            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix("000|101|001", "110|101|000", "111|011|101").Voxels);
+            componentTrackingMatrix[0, 1, 2] = true;
+            componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
+        }
+
+        [Test]
+        public void EnableGroundedCell()
+        {
+            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix("000|000|000", "010|000|000", "000|000|000").Voxels);
+            componentTrackingMatrix[1, 0, 1] = true;
+            componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
+        }
+
+        [Test]
+        public void DisableUngroundedCell()
+        {
+            var componentTrackingMatrix = new CorrectComponentTrackingMatrix(new Matrix("000|000|000", "000|010|000", "000|000|000").Voxels);
+            componentTrackingMatrix[1, 1, 1] = false;
             componentTrackingMatrix.HasNonGroundedVoxels.Should().BeFalse();
         }
     }

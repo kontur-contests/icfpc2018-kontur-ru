@@ -118,8 +118,6 @@ namespace tests
                 var bytes = CommandSerializer.Save(commands.ToArray());
                 File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
             }
-            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
-            new Interpreter(state).Run(commands);
         }
 
         [Test]
@@ -149,7 +147,7 @@ namespace tests
         [Explicit]
         public void Disassemble()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FD171");
+            var problem = ProblemSolutionFactory.LoadProblem("FD120");
             //var solver = new InvertorDisassembler(new DivideAndConquer(problem.SourceMatrix, true), problem.SourceMatrix);
             //var solver = new InvertorDisassembler(new GreedyPartialSolver(problem.SourceMatrix, new Matrix(problem.R), new ThrowableHelperFast(problem.SourceMatrix)), problem.SourceMatrix);
             var solver = new InvertorDisassembler(new HorizontalSlicer(problem.SourceMatrix, 6, 6, true), problem.SourceMatrix);
@@ -169,6 +167,8 @@ namespace tests
                 var bytes = CommandSerializer.Save(commands.ToArray());
                 File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
             }
+            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            new Interpreter(state).Run(commands);
         }
 
         [Test]
