@@ -15,6 +15,11 @@ namespace lib.Models
         {
             if (vec.Y == 0)
                 return vec;
+            return GetGrounded(vec);
+        }
+
+        private Vec GetGrounded(Vec vec)
+        {
             return vec.GetMNeighbours().FirstOrDefault(p => p.IsInCuboid(R) && isGrounded.Get(p));
         }
 
@@ -41,10 +46,11 @@ namespace lib.Models
                 else
                 {
                     filledCellsCount--;
-                    var unknownCells = GetUnknownCells(new Vec(x, y, z));
-                    foreach (var cell in unknownCells)
+                    var currCell = new Vec(x, y, z);
+                    var unknownCells = GetUnknownCells(currCell);
+                    foreach (var cell in unknownCells.Where(c => !(c == currCell && !isGrounded.Get(c))))
                         Unground(cell);
-                    var groundedCells = unknownCells.Select(GetGroundedOrSelf).Where(cell => cell != null).ToList();
+                    var groundedCells = unknownCells.Select(GetGrounded).Where(cell => cell != null).ToList();
                     Bfs(groundedCells);
                 }
             }
@@ -134,7 +140,7 @@ namespace lib.Models
         public void Ground(Vec vec, Vec groundParent)
         {
             if (isGrounded.Get(vec))
-                throw new Exception($"Try to Ground alread Grounded cell: {vec}");
+                throw new Exception($"Try to Ground already Grounded cell: {vec}");
             isGrounded.Set(vec, true);
             parentCell.Set(vec, groundParent);
             groundedCellsCount++;
@@ -143,7 +149,7 @@ namespace lib.Models
         public void Unground(Vec vec)
         {
             if (!isGrounded.Get(vec))
-                throw new Exception($"Try to Unground alread Ungrounded cell: {vec}");
+                throw new Exception($"Try to Unground already Ungrounded cell: {vec}");
             isGrounded.Set(vec, false);
             parentCell.Set(vec, null);
             groundedCellsCount--;

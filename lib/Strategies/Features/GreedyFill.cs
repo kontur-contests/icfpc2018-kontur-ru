@@ -47,7 +47,7 @@ namespace lib.Strategies.Features
                 if (!any)
                     throw new Exception("Can't move");
             }
-            await new MoveSingleBot(state, bot, Vec.Zero);
+            await new Move(state, bot, Vec.Zero);
             await Do(new Halt());
             return true;
         }

@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 
+using lib.Commands;
 using lib.Models;
 using lib.Strategies.Features.Async;
+using lib.Utils;
 
 namespace lib.Strategies.Features
 {
@@ -27,13 +30,34 @@ namespace lib.Strategies.Features
             return tickerResult.Strategies;
         }
 
-        public StrategyTask WhenAll(params IStrategy[] strategies)
+        protected StrategyTask WhenAll(params IStrategy[] strategies)
         {
             return new StrategyTask(strategies);
         }
 
-        public StrategyTask WhenNextTurn()
+        protected StrategyTask WhenNextTurn()
         {
+            return new StrategyTask(null);
+        }
+
+        protected IStrategy Move(Bot bot, Vec target)
+        {
+            return new Move(state, bot, target);
+        }
+
+        protected IStrategy MergeNears(Bot master, Bot slave)
+        {
+            return new MergeTwoNears(state, master, slave);
+        }
+
+        protected IStrategy Finalize()
+        {
+            return new Finalize(state);
+        }
+
+        protected StrategyTask Halt()
+        {
+            state.SetBotCommand(state.Bots.First(), new Halt());
             return new StrategyTask(null);
         }
     }
