@@ -16,7 +16,7 @@ export class DataTable extends React.Component {
             Header: "Solver",
             accessor: "solverName",
             aggregate: (values, rows) => {
-              const best = minBy(x => x.energy, rows);
+              const best = minBy(x => x.energy[0], rows);
               return best.solverName + " (best)";
             }
           },

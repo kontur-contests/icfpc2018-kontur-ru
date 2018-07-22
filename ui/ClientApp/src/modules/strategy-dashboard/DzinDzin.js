@@ -22,9 +22,9 @@ export class DzinDzin extends React.Component {
   }
 
   fetchData = async () => {
-    const problems = (await getNotSolvedProblems()).filter(
-      x => !x.includes("_tgt")
-    ).sort();
+    const problems = (await getNotSolvedProblems())
+      .filter(x => !x.includes("_tgt"))
+      .sort();
 
     const lastSolved = [];
 
@@ -36,8 +36,8 @@ export class DzinDzin extends React.Component {
       }
     }
 
-    this.setState(state =>
-      ({ problems, lastSolved: lastSolved.length ? lastSolved : state.lastSolved }),
+    this.setState(
+      state => ({ problems, lastSolved: state.lastSolved.concat(lastSolved) }),
       () => lastSolved.length && this.dzinDzin()
     );
   };
@@ -53,13 +53,7 @@ export class DzinDzin extends React.Component {
       <div>
         <audio src={dzin} ref={p => (this.player = p)} />
         <h2>Last Solved</h2>
-        <ul>
-          {this.state.lastSolved.map(x => (
-            <li key={x}>
-              {x}
-            </li>
-          ))}
-        </ul>
+        <ul>{this.state.lastSolved.map(x => <li key={x}>{x}</li>)}</ul>
         <hr />
         <h2>Non solved ({this.state.problems.length})</h2>
         <ul>{this.state.problems.map(x => <li key={x}>{x}</li>)}</ul>
