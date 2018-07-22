@@ -15,7 +15,7 @@ namespace lib.Strategies.Features
             ticker = new Ticker(Run);
         }
 
-        protected abstract IEnumerable<TickerResult> Run();
+        protected abstract IEnumerable<StrategyResult> Run();
 
         public StrategyStatus Status { get; private set; }
 
@@ -26,14 +26,14 @@ namespace lib.Strategies.Features
             return tickerResult.Strategies;
         }
 
-        protected TickerResult Wait(params IStrategy[] strategies)
+        protected StrategyResult Wait(params IStrategy[] strategies)
         {
-            return new TickerResult(StrategyStatus.Incomplete, strategies);
+            return new StrategyResult(StrategyStatus.Incomplete, strategies);
         }
 
-        protected TickerResult Failed()
+        protected StrategyResult Failed()
         {
-            return new TickerResult(StrategyStatus.Failed, null);
+            return new StrategyResult(StrategyStatus.Failed, null);
         }
     }
 }

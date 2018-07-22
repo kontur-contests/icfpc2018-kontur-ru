@@ -1,8 +1,8 @@
 namespace lib.Strategies.Features
 {
-    public class TickerResult
+    public class StrategyResult
     {
-        public TickerResult(StrategyStatus status, IStrategy[] strategies)
+        public StrategyResult(StrategyStatus status, IStrategy[] strategies)
         {
             Status = status;
             Strategies = strategies;

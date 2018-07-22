@@ -16,7 +16,7 @@ namespace lib.Strategies.Features
             this.target = target;
         }
 
-        protected override IEnumerable<TickerResult> Run()
+        protected override IEnumerable<StrategyResult> Run()
         {
             var commands = new PathFinder(state, bot.Position, target).TryFindPath();
             commands?.Reverse();

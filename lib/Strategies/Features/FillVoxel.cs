@@ -19,7 +19,7 @@ namespace lib.Strategies.Features
             this.fromPos = fromPos;
         }
         
-        protected override IEnumerable<TickerResult> Run()
+        protected override IEnumerable<StrategyResult> Run()
         {
             if (bot.Position != fromPos)
             {

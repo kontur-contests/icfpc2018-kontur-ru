@@ -21,7 +21,7 @@ namespace lib.Strategies.Features
             this.candidatesOrdering = candidatesOrdering ?? new BuildAllStayingStill();
         }
 
-        protected override IEnumerable<TickerResult> Run()
+        protected override IEnumerable<StrategyResult> Run()
         {
             var candidates = BuildCandidates();
             while (candidates.Any())

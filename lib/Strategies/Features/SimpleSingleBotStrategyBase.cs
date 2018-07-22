@@ -13,7 +13,7 @@ namespace lib.Strategies.Features
             this.bot = bot;
         }
 
-        protected TickerResult Do(ICommand command)
+        protected StrategyResult Do(ICommand command)
         {
             state.SetBotCommand(bot, command);
             return Wait();

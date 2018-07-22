@@ -6,16 +6,16 @@ namespace lib.Strategies.Features
 {
     public class Ticker
     {
-        private readonly Func<IEnumerable<TickerResult>> run;
-        private IEnumerator<TickerResult> enumerator;
+        private readonly Func<IEnumerable<StrategyResult>> run;
+        private IEnumerator<StrategyResult> enumerator;
         private bool waiting;
 
-        public Ticker(Func<IEnumerable<TickerResult>> run)
+        public Ticker(Func<IEnumerable<StrategyResult>> run)
         {
             this.run = run;
         }
 
-        public TickerResult Tick()
+        public StrategyResult Tick()
         {
             if (enumerator == null)
                 enumerator = run().GetEnumerator();
@@ -32,11 +32,11 @@ namespace lib.Strategies.Features
                         return enumerator.Current;
                     }
                     enumerator.Dispose();
-                    return new TickerResult(StrategyStatus.Done, null);
+                    return new StrategyResult(StrategyStatus.Done, null);
                 }
 
                 if (enumerator.Current.Strategies.Any(s => s.Status == StrategyStatus.Incomplete))
-                    return new TickerResult(StrategyStatus.Incomplete, null);
+                    return new StrategyResult(StrategyStatus.Incomplete, null);
 
                 waiting = false;
             }
