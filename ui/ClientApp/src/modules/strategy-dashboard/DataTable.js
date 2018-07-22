@@ -64,6 +64,12 @@ export class DataTable extends React.Component {
             sortMethod: ([a], [b]) => a - b,
             aggregate: ([valuee]) => valuee,
             Cell: EnergyCell
+          },
+          {
+            Header: "Score to Earn",
+            accessor: x => x.konturScore ? x.bestScore - x.konturScore : undefined,
+            aggregate: ([x]) => x,
+            id: 'scoreDiff'
           }
         ]}
         pivotBy={["taskName"]}

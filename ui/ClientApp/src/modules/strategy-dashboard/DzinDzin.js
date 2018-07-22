@@ -2,6 +2,7 @@ import React from "react";
 import { getNotSolvedProblems } from "./StrategyDashboardApi";
 
 import dzin from "./dzin.mp3";
+import win from "./win.mp3";
 
 const INTERVAL = 10000;
 
@@ -37,7 +38,10 @@ export class DzinDzin extends React.Component {
     }
 
     this.setState(
-      state => ({ problems, lastSolved: state.lastSolved.concat(lastSolved) }),
+      state => ({
+        problems,
+        lastSolved: state.lastSolved.concat(lastSolved)
+      }),
       () => lastSolved.length && this.dzinDzin()
     );
   };
@@ -51,7 +55,7 @@ export class DzinDzin extends React.Component {
   render() {
     return (
       <div>
-        <audio src={dzin} ref={p => (this.player = p)} />
+        <audio src={win} ref={p => (this.player = p)} />
         <h2>Last Solved</h2>
         <ul>{this.state.lastSolved.map(x => <li key={x}>{x}</li>)}</ul>
         <hr />

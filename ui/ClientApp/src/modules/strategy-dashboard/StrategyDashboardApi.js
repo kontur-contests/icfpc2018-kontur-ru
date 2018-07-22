@@ -3,6 +3,7 @@ const ELASTIC_URL = "/api/elastic";
 const MAX_RETRIES = 5;
 
 const LEADERS_NAME = "ZZZ ICFP Leaders";
+export const KONTUR_NAME = "kontur.ru";
 
 const makeRequest = (query, retries = 0) => {
   return fetch(`${ELASTIC_URL}`, {
@@ -51,7 +52,11 @@ const searchSolutionsForProblem = async problemName => {
 
 const getLeaderBoard = () => fetch(`/api/leaderboard`).then(x => x.json());
 
-function selectData(taskNameGroup, leadersGroup) {
+export const getTotals = () => {
+  return getLeaderBoard().then(x => x.filter(y => y.probNum === 'total'))
+}
+
+function selectData(taskNameGroup, leadersGroupped) {
   const result = {};
   const taskNames = new Set();
   const solverNames = new Set();
@@ -71,15 +76,17 @@ function selectData(taskNameGroup, leadersGroup) {
     }
 
     solverNames.add(LEADERS_NAME);
-    if (taskName in leadersGroup) {
+    if (taskName in leadersGroupped) {
       result[taskName][LEADERS_NAME] = minBy(
         x => x.energy,
-        leadersGroup[taskName]
+        leadersGroupped[taskName]
       ).energy;
     }
+
+
   }
 
-  return { result, taskNames, solverNames };
+  return { result, taskNames, solverNames, leadersGroupped };
 }
 
 function groupTasks(solutions) {
@@ -179,7 +186,7 @@ export const getSolutionResults = async () => {
 
   const leaderboard = await getLeaderBoard();
 
-  const { result, taskNames, solverNames } = selectData(
+  const { result, taskNames, solverNames, leadersGroupped } = selectData(
     groupTasks(solutions),
     groupLeaders(leaderboard)
   );
@@ -189,7 +196,8 @@ export const getSolutionResults = async () => {
     taskNames: [...taskNames].sort(),
     solverNames: [...solverNames].sort(
       (a, b) => (a.toLowerCase() > b.toLowerCase() ? 1 : -1)
-    )
+    ),
+    leadersGroupped
   };
 };
 
@@ -215,7 +223,7 @@ function raterFactory(solverSolutions, solverNames) {
     rates.indexOf(solverName) / Math.max(rates.length - 1, 1);
 }
 
-export function denormalizeData({ result, taskNames, solverNames }) {
+export function denormalizeData({ result, taskNames, solverNames, leadersGroupped }) {
   const data = [];
 
   for (const taskName of taskNames) {
@@ -229,13 +237,23 @@ export function denormalizeData({ result, taskNames, solverNames }) {
       const energy = result[taskName][solverName];
       const isSolved = energy !== 0 && energy !== undefined;
       const leaderEnergy = result[taskName][LEADERS_NAME] || Infinity;
+
+      let konturScore
+      let bestScore
+      if (leadersGroupped[taskName]) {
+        konturScore = leadersGroupped[taskName].find(x => x.name === KONTUR_NAME).score
+        bestScore = maxBy(x => x.score, leadersGroupped[taskName]).score
+      }
+
       const record = {
         energy: isSolved ? energy : Infinity,
         taskName,
         solverName,
         leaderEnergy,
         rate: rater(solverName),
-        leaderRate: isSolved ? rater(LEADERS_NAME) : 0
+        leaderRate: isSolved ? rater(LEADERS_NAME) : 0,
+        konturScore,
+        bestScore
       };
 
       data.push(record);
