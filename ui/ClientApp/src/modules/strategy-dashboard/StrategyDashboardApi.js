@@ -23,27 +23,20 @@ const makeRequest = (query, retries = 0) => {
 
 const getAllSolutionsWithMinimalEnergy = () => {
   return makeRequest({
-    size: 0,
+    size: "0",
     aggs: {
       task_name: {
         terms: {
           field: "taskName.keyword",
-          size: 1000
-        },
-        aggs: {
-          min_energy: {
-            min: {
-              field: "energySpent"
-            }
-          }
+          size: 100000
         }
       }
     }
   }).then(x => x.json());
 };
 
-const searchSolutionsForProblem = problemName => {
-  return makeRequest({
+const searchSolutionsForProblem = async problemName => {
+  const result = await makeRequest({
     size: 1000,
     query: {
       bool: {
@@ -52,6 +45,8 @@ const searchSolutionsForProblem = problemName => {
     },
     _source: ["energySpent", "taskName", "solverName"]
   }).then(x => x.json());
+  
+  return result;
 };
 
 const getLeaderBoard = () => fetch(`/api/leaderboard`).then(x => x.json());
@@ -65,10 +60,11 @@ function selectData(taskNameGroup, leadersGroup) {
     const solverGroup = taskNameGroup[taskName];
     result[taskName] = {};
     taskNames.add(taskName);
+
     for (const solverName in solverGroup) {
       const solverResults = solverGroup[solverName];
       result[taskName][solverName] = minBy(
-        x => x.energySpent,
+        x => x.energySpent ? x.energySpent : Infinity,
         solverResults
       ).energySpent;
       solverNames.add(solverName);
@@ -90,6 +86,7 @@ function groupTasks(solutions) {
   const taskNameGroup = {};
   for (const group of solutions) {
     for (const solution of group) {
+      
       if (!taskNameGroup[solution.name]) {
         taskNameGroup[solution.name] = {};
       }
@@ -118,15 +115,48 @@ function groupLeaders(leaderboard) {
 export const getTasksBestSolutions = async () => {
   const solutionsWithMinimalEnergy = await getAllSolutionsWithMinimalEnergy();
 
-  const result = {}
-  for (let bucket of solutionsWithMinimalEnergy.aggregations.task_name.buckets) {
-    result[bucket.key] = bucket.min_energy.value
+  const result = {};
+  for (let bucket of solutionsWithMinimalEnergy.aggregations.task_name
+    .buckets) {
+    result[bucket.key] = bucket.min_energy.value;
   }
 
-  console.log(result, solutionsWithMinimalEnergy.aggregations.task_name.buckets)
+  return result;
+};
 
-  return result
-}
+export const getNotSolvedProblems = async () => {
+  const solved = await makeRequest({
+    size: "0",
+    query: {
+      bool: {
+        filter: {
+          term: {
+            isSuccess: "true"
+          }
+        }
+      }
+    },
+    aggs: {
+      task_name: {
+        terms: {
+          field: "taskName.keyword",
+          size: 100000
+        }
+      }
+    }
+  })
+    .then(x => x.json())
+    .then(x => x.aggregations.task_name.buckets)
+    .then(x => x.map(x => x.key));
+
+  const solutionsWithMinimalEnergy = await getAllSolutionsWithMinimalEnergy();
+
+  const problemNames = solutionsWithMinimalEnergy.aggregations.task_name.buckets
+    .map(x => x.key)
+    .filter(x => !x.startsWith("LA") && !x.includes("_tgt"));
+
+  return problemNames.filter(x => !solved.includes(x));
+};
 
 export const getSolutionResults = async () => {
   const solutionsWithMinimalEnergy = await getAllSolutionsWithMinimalEnergy();
@@ -181,7 +211,8 @@ function raterFactory(solverSolutions, solverNames) {
     .filter(isFiniteValue)
     .sort((a, b) => getEnergySpent(a) - getEnergySpent(b));
   // console.log(rates);
-  return solverName => rates.indexOf(solverName) / Math.max((rates.length - 1), 1);
+  return solverName =>
+    rates.indexOf(solverName) / Math.max(rates.length - 1, 1);
 }
 
 export function denormalizeData({ result, taskNames, solverNames }) {

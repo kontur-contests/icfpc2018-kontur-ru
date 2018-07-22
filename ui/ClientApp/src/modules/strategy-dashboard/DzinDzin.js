@@ -1,5 +1,5 @@
 import React from "react";
-import { getTasksBestSolutions } from "./StrategyDashboardApi";
+import { getNotSolvedProblems } from "./StrategyDashboardApi";
 
 import dzin from "./dzin.mp3";
 
@@ -7,7 +7,7 @@ const INTERVAL = 10000;
 
 export class DzinDzin extends React.Component {
   state = {
-    solutions: {},
+    problems: [],
     lastSolved: []
   };
 
@@ -22,20 +22,22 @@ export class DzinDzin extends React.Component {
   }
 
   fetchData = async () => {
-    const solutions = await getTasksBestSolutions();
+    const problems = (await getNotSolvedProblems()).filter(
+      x => !x.includes("_tgt")
+    ).sort();
 
     const lastSolved = [];
 
-    if (Object.keys(this.state.solutions).length) {
-      for (const taskName in solutions) {
-        if (solutions[taskName] && !this.state.solutions[taskName]) {
+    if (problems.length) {
+      for (const taskName of this.state.problems) {
+        if (!problems.includes(taskName)) {
           lastSolved.push(taskName);
         }
       }
     }
 
     this.setState(
-      { solutions, lastSolved },
+      { problems, lastSolved },
       () => lastSolved.length && this.dzinDzin()
     );
   };
@@ -60,15 +62,7 @@ export class DzinDzin extends React.Component {
         </ul>
         <hr />
         <h2>Non solved</h2>
-        <ul>
-          {Object.keys(this.state.solutions)
-            .filter(x => this.state.solutions[x] === 0)
-            .map(x => (
-              <li key={x}>
-                {x}
-              </li>
-            ))}
-        </ul>
+        <ul>{this.state.problems.map(x => <li key={x}>{x}</li>)}</ul>
       </div>
     );
   }
