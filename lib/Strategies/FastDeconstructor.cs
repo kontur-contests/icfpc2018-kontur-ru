@@ -24,13 +24,14 @@ namespace lib.Strategies
         private int crewDistance;
         private int maxSpeed = 15;
 
-        public FastDeconstructor(Matrix targetMatrix, int crewXCount, int crewZCount, int crewHeight, int crewDistance)
+        public FastDeconstructor(Matrix targetMatrix)
         {
-            this.crewXCount = crewXCount;
-            this.crewZCount = crewZCount;
-            this.crewHeight = crewHeight;
-            this.crewDistance = crewDistance;
             this.targetMatrix = targetMatrix;
+            crewDistance = Math.Min(29, N - 3);
+            crewXCount = Math.Max(2, Math.Min(5, (N - 1) / crewDistance + 1));
+            crewZCount = Math.Max(2, Math.Min(4, (N - 1) / crewDistance + 1));
+            crewDistance = Math.Min(29, Math.Min((N - 3) / (crewXCount - 1), (N - 3) / (crewZCount - 1)));
+            crewHeight = Math.Min(29, N - 1);
         }
 
         public IEnumerable<ICommand> Solve()
@@ -346,18 +347,12 @@ namespace lib.Strategies
                 ApplyForBot(botCount + otherCrewSize, botId + otherCrewSize, commands);
 
             result.AddRange(LocalApplyForBot(1, 0, new Fission(new NearDifference(new Vec(1, 0, 0)), crewXCount - 2)));
-            result.AddRange(LocalApplyForBot(2, 0, new Fission(new NearDifference(new Vec(0, 0, 1)), crewXCount * (crewZCount - 1) - 1)));
-
-            result.AddRange(LocalApplyForBot(3, 2, GoToVerticalFirst(new Vec(0, N - 1, 1), new Vec(0, N - 1, crewDistance), maxSpeed).ToArray()));
-            result.AddRange(LocalApplyForBot(3, 2, new Fission(new NearDifference(new Vec(1, 0, 0)), crewXCount - 2)));
-            result.AddRange(LocalApplyForBot(4, 2, new Fission(new NearDifference(new Vec(0, 0, 1)), crewXCount * (crewZCount - 2) - 1)));
-
-            result.AddRange(LocalApplyForBot(5, 4, GoToVerticalFirst(new Vec(0, N - 1, crewDistance + 1), new Vec(0, N - 1, 2 * crewDistance), maxSpeed).ToArray()));
-            result.AddRange(LocalApplyForBot(5, 4, new Fission(new NearDifference(new Vec(1, 0, 0)), crewXCount - 2)));
-            result.AddRange(LocalApplyForBot(6, 4, new Fission(new NearDifference(new Vec(0, 0, 1)), crewXCount * (crewZCount - 3) - 1)));
-
-            result.AddRange(LocalApplyForBot(7, 6, GoToVerticalFirst(new Vec(0, N - 1, 2 * crewDistance + 1), new Vec(0, N - 1, 3 * crewDistance), maxSpeed).ToArray()));
-            result.AddRange(LocalApplyForBot(7, 6, new Fission(new NearDifference(new Vec(1, 0, 0)), crewXCount - 2)));
+            for (var z = 1; z < crewZCount; z++)
+            {
+                result.AddRange(LocalApplyForBot(2 * z, 2 * (z - 1), new Fission(new NearDifference(new Vec(0, 0, 1)), crewXCount * (crewZCount - z) - 1)));
+                result.AddRange(LocalApplyForBot(2 * z + 1, 2 * z, GoToVerticalFirst(new Vec(0, N - 1, (z - 1) * crewDistance + 1), new Vec(0, N - 1, z * crewDistance), maxSpeed).ToArray()));
+                result.AddRange(LocalApplyForBot(2 * z + 1, 2 * z, new Fission(new NearDifference(new Vec(1, 0, 0)), crewXCount - 2)));
+            }
 
             for (var x = 1; x < crewXCount; x++)
             {
