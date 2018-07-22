@@ -5,6 +5,8 @@ using System.Linq;
 using lib.Commands;
 using lib.Utils;
 
+using MoreLinq.Extensions;
+
 namespace lib.Models
 {
     public class DeluxeState
@@ -15,7 +17,7 @@ namespace lib.Models
         public HashSet<Bot> Bots { get; }
         public long Energy { get; set; }
         public Harmonics Harmonics { get; set; }
-        public Dictionary<Vec, (Bot bot, ICommand command)> VolatileCells { get; } = new Dictionary<Vec, (Bot, ICommand)>();
+        public Dictionary<Vec, (Bot bot, string message)> VolatileCells { get; } = new Dictionary<Vec, (Bot, string)>();
 
         private readonly Dictionary<Bot, ICommand> botCommands = new Dictionary<Bot, ICommand>();
         private readonly Dictionary<Region, (bool isFill, Dictionary<Vec, Bot> corners)> groupRegions = new Dictionary<Region, (bool isFill, Dictionary<Vec, Bot> corners)>();
@@ -38,6 +40,8 @@ namespace lib.Models
             botCommands.Clear();
             VolatileCells.Clear();
             groupRegions.Clear();
+            foreach (var bot in Bots)
+                VolatileCells.Add(bot.Position, (bot, "Current bot position"));
         }
 
         public void SetBotCommand(Bot bot, ICommand command)
@@ -124,11 +128,14 @@ namespace lib.Models
         {
             foreach (var vec in volatileCells)
             {
+                if (vec.Equals(bot.Position))
+                    continue;
+
                 if (VolatileCells.TryGetValue(vec, out var conflict))
                     throw new InvalidOperationException($"Common volatile cell {vec}. " +
                                                         $"Bots: {bot}; {conflict.bot}. " +
-                                                        $"Commands: {command}; {conflict.command}");
-                VolatileCells.Add(vec, (bot, command));
+                                                        $"Commands: {command}; {conflict.message}");
+                VolatileCells.Add(vec, (bot, command.ToString()));
             }
         }
 

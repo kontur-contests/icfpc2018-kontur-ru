@@ -1,5 +1,3 @@
-using System.Linq;
-
 using lib.Models;
 using lib.Strategies.Features.Async;
 using lib.Utils;
@@ -30,8 +28,9 @@ namespace lib.Strategies.Features
                     first = false;
                 else
                 {
-                    var commandPositions = commands[commands.Count - 1].GetVolatileCells(bot);
-                    if (commandPositions.Any(pos => state.VolatileCells.ContainsKey(pos)))
+                    // todo (kungurtsev, 22.07.2018): в каких-то стратах возможно лучше сразу вернуть управление и пересчитать глобальные цели
+
+                    if (commands[commands.Count - 1].HasVolatileConflicts(bot, state))
                     {
                         commands = new PathFinder(state, bot.Position, target).TryFindPath();
                         commands?.Reverse();

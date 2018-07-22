@@ -14,6 +14,8 @@ using lib.Strategies;
 using lib.Strategies.Features;
 using lib.Utils;
 
+using MoreLinq;
+
 using NUnit.Framework;
 
 namespace tests
