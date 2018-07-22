@@ -207,13 +207,27 @@ namespace lib.Strategies
                         else
                             commands.Add(new Wait());
                     }
+                    else if (botQueues[i].Peek() is Voidd voidCommand)
+                    {
+                        var voidPosition = botsToEvaluate[i] + voidCommand.Shift;
+
+                        if (buildingMatrix.CanVoidCell(voidPosition))
+                        {
+                            buildingMatrix[voidPosition] = false;
+                            commands.Add(botQueues[i].Dequeue());
+                        }
+                        else
+                            commands.Add(new Wait());
+                    }
                     else
                     {
                         commands.Add(botQueues[i].Dequeue());
                     }
                 }
                 if (commands.All(x => x is Wait))
+                {
                     throw new Exception("commands.All(x => x is Wait) == true");
+                }
                 for (var i = 0; i < commands.Count; i++)
                 {
                     if (commands[i] is SMove sMove)
