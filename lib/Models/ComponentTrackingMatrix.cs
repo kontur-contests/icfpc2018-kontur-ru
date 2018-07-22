@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using lib.Primitives;
 using lib.Utils;
 
 using MoreLinq;
@@ -113,5 +114,10 @@ namespace lib.Models
 
         public int R => matrix.R;
         public bool[,,] Voxels => matrix.Voxels;
+
+        public IEnumerable<Vec> GetFilledVoxels()
+        {
+            return new Cuboid(R).AllPoints().Where(v => this[v]);
+        }
     }
 }

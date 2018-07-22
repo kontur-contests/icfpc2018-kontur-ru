@@ -32,17 +32,17 @@ namespace lib.Utils
                 .ToArray();
         }
 
-        private static Problem CreateProblem(string x)
+        public static Problem CreateProblem(string fullPath)
         {
-            var fileName = Path.GetFileName(x) ?? "";
+            var fileName = Path.GetFileName(fullPath) ?? "";
             var type = fileName.StartsWith("FA") ? ProblemType.Assemble : fileName.StartsWith("FD") ? ProblemType.Disassemble : ProblemType.Reassemple;
 
             // ReSharper disable once PossibleNullReferenceException
-            var name = Path.GetFileNameWithoutExtension(x).Split('_')[0]; // no tgt and src suffix
-            var directoryName = Path.GetDirectoryName(x) ?? "";
+            var name = Path.GetFileNameWithoutExtension(fullPath).Split('_')[0]; // no tgt and src suffix
+            var directoryName = Path.GetDirectoryName(fullPath) ?? "";
             return new Problem
             {
-                FileName = x,
+                FileName = fullPath,
                 Name = name,
                 SourceMatrix = TryLoadMatrix(Path.Combine(directoryName, $"{name}_src.mdl")),
                 TargetMatrix = TryLoadMatrix(Path.Combine(directoryName, $"{name}_tgt.mdl")),
@@ -146,6 +146,7 @@ namespace lib.Utils
         public string FileName { get; set; }
         public string Name { get; set; }
         public Matrix SourceMatrix { get; set; }
+        public int R => SourceMatrix?.R ?? TargetMatrix.R;
         public Matrix TargetMatrix { get; set; }
         public ProblemType Type { get; set; }
     }
