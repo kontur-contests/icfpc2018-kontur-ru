@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using lib.Commands;
 using lib.Models;
 using lib.Strategies.Features.Async;
 using lib.Utils;
@@ -31,10 +29,18 @@ namespace lib.Strategies.Features
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
                 {
-                    if (!await new FillVoxel(state, bot, candidate, nearPosition, () => AfterFill(candidate)))
+                    if (!await new FillVoxel(state, bot, candidate, nearPosition))
                         continue;
 
-                    AfterFill(candidate);
+                    oracle.Fill(candidate);
+
+                    candidates.Remove(candidate);
+                    foreach (var neighbor in candidate.GetMNeighbours(state.Matrix))
+                    {
+                        if (state.TargetMatrix[neighbor] && !state.Matrix[neighbor])
+                            candidates.Add(neighbor);
+                    }
+
                     any = true;
                     break;
                 }
@@ -46,29 +52,15 @@ namespace lib.Strategies.Features
             return true;
         }
 
-        private void AfterFill(Vec candidate)
-        {
-            oracle.Fill(candidate);
-            
-            candidates.Remove(candidate);
-            foreach (var neighbor in candidate.GetMNeighbours(state.Matrix))
-            {
-                if (state.TargetMatrix[neighbor] && !state.Matrix[neighbor])
-                    candidates.Add(neighbor);
-            }
-        }
-
         private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates()
         {
-            foreach (var candidate in candidatesOrdering.Order(candidates, bot.Position))
+            foreach (var candidate in candidatesOrdering.Order(candidates, bot.Position).Where(c => !state.VolatileCells.ContainsKey(c)))
             {
-                var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(state.Matrix.R));
+                var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(state.Matrix.R) && !state.VolatileCells.ContainsKey(n));
                 foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(bot.Position)))
                 {
                     if (oracle.CanFill(candidate, nearPosition, state))
-                    {
                         yield return (candidate, nearPosition);
-                    }
                 }
             }
         }
