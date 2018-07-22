@@ -32,7 +32,6 @@ namespace lib.Strategies
             var disassembleCommands = disassembler.Solve().Where(c => !(c is Halt)).ToList();
             new Interpreter(state).RunPartially(disassembleCommands);
             var idMap = GetIdMap(state);
-            Console.WriteLine(idMap.ToDelimitedString(" "));
             var assembleCommands = GetAssembleCommands(idMap);
             return disassembleCommands.Concat(assembleCommands);
         }

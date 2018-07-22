@@ -154,19 +154,21 @@ namespace lib.Utils
                 CompatibleProblemTypes = new[] { ProblemType.Disassemble }
             };
 
-            var slicer6x6 = new Solution
-            {
-                Name = "Slicer6x6",
-                ProblemPrioritizer = p => ProblemPriority.Normal,
-                Solver = () => new HorizontalSlicer(problem.TargetMatrix, 6, 6, true),
-            };
-
-            var slicer8x5 = new Solution
-            {
-                Name = "Slicer8x5",
-                ProblemPrioritizer = p => ProblemPriority.Normal,
-                Solver = () => new HorizontalSlicer(problem.TargetMatrix, 8, 5, true),
-            };
+            var slicers = new List<Solution>();
+            for (var xSize = 2; xSize <= 40; xSize++)
+                for (var zSize = 2; zSize <= 40; zSize++)
+                {
+                    var count = xSize * zSize;
+                    var xSize1 = xSize;
+                    var zSize1 = zSize;
+                    if (30 <= count && count <= 40)
+                        slicers.Add(new Solution
+                            {
+                                Name = $"Slicer{xSize}x{zSize}",
+                                ProblemPrioritizer = p => ProblemPriority.Normal,
+                                Solver = () => new HorizontalSlicer(problem.TargetMatrix, xSize1, zSize1, true),
+                            });
+                }
 
             var blockDeconstructor = new Solution
             {
@@ -237,11 +239,11 @@ namespace lib.Utils
 //                    columns,
 //                    columnsBbx,
                     gForLarge,
-                    slicer6x6,
-                    slicer8x5,
                     blockDeconstructor,
                     blockDeconstructor137,
-                }.Concat(raSolutions).ToArray();
+                }.Concat(raSolutions)
+                 .Concat(slicers)
+                 .ToArray();
         }
 
         private static IAmSolver CreateGreedy(Matrix matrix)
