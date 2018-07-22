@@ -115,6 +115,19 @@ function groupLeaders(leaderboard) {
   return leadersGroup;
 }
 
+export const getTasksBestSolutions = async () => {
+  const solutionsWithMinimalEnergy = await getAllSolutionsWithMinimalEnergy();
+
+  const result = {}
+  for (let bucket of solutionsWithMinimalEnergy.aggregations.task_name.buckets) {
+    result[bucket.key] = bucket.min_energy.value
+  }
+
+  console.log(result, solutionsWithMinimalEnergy.aggregations.task_name.buckets)
+
+  return result
+}
+
 export const getSolutionResults = async () => {
   const solutionsWithMinimalEnergy = await getAllSolutionsWithMinimalEnergy();
 

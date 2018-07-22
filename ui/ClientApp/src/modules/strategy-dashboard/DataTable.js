@@ -47,7 +47,9 @@ export class DataTable extends React.Component {
                   background: isFinite(value)
                     ? value < 0
                       ? "rgb(0, 255, 0)"
-                      : "orange"
+                      : value > 0
+                        ? "orange"
+                        : "white"
                     : "white"
                 }}
               >
