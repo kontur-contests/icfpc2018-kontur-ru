@@ -114,6 +114,12 @@ namespace packer
                     Console.WriteLine($"Skipping task {taskName}, it has old-style name with _tgt");
                     continue;
                 }
+                
+                if (taskName.Contains("666"))
+                {
+                    Console.WriteLine($"Skipping task {taskName}, it has egorov-style name with 666");
+                    continue;
+                }
 
                 var energySpent = bucket.Min("min_energy").Value;
 
