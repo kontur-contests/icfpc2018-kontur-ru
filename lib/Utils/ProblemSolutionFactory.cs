@@ -166,6 +166,13 @@ namespace lib.Utils
                 },
             CompatibleProblemTypes = new[] { ProblemType.Disassemble },
         };
+        public static readonly Solution noWallDeconstructor = new Solution
+            {
+                Name = "NoWallDeconstructor",
+                ProblemPrioritizer = p => ProblemPriority.Normal,
+                Solver = problem => new NoWallsDeconstructor(problem.SourceMatrix),
+                CompatibleProblemTypes = new[] { ProblemType.Disassemble },
+            };
 
         public static readonly Solution parallelGredy = new Solution
         {
@@ -241,7 +248,8 @@ namespace lib.Utils
 //                    columnsBbx,
 //                    gForLarge,
                     blockDeconstructor,
-                    disassembler8
+                    disassembler8,
+                    noWallDeconstructor,
                 }.Concat(raSolutions)
                  .Concat(slicers)
                  .ToArray();

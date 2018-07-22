@@ -101,6 +101,31 @@ namespace tests
                        filename);
         }
 
+        [TestCaseSource(nameof(GetDeconstructionModels))]
+        [Explicit]
+        public void TestNoWallsDeconstructor(string filename)
+        {
+            DoRealTest(model => new NoWallsDeconstructor(model), 
+                       (solver, commands, model) =>
+                           {
+                               var state = new DeluxeState(model, new Matrix(model.R));
+                               var queue = new Queue<ICommand>();
+                               var interpreter = new Interpreter(state);
+                               foreach (var command in solver.Solve())
+                               {
+                                   commands.Add(command);
+                                   queue.Enqueue(command);
+                                   if (state.Bots.Count <= queue.Count)
+                                       interpreter.Tick(queue);
+                               }
+                               interpreter.EnsureIsFinal();
+                               return state.Energy;
+                           },
+                       "fast-deconstructor",
+                       "no-walls",
+                       filename);
+        }
+
         public void DoRealTest(Func<Matrix, IAmSolver> solverFactory,
                                Func<IAmSolver, List<ICommand>, Matrix, long> energyFactory,
                                string scopeName,
