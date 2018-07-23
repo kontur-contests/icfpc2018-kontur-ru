@@ -6,12 +6,13 @@ kontur.ru team @ ICFPC 2018
 1. Install .NET Core SDK 2.1.300 (includes .NET Core 2.1 Runtime) from https://github.com/dotnet/core/blob/master/release-notes/download-archives/2.1.0-download.md
 1. Install the latest ReSharper / Rider version 2018.1.3
 
-## URLs
+## How to run
 
-1. Kibana (logs only): https://elk-test.skbkontur.ru/app/kibana#/discover?_g=()&_a=(columns:!(Message),index:'6fc7b9b0-8661-11e8-9e00-0f907f72b941',interval:auto,query:(language:lucene,query:''),sort:!('@timestamp',desc))
-1. Elastic HTTP API (production data): http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io/ (NOTE: port 80)
-1. Kibana (production data): http://efk2-kibana.efk2.10.217.14.7.xip.io/
-1. Houston: https://wst.dev.kontur/hmon/index#/instances/pageDaemons (search for icfpc)
-1. TeamCity: https://tc.skbkontur.ru/project.html?projectId=Icfpc18&tab=projectOverview
-1. Octopus: https://octo.skbkontur.ru/app#/projects/icfpc18/overview
-1. Отчёт с [самыми частыми экспешнами в Хьюстоне](http://efk2-kibana.efk2.10.217.14.7.xip.io/app/kibana#/visualize/edit/8af3ee80-8dd6-11e8-a15c-8df4033ed8a0?_g=(refreshInterval%3A(display%3AOff%2Cpause%3A!f%2Cvalue%3A0)%2Ctime%3A(from%3Anow-4h%2Cmode%3Aquick%2Cto%3Anow)))
+To actually solve something (for example, get a trace for the model assembly) you can run tests in `SolveAllTest.cs` or `SolveAndPostResults_USE_ME_TO_POST_SOLUTIONS_FROM_YOUR_COMPUTER.cs`. You can also build and run the `houston-runner` project but be warned that it does not output the traces to the disk but posts them to an Elastic instance (as specified by `elasticUrl`) which would be unavailable to you.
+
+## What is what in the source code
+
+You can find the code for our strategies in the `lib` project. As you can see in the `lib/Strategies` folder we're got pretty lots of them. Let me describe a few I can name just now:
+— for assembling: a simple one-volxel-by-one-from-bottom-to-top assembler, a greedy assembler which tries to build the nearest to the bot unbuilt part of the model, a slicer assembler which makes bots to build horizontal slices of the model going bottom to top
+— for disassembling: a simple one-volxel-by-one disassembler, an invertor disassembler which takes an assembly trace and reverses it, a disassembler which builds cuboids 3-voxel-thick walls around parts of the model, GVoid-s everything inside those cuboids and then GVoid-s the walls
+— for reassembling: our reassemblers are basically the combinations of our assemblers and disassemblers
