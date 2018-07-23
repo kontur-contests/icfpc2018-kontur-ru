@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 using JetBrains.Annotations;
 
@@ -24,15 +22,17 @@ namespace lib.Strategies
         private int[,,] groundDistance;
         private int minX, minZ, maxX, maxZ;
         private readonly bool useBoundingBox;
+        private readonly bool fast;
         private CorrectComponentTrackingMatrix buildingMatrix;
         private int maxY;
 
-        public HorizontalSlicerByLines(Matrix targetMatrix, int gridCountX, int gridCountZ, bool useBoundingBox)
+        public HorizontalSlicerByLines(Matrix targetMatrix, int gridCountX, int gridCountZ, bool useBoundingBox, bool fast = false)
         {
             if (gridCountZ != 1)
                 throw new Exception("Wrong CountZ");
             this.targetMatrix = targetMatrix;
             this.useBoundingBox = useBoundingBox;
+            this.fast = fast;
             gridCountX = Math.Min(gridCountX, N / 2); // todo (mpivko, 23.07.2018): 
             CalcBoundingBox(gridCountX, gridCountZ);
             gridCountX = Math.Min(gridCountX, (maxX - minX + 1));
@@ -90,7 +90,10 @@ namespace lib.Strategies
         {
             buildingMatrix = new CorrectComponentTrackingMatrix(new bool[N, N, N]);
             var (transformedTargetMatrix, stickPositions) = TransformMatrix(targetMatrix);
-            var (cloneCommands, initialBots) = Clone(2 * grid.CountX, new Grid(grid.CountX, 2, minX, minZ, maxX, maxZ));
+            var (cloneCommands, initialBots) = 
+                fast 
+                ? Clone2(new Grid(grid.CountX, 2, minX, minZ, maxX, maxZ))
+                : Clone(2 * grid.CountX, new Grid(grid.CountX, 2, minX, minZ, maxX, maxZ));
             foreach (var command in cloneCommands)
                 yield return command;
 
@@ -248,9 +251,8 @@ namespace lib.Strategies
                     yield return commands[i];
                 }
             }
-            foreach (var command in GoHome(botsToEvaluate))
+            foreach (var command in fast ? GoHome2(botsToEvaluate) : GoHome(botsToEvaluate))
                 yield return command;
-            yield return new Halt();
         }
 
         private bool CanFill(bool[,,] buildingMatrix, [NotNull] Vec vec)
@@ -532,6 +534,7 @@ namespace lib.Strategies
                 }
                 first = false;
             }
+            yield return new Halt();
         }
 
         [NotNull]
@@ -600,5 +603,39 @@ namespace lib.Strategies
             }
             return res;
         }
+
+        private DeluxeState CreateState(List<Vec> bots)
+        {
+            var state = new DeluxeState(targetMatrix, targetMatrix);
+            state.Bots.Clear();
+            for (var i = 0; i < bots.Count; i++)
+            {
+                var bot = bots[i];
+                state.Bots.Add(new Bot { Bid = i + 1, Position = bot, Seeds = new List<int>() });
+            }
+            return state;
+        }
+        private IEnumerable<ICommand> GoHome2([NotNull] List<Vec> bots)
+        {
+            var state = CreateState(bots);
+            return new Finalize(state).Run(state);
+        }
+        private (List<ICommand> Commands, List<Vec> Bots) Clone2(Grid botsGrid)
+        {
+            var state = new DeluxeState(null, targetMatrix);
+            var botsCount = botsGrid.CountX * botsGrid.CountZ;
+            var split = new Split(state, state.Bots.Single(), botsCount);
+            var commands = split.Run(state).ToList();
+            var targets = botsGrid.AllCellsStarts().Select(xz => new Vec(xz.x, 1, xz.z)).ToArray();
+            var bots = split.Bots.OrderBy(b => b.Bid).ToList();
+            var spread = new SpreadToPositions(state, bots, targets.ToList());
+            commands.AddRange(spread.Run(state));
+
+            var badGroups = bots.GroupBy(b => botsGrid.GetCellId(b.Position)).Where(g => g.Count() > 1).ToList();
+            if (badGroups.Any())
+                throw new Exception($"Bad group {badGroups.First().Key}");
+            return (commands, split.Bots.Select(b => b.Position).ToList());
+        }
+
     }
 }
