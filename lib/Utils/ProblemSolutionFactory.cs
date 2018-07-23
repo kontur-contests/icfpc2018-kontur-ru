@@ -185,6 +185,28 @@ namespace lib.Utils
                 return solver;
             }
         };
+
+        public static readonly Solution slicerWithLines5 = new Solution
+            {
+                Name = "SlicerWithLines5",
+                ProblemPrioritizer = p => ProblemPriority.High,
+                Solver = problem => new HorizontalSlicerByLines(problem.SourceMatrix, 5, 1, true),
+            };
+
+        public static readonly Solution slicerWithLines10 = new Solution
+            {
+                Name = "SlicerWithLines10",
+                ProblemPrioritizer = p => ProblemPriority.High,
+                Solver = problem => new HorizontalSlicerByLines(problem.SourceMatrix, 10, 1, true),
+            };
+
+        public static readonly Solution slicerWithLines20 = new Solution
+            {
+                Name = "SlicerWithLines20",
+                ProblemPrioritizer = p => ProblemPriority.High,
+                Solver = problem => new HorizontalSlicerByLines(problem.SourceMatrix, 20, 1, true),
+            };
+
         private static Solution[] GetSolutions(Problem problem1)
         {
             var slicers = new List<Solution>();
@@ -251,6 +273,9 @@ namespace lib.Utils
                     blockDeconstructor,
                     disassembler8,
                     noWallDeconstructor,
+                    slicerWithLines5,
+                    slicerWithLines10,
+                    slicerWithLines20,
                 }.Concat(raSolutions)
                  .Concat(slicers)
                  .ToArray();
@@ -262,7 +287,7 @@ namespace lib.Utils
             {
                 Name = $"Slicer{xSize}x{zSize}",
                 ShortName = $"s{xSize}x{zSize}",
-                ProblemPrioritizer = p => ProblemPriority.Normal,
+                ProblemPrioritizer = p => ProblemPriority.Low,
                 Solver = problem => new HorizontalSlicer(problem.TargetMatrix, xSize, zSize, true),
             };
         }
@@ -354,6 +379,7 @@ namespace lib.Utils
     {
         High,
         Normal,
+        Low,
         DoNotSolve
     }
 
