@@ -146,7 +146,7 @@ namespace lib.Strategies
                 firstHigh = false;
                 for (var i = 0; i < botQueues.Count; i++)
                 {
-                    if (botQueues[i].Count == 0)
+                    if (botQueues[i].Count == 0 || shouldWait[i])
                     {
                         commands.Add(new Wait());
                         continue;
@@ -160,7 +160,11 @@ namespace lib.Strategies
                             commands.Add(botQueues[i].Dequeue());
                         }
                         else
+                        {
+                            if (i < botCount / 2)
+                                shouldWait[i + botCount / 2] = true;
                             commands.Add(new Wait());
+                        }
                     }
                     else if (botQueues[i].Peek() is GFill gFillCommand)
                     {
@@ -171,7 +175,7 @@ namespace lib.Strategies
                                 filledCells.Add(cell);
                             buildingMatrix[cell] = true;
                         }
-                        if (shouldWait[i] || (buildingMatrix.HasNonGroundedVoxels && !isHighEnergy))
+                        if (shouldWait[i] || buildingMatrix.HasNonGroundedVoxels && !isHighEnergy)
                         {
                             foreach (var filledCell in filledCells)
                             {
@@ -194,7 +198,11 @@ namespace lib.Strategies
                             commands.Add(botQueues[i].Dequeue());
                         }
                         else
+                        {
+                            if (i < botCount / 2)
+                                shouldWait[i + botCount / 2] = true;
                             commands.Add(new Wait());
+                        }
                     }
                     else
                     {
@@ -265,12 +273,24 @@ namespace lib.Strategies
 
                 if (line.Far == line.Near)
                 {
-                    foreach (var command in GoToVerticalFirstXZ(nearBotPosition, nearTarget))
+                    if ((line.Far - nearBotPosition).MLen() > (line.Far - farBotPosition).MLen())
                     {
-                        nearBotPosition = nearTarget;
-                        yield return (command, new Wait());
+                        foreach (var command in GoToVerticalFirstXZ(farBotPosition, farTarget))
+                        {
+                            farBotPosition = farTarget;
+                            yield return (new Wait(), command);
+                        }
+                        yield return (new Wait(), new Fill(new Vec(0, -1, 0)));
                     }
-                    yield return (new Fill(new Vec(0, -1, 0)), new Wait());
+                    else
+                    {
+                        foreach (var command in GoToVerticalFirstXZ(nearBotPosition, nearTarget))
+                        {
+                            nearBotPosition = nearTarget;
+                            yield return (command, new Wait());
+                        }
+                        yield return (new Fill(new Vec(0, -1, 0)), new Wait());
+                    }
                 }
                 else
                 {
@@ -292,7 +312,7 @@ namespace lib.Strategies
         {
             var nearDirection = nearTarget - nearBotPosition;
             var farDirection = farTarget - farBotPosition;
-            if (nearDirection.Sign() != farDirection.Sign())
+            if (nearDirection.Sign().Z != farDirection.Sign().Z)
                 return DoLocateCrew(nearBotPosition, farBotPosition, nearTarget, farTarget);
             if (nearDirection.Sign().Z == -1)
                 return DoLocateCrew(nearBotPosition, farBotPosition, nearTarget, farTarget);
