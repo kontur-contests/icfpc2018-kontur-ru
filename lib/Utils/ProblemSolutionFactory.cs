@@ -188,23 +188,23 @@ namespace lib.Utils
 
         public static readonly Solution slicerWithLines5 = new Solution
             {
-                Name = "SlicerWithLines5",
+                Name = "SlicerWithLinesRot5",
                 ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 5, 1, true),
+                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 1, 5, true),
             };
 
         public static readonly Solution slicerWithLines10 = new Solution
             {
-                Name = "SlicerWithLines10",
+                Name = "SlicerWithLinesRot10",
                 ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 10, 1, true),
+                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 1, 10, true),
             };
 
         public static readonly Solution slicerWithLines20 = new Solution
             {
-                Name = "SlicerWithLines20",
+                Name = "SlicerWithLinesRot20",
                 ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 20, 1, true),
+                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 1, 20, true),
             };
 
         private static Solution[] GetSolutions(Problem problem1)
@@ -224,9 +224,9 @@ namespace lib.Utils
                 }
 
             (string name, Func<Matrix, IAmSolver> solver)[] solvers = {
-                    ("sl5", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 5, 1, true))),
-                    ("sl10", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 10, 1, true))),
-                    ("sl20", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 20, 1, true))),
+                    ("slr5", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 1, 5, true))),
+                    ("slr10", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 1, 10, true))),
+                    ("slr20", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 1, 20, true))),
                 };
 
             var raSolutions = new List<Solution>();
@@ -260,25 +260,7 @@ namespace lib.Utils
 
                     });
                 }
-            return new[]
-                {
-//                    stupidDisassembler,
-//                    invertorDisassembler,
-//                    invColDisassembler,
-//                    invSlice6x6Disassembler,
-//                    gFast,
-//                    gLayers,
-//                    columns,
-//                    columnsBbx,
-//                    gForLarge,
-                    //blockDeconstructor,
-                    //disassembler8,
-                    //noWallDeconstructor,
-                    slicerWithLines5,
-                    slicerWithLines10,
-                    slicerWithLines20,
-                }.Concat(raSolutions)
-                 .ToArray();
+            return raSolutions.ToArray();
         }
 
         public static Solution CreateSlicerAssembler(int xSize = 6, int zSize = 6)

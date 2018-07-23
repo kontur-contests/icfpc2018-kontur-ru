@@ -80,7 +80,7 @@ namespace tests
         [Explicit]
         public void TestHorizontalSlicerByLines(string filename)
         {
-            DoRealTest(model => new HorizontalSlicerByLines(model, 20, 1, useBoundingBox : true), 
+            DoRealTest(model => new HorizontalSlicerByLines(model, 1, 20, useBoundingBox : true), 
                        (solver, commands, model) =>
                            {
                                var state = new DeluxeState(new Matrix(model.R), model);
@@ -97,7 +97,7 @@ namespace tests
                                return state.Energy;
                            },
                        "horizontal-slicer",
-                       "bbox-slicer-remove-sticks-lmoves-lines",
+                       "bbox-slicer-remove-sticks-lmoves-lines-rot",
                        filename);
         }
 

@@ -29,13 +29,14 @@ namespace lib.Strategies
 
         public HorizontalSlicerByLines(Matrix targetMatrix, int gridCountX, int gridCountZ, bool useBoundingBox)
         {
-            if (gridCountZ != 1)
-                throw new Exception("Wrong CountZ");
+            if (gridCountX != 1)
+                throw new Exception("Wrong CountX");
             this.targetMatrix = targetMatrix;
             this.useBoundingBox = useBoundingBox;
             gridCountX = Math.Min(gridCountX, N / 2); // todo (mpivko, 23.07.2018): 
+            gridCountZ = Math.Min(gridCountZ, N / 2); // todo (mpivko, 23.07.2018): 
             CalcBoundingBox(gridCountX, gridCountZ);
-            gridCountX = Math.Min(gridCountX, (maxX - minX + 1));
+            //gridCountX = Math.Min(gridCountX, (maxX - minX + 1));
             grid = new Grid(gridCountX, gridCountZ, minX, minZ, maxX, maxZ);
         }
 
@@ -81,16 +82,16 @@ namespace lib.Strategies
 
         private int GetPartnerId(int id)
         {
-            if (id < grid.CountX)
-                return id + grid.CountX;
-            return id - grid.CountX;
+            if (id < grid.CountZ)
+                return id + grid.CountZ;
+            return id - grid.CountZ;
         }
 
         public IEnumerable<ICommand> Solve()
         {
             buildingMatrix = new CorrectComponentTrackingMatrix(new bool[N, N, N]);
             var (transformedTargetMatrix, stickPositions) = TransformMatrix(targetMatrix);
-            var (cloneCommands, initialBots) = Clone(2 * grid.CountX, new Grid(grid.CountX, 2, minX, minZ, maxX, maxZ));
+            var (cloneCommands, initialBots) = Clone(2 * grid.CountZ, new Grid(2, grid.CountZ, minX, minZ, maxX, maxZ));
             foreach (var command in cloneCommands)
                 yield return command;
 
@@ -261,20 +262,20 @@ namespace lib.Strategies
         private List<(Vec Near, Vec Far)> GetLines(List<Vec> cells)
         {
             var result = new List<(int, int)>();
-            var zs = cells.Select(x => x.Z).ToList();
+            var xs = cells.Select(x => x.X).ToList();
             var lastStartIndex = 0;
-            for (int i = 1; i < zs.Count; i++)
+            for (int i = 1; i < xs.Count; i++)
             {
-                if (zs[i] != zs[i - 1] + 1 || i - lastStartIndex >= 30)
+                if (xs[i] != xs[i - 1] + 1 || i - lastStartIndex >= 30)
                 {
-                    result.Add((zs[lastStartIndex], zs[i - 1]));
+                    result.Add((xs[lastStartIndex], xs[i - 1]));
                     lastStartIndex = i;
                 }
             }
             if (result.Any(x => x.Item2 - x.Item1 + 1 > 30))
                 throw new Exception("Too long line");
-            result.Add((zs[lastStartIndex], zs.Last()));
-            return result.Select(z => (new Vec(cells[0].X, cells[0].Y, z.Item1), new Vec(cells[0].X, cells[0].Y, z.Item2))).ToList();
+            result.Add((xs[lastStartIndex], xs.Last()));
+            return result.Select(x => (new Vec(x.Item1, cells[0].Y, cells[0].Z), new Vec(x.Item2, cells[0].Y, cells[0].Z))).ToList();
         }
 
         private List<Vec> GetCellsOnLine((Vec form, Vec to) pos)
@@ -286,7 +287,7 @@ namespace lib.Strategies
         {
             var lines = grid.GetCells(new Vec(nearBotPosition.X, nearBotPosition.Y - 1, nearBotPosition.Z))
                             .Where(matrix.IsFilledVoxel)
-                            .GroupBy(x => x.X)
+                            .GroupBy(x => x.Z)
                             .SelectMany(x => GetLines(x.ToList()))
                             .OrderBy(position => GetCellsOnLine(position).Min(cell => groundDistance.Get(cell)))
                             .ToList();
@@ -337,9 +338,9 @@ namespace lib.Strategies
         {
             var nearDirection = nearTarget - nearBotPosition;
             var farDirection = farTarget - farBotPosition;
-            if (nearDirection.Sign().Z != farDirection.Sign().Z)
+            if (nearDirection.Sign().X != farDirection.Sign().X)
                 return DoLocateCrew(nearBotPosition, farBotPosition, nearTarget, farTarget);
-            if (nearDirection.Sign().Z == -1)
+            if (nearDirection.Sign().X == -1)
                 return DoLocateCrew(nearBotPosition, farBotPosition, nearTarget, farTarget);
             return DoLocateCrew(farBotPosition, nearBotPosition, farTarget, nearTarget).Select(x => (x.Item2, x.Item1));
         }
@@ -347,11 +348,11 @@ namespace lib.Strategies
         private List<(ICommand, ICommand)> DoLocateCrew([NotNull] Vec firstBotPosition, [NotNull] Vec secondBotPosition, [NotNull] Vec firstTarget, [NotNull] Vec secondTarget)
         {
             var res = new List<(ICommand, ICommand)>();
-            foreach (var command in GoToVerticalFirstZX(firstBotPosition, firstTarget))
+            foreach (var command in GoToVerticalFirstXZ(firstBotPosition, firstTarget))
             {
                 res.Add((command, new Wait()));
             }
-            foreach (var command in GoToVerticalFirstZX(secondBotPosition, secondTarget))
+            foreach (var command in GoToVerticalFirstXZ(secondBotPosition, secondTarget))
             {
                 res.Add((new Wait(), command));
             }
@@ -484,7 +485,7 @@ namespace lib.Strategies
             {
                 // todo (mpivko, 21.07.2018): Be careful with your brain
                 int xCoord = i < rowCount ? 0 : 1;
-                var cellStart = currGrid.GetCellStart((i % currGrid.CountX, i / currGrid.CountX));
+                var cellStart = currGrid.GetCellStart((i / currGrid.CountZ, i % currGrid.CountZ));
                 var botFinalPosition = new Vec(Math.Max(1, cellStart.X), 1, cellStart.Z);
                 botPositions.Add(botFinalPosition);
                 var commands = GoToVerticalLast(new Vec(xCoord, i % 10 + 4, i % rowCount),
