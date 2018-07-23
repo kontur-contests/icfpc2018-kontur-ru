@@ -7,11 +7,11 @@ namespace lib.Strategies.Features
 {
     public class GetOutOfRegionSingleBot : ReachAnyTarget
     {
-        public GetOutOfRegionSingleBot(DeluxeState state, Bot bot, Region region)
-            : base(state, bot, () => region
-                                         .SelectMany(v => v.GetMNeighbours(state.Matrix))
+        public GetOutOfRegionSingleBot(DeluxeState state, Bot bot, params Region[] regions)
+            : base(state, bot, () => regions
+                                         .SelectMany(v => v.SelectMany(x => x.GetMNeighbours(state.Matrix)))
                                          .Distinct()
-                                         .Where(v => !v.IsInRegion(region)
+                                         .Where(v => regions.All(rr => !v.IsInRegion(rr))
                                                      && !state.IsVolatile(bot, v))
                                          .OrderBy(v => state.Matrix[v])
                                          .ThenByDescending(v => v.Y)

@@ -9,21 +9,21 @@ namespace lib.Strategies.Features
 {
     public class GetOutOfRegion : Strategy
     {
-        private readonly Region region;
+        private readonly Region[] regions;
         private readonly Bot[] bots;
 
-        public GetOutOfRegion(DeluxeState state, Region region, IEnumerable<Bot> bots)
+        public GetOutOfRegion(DeluxeState state, IEnumerable<Bot> bots, params Region[] regions)
             : base(state)
         {
-            this.region = region;
+            this.regions = regions;
             this.bots = bots.ToArray();
         }
 
         protected override async StrategyTask<bool> Run()
         {
             var strategies = bots
-                .Where(b => b.Position.IsInRegion(region))
-                .Select(b => new GetOutOfRegionSingleBot(state, b, region));
+                .Where(b => regions.Any(rr => b.Position.IsInRegion(rr)))
+                .Select(b => new GetOutOfRegionSingleBot(state, b, regions));
 
             return await WhenAll(strategies);
         }
