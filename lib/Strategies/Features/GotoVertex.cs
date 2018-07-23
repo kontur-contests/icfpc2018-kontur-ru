@@ -14,7 +14,7 @@ namespace lib.Strategies.Features
                                          .GetNears()
                                          .Where(v => v.IsInCuboid(state.R)
                                                      && !v.IsInRegion(region)
-                                                     && !state.VolatileCells.ContainsKey(v))
+                                                     && !state.IsVolatile(bot, v))
                                          .OrderBy(v => state.Matrix[v])
                                          .ThenByDescending(v => v.Y)
                                          .ThenBy(v => v.MDistTo(bot.Position)))

@@ -38,7 +38,7 @@ namespace lib.Models
             foreach (var bc in botCommands)
                 state.SetBotCommand(bc.bot, bc.command);
             state.EndTick();
-            LastChangedCells = state.VolatileCells.Keys.ToHashSet();
+            LastChangedCells = state.LastChangedCells.ToHashSet();
         }
 
         public HashSet<Vec> LastChangedCells { get; private set; }

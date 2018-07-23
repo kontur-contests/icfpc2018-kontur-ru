@@ -150,7 +150,7 @@ namespace tests
 
         [Test]
         [Explicit]
-        [Timeout(30000)]
+        //[Timeout(30000)]
         public void AssembleSpaceorc()
         {
             var problem = ProblemSolutionFactory.LoadProblem("FA001");

@@ -21,12 +21,25 @@ namespace lib.Strategies.Features
         {
             for (int attempt = 0; attempt < state.Bots.Count; attempt++)
             {
-                if (state.VolatileCells.ContainsKey(target))
+                if (bot.Position == target)
+                    return true;
+
+                if (state.IsVolatile(bot, target))
                     return false;
 
-                var hasPath = new PathFinderNeighbours(state.Matrix, bot.Position, target, x => !state.VolatileCells.ContainsKey(x)).TryFindPath(out var used);
+                var hasPath = new PathFinderNeighbours(state.Matrix, bot.Position, target, x => !state.IsVolatile(bot, x)).TryFindPath(out var used);
                 if (hasPath)
                 {
+                    if (state.GetOwner(bot.Position) == bot)
+                    {
+                        var neighbor = bot.Position.GetNeighbors().First(n => used.Contains(n));
+
+                        var prevPosition = bot.Position;
+                        await Do(new SMove(neighbor - bot.Position));
+
+                        state.Unown(bot, prevPosition);
+                        await Do(new Fill(prevPosition - bot.Position));
+                    }
                     if (await Move(bot, target))
                         return true;
                     continue;
@@ -34,35 +47,61 @@ namespace lib.Strategies.Features
                 
                 var moveTarget = used
                     .Where(v => new Region(v, target).Dim == 1
-                                && !new Region(v, target).Any(x => x != bot.Position && state.VolatileCells.ContainsKey(x)))
+                                && !new Region(v, target).Any(x => x != bot.Position && state.IsVolatile(bot, x)))
                     .OrderBy(v => v.MDistTo(target)).FirstOrDefault();
                 if (moveTarget == null)
                 {
                     await WhenNextTurn();
                     continue;
                 }
-                if (!await Move(bot, moveTarget))
-                    continue;
+
+                if (moveTarget != bot.Position)
+                {
+                    if (state.GetOwner(bot.Position) == bot)
+                    {
+                        var neighbor = bot.Position.GetNeighbors().First(n => used.Contains(n));
+
+                        var prevPosition = bot.Position;
+                        await Do(new SMove(neighbor - bot.Position));
+
+                        state.Unown(bot, prevPosition);
+                        await Do(new Fill(prevPosition - bot.Position));
+                    }
+                    if (!await Move(bot, moveTarget))
+                        continue;
+                }
 
                 var drillTarget = bot.Position.GetMNeighbours(state.Matrix).OrderBy(n => n.MDistTo(target)).First();
-                if (state.VolatileCells.ContainsKey(drillTarget))
+                if (state.IsVolatile(bot, drillTarget))
                 {
                     await WhenNextTurn();
                     continue;
                 }
 
                 if (!state.Matrix[drillTarget])
+                {
+                    var prevPosition = bot.Position;
                     await Do(new SMove(drillTarget - bot.Position));
+
+                    if (state.GetOwner(prevPosition) == bot)
+                    {
+                        state.Unown(bot, prevPosition);
+                        await Do(new Fill(prevPosition - bot.Position));
+                    }
+                }
                 else
                 {
+                    state.Own(bot, drillTarget);
                     await Do(new Voidd(drillTarget - bot.Position));
 
-                    //if (state.VolatileCells.ContainsKey(drillTarget))
-                    //{
-                    //    // 
-                    //}
+                    var prevPosition = bot.Position;
+                    await Do(new SMove(drillTarget - bot.Position));
 
-                    //await Do(new SMove(drillTarget - bot.Position));
+                    if (state.GetOwner(prevPosition) == bot)
+                    {
+                        state.Unown(bot, prevPosition);
+                        await Do(new Fill(prevPosition - bot.Position));
+                    }
                 }
             }
 

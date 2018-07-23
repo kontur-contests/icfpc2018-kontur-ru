@@ -18,9 +18,39 @@ namespace lib.Models
         public HashSet<Bot> Bots { get; }
         public long Energy { get; set; }
         public Harmonics Harmonics { get; set; }
-        public Dictionary<Vec, (Bot bot, string message)> VolatileCells { get; } = new Dictionary<Vec, (Bot, string)>();
+        private Dictionary<Vec, (Bot bot, string message)> VolatileCells { get; } = new Dictionary<Vec, (Bot, string)>();
+        public Dictionary<Vec, Bot> BotOwnedCells { get; } = new Dictionary<Vec, Bot>();
         public int Tick = 0;
         public int R => Matrix.R;
+
+
+        public IEnumerable<Vec> LastChangedCells => VolatileCells.Keys;
+
+        public bool IsVolatile(Bot bot, Vec vec)
+        {
+            return VolatileCells.ContainsKey(vec) || BotOwnedCells.TryGetValue(vec, out var owner) && owner != bot;
+        }
+
+        public Bot GetOwner(Vec vec)
+        {
+            return BotOwnedCells.TryGetValue(vec, out var owner) ? owner : null;
+        }
+
+        public void Own(Bot bot, Vec vec)
+        {
+            if (BotOwnedCells.TryGetValue(vec, out var owner))
+                throw new InvalidOperationException($"Ownership conflict: current owner {owner}; candidate: {bot}; vec: {vec}");
+            BotOwnedCells.Add(vec, bot);
+        }
+
+        public void Unown(Bot bot, Vec vec)
+        {
+            if (!BotOwnedCells.TryGetValue(vec, out var owner))
+                throw new InvalidOperationException($"Attempt to unown unowned cell; bot: {bot}; vec: {vec}");
+            if (owner != bot)
+                throw new InvalidOperationException($"Ownership conflict: current owner {owner}; unowner: {bot}; vec: {vec}");
+            BotOwnedCells.Remove(vec);
+        }
 
         public readonly Dictionary<Bot, ICommand> botCommands = new Dictionary<Bot, ICommand>();
         private readonly Dictionary<Region, (bool isFill, Dictionary<Vec, Bot> corners)> groupRegions = new Dictionary<Region, (bool isFill, Dictionary<Vec, Bot> corners)>();
@@ -51,6 +81,7 @@ namespace lib.Models
         {
             try
             {
+                Log.For(this).Info($"\tSetBotCommand {bot.Bid} at {bot.Position}: {command}");
                 if (!Bots.Contains(bot))
                     throw new InvalidOperationException($"Unknown bot {bot}; Command: {command}");
                 if (botCommands.TryGetValue(bot, out var duplicateCommand))
@@ -103,8 +134,8 @@ namespace lib.Models
                     if (!botCommands.ContainsKey(bot))
                         SetBotCommand(bot, new Wait());
                 }
-                if (botCommands.All(x => x.Value is Wait))
-                    throw new InvalidOperationException("All commands are WAITS - it's wrong");
+                //if (botCommands.All(x => x.Value is Wait))
+                //    throw new InvalidOperationException("All commands are WAITS - it's wrong");
 
                 foreach (var kvp in groupRegions)
                 {

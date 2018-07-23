@@ -21,7 +21,7 @@ namespace lib.Strategies.Features
             var sorted = new GenPlanSorter(plan, R).Sort();
             if (!await new PlanAssembler(state, split.Bots, sorted))
                 return false;
-            return await Finalize();
+            return await new ReachFinalState(state);
         }
     }
 }

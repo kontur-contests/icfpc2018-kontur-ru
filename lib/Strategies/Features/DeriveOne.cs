@@ -38,7 +38,7 @@ namespace lib.Strategies.Features
             return bot.Position
                       .GetNears()
                       .Where(n => n.IsInCuboid(state.Matrix.R))
-                      .FirstOrDefault(n => !state.VolatileCells.ContainsKey(n));
+                      .FirstOrDefault(n => !state.IsVolatile(bot, n));
         }
     }
 }

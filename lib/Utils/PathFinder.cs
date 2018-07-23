@@ -25,8 +25,8 @@ namespace lib.Utils
             this.isAllowedPosition = isAllowedPosition;
         }
 
-        public PathFinder(DeluxeState state, Vec source, Vec target)
-            : this(state.Matrix.Voxels, source, target, vec => !state.VolatileCells.ContainsKey(vec))
+        public PathFinder(DeluxeState state, Bot bot, Vec target)
+            : this(state.Matrix.Voxels, bot.Position, target, vec => !state.IsVolatile(bot, vec))
         {
         }
 
