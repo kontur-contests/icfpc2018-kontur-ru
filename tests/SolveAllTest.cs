@@ -130,12 +130,12 @@ namespace tests
 
         [Test]
         [Explicit]
-        //[Timeout(180000)]
+        [Timeout(30000)]
         public void AssembleSpaceorc()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FD103");
+            var problem = ProblemSolutionFactory.LoadProblem("FA001");
             var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
-            var solver = new Solver(state, new Disassembler(state));
+            var solver = new Solver(state, new Assembler(state));
             List<ICommand> commands = new List<ICommand>();
             try
             {

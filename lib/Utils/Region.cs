@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace lib.Utils
 {
@@ -71,6 +72,11 @@ namespace lib.Utils
         }
 
         public IEnumerable<Vec> Vertices()
+        {
+            return NonDistinctVertices().Distinct();
+        }
+
+        private IEnumerable<Vec> NonDistinctVertices()
         {
             yield return new Vec(Start.X, Start.Y, Start.Z);
             yield return new Vec(Start.X, Start.Y, End.Z);
