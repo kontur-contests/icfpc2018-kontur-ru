@@ -2,43 +2,86 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using lib.Models;
 using lib.Utils;
 
 using MoreLinq;
 
 namespace lib.Strategies.Features
 {
-    public static class GenPlanSorter
+    public class GenPlanSorter
     {
-        public static IEnumerable<Region> DefaultSort(this IEnumerable<Region> genPlan)
+        private readonly Matrix<int> regionIndex;
+        private readonly List<Region> regions;
+        private readonly HashSet<int> used = new HashSet<int>();
+        private int n;
+        private readonly SortedSet<Region> toGroundSet;
+
+        public GenPlanSorter(List<Region> regions, int n)
         {
-            var nonGroundedSet = genPlan.ToHashSet();
-            var toGroundSet = new SortedSet<Region>(Comparer<Region>.Create((a, b) =>
+            regions = regions.OrderBy(r => r.Start.MDistTo(r.End)).ToList();
+
+            this.regions = regions;
+            this.n = n;
+            regionIndex = new Matrix<int>(n);
+
+            for (int x = 0; x < n; x++)
+                for (int y = 0; y < n; y++)
+                    for (int z = 0; z < n; z++)
+                        regionIndex[x, y, z] = -1;
+
+            toGroundSet = new SortedSet<Region>(Comparer<Region>.Create((a, b) =>
                 {
                     var compare = Comparer<int>.Default.Compare(Eval(a), Eval(b));
                     if (compare != 0)
                         return compare;
                     return Comparer<string>.Default.Compare(a.ToString(), b.ToString());
                 }));
+            
+            for (int i = 0; i < regions.Count; i++)
+                foreach (var vec in regions[i])
+                {
+                    //if (regionIndex[vec] != -1)
+                    //    throw new Exception("duplicate!");
+                    regionIndex[vec] = i;
+                }
+        }
+
+        public IEnumerable<Region> Sort()
+        {
             var resultSet = new List<Region>();
 
-            while (nonGroundedSet.Any() || toGroundSet.Any())
+            Build(new Region(new Vec(-1, -1, -1), new Vec(n, -1, n)));
+            
+            while (toGroundSet.Any())
             {
-                var newToGround = nonGroundedSet.Where(r => CanBeGrounded(resultSet, r)).ToList();
-                if (newToGround.Any())
-                {
-                    nonGroundedSet.ExceptWith(newToGround);
-                    toGroundSet.UnionWith(newToGround);
-                }
-                else
-                {
-                    var nextItem = toGroundSet.First();
-                    resultSet.Add(nextItem);
-                    toGroundSet.Remove(nextItem);
-                }
+                var nextItem = toGroundSet.First();
+                resultSet.Add(nextItem);
+                Build(nextItem);
+                toGroundSet.Remove(nextItem);
             }
 
             return resultSet;
+        }
+
+        private void Build(Region region)
+        {
+            var nears = region.SelectMany(v => v.GetMNeighbours())
+                              .Where(v => v.IsInCuboid(n))
+                              .Distinct();
+
+            foreach (var near in nears)
+            {
+                int reg = regionIndex[near];
+                if (reg == -1)
+                    continue;
+
+                if (!used.Contains(reg))
+                {
+                    used.Add(reg);
+                    toGroundSet.Add(regions[reg]);
+                }
+            }
         }
 
         private static bool CanBeGrounded(IEnumerable<Region> resultSet, Region region)

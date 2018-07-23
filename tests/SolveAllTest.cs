@@ -141,10 +141,10 @@ namespace tests
         [Test]
         public void Test2()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FA030");
+            var problem = ProblemSolutionFactory.LoadProblem("FA001");
             var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
             var plan = new GenPlanBuilder(state).CreateGenPlan();
-            var sorted = plan.DefaultSort().ToList();
+            var sorted = new GenPlanSorter(plan, state.R).Sort();
             sorted.ToHashSet().SetEquals(plan).Should().BeTrue();
         }
 
@@ -153,7 +153,7 @@ namespace tests
         [Timeout(30000)]
         public void AssembleSpaceorc()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FA099");
+            var problem = ProblemSolutionFactory.LoadProblem("FA001");
             var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
             var solver = new Solver(state, new Assembler(state));
             List<ICommand> commands = new List<ICommand>();
