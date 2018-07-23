@@ -34,6 +34,117 @@ function bestSolutionsMorpher({
   }));
 }
 
+function dashboardMorpher({
+  aggregations: {
+    taskName: { buckets }
+  }
+}) {
+  const result = {};
+
+  const taskNames = new Set();
+  const solverNames = new Set();
+
+  for (const bucket of buckets) {
+    if (bucket.key.includes("_tgt")) {
+      continue;
+    }
+    result[bucket.key] = {};
+    taskNames.add(bucket.key);
+
+    for (const solverBucket of bucket.solverName.buckets) {
+      result[bucket.key][solverBucket.key] = solverBucket.energySpent.value;
+      solverNames.add(solverBucket.key);
+    }
+  }
+
+  return {
+    result,
+    taskNames: [...taskNames].sort(),
+    solverNames: [...solverNames].sort(
+      (a, b) => (a.toLowerCase() > b.toLowerCase() ? 1 : -1)
+    )
+  };
+}
+
+const getDashboardData = () => {
+  const end = Date.now();
+  const start = Date.now() - 4 * 24 * 60 * 60 * 1000;
+
+  return makeRequest({
+    size: 0,
+    _source: {
+      excludes: []
+    },
+    aggs: {
+      taskName: {
+        terms: {
+          field: "taskName.keyword",
+          size: 10000,
+          order: {
+            energySpent: "desc"
+          }
+        },
+        aggs: {
+          energySpent: {
+            min: {
+              field: "energySpent"
+            }
+          },
+          solverName: {
+            terms: {
+              field: "solverName.keyword",
+              size: 10000,
+              order: {
+                energySpent: "asc"
+              }
+            },
+            aggs: {
+              energySpent: {
+                min: {
+                  field: "energySpent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    stored_fields: ["*"],
+    script_fields: {},
+    docvalue_fields: ["startedAt"],
+    query: {
+      bool: {
+        must: [
+          {
+            match_all: {}
+          },
+          {
+            match_phrase: {
+              isSuccess: {
+                query: true
+              }
+            }
+          },
+          {
+            range: {
+              startedAt: {
+                gte: start,
+                lte: end,
+                format: "epoch_millis"
+              }
+            }
+          }
+        ],
+        filter: [],
+        should: [],
+        must_not: []
+      }
+    }
+  })
+    .then(x => x.json())
+    .then(x => dashboardMorpher(x));
+};
+
 const getBestSolutions = (start, end) => {
   return makeRequest({
     size: 0,
@@ -124,11 +235,8 @@ const getOldBestSolutions = () => {
 export const getStrategyTraces = async () => {
   const [oldSolutions, curSolutions] = await Promise.all([
     getOldBestSolutions(),
-    getBestSolutions()
+    getLastBestSolutions()
   ]);
-
-  console.log('oldSolutions', oldSolutions)
-  console.log('curSolutions', curSolutions)
 
   const curSolutionsMap = curSolutions.reduce((acc, x) => {
     acc[x.taskName] = x;
@@ -138,7 +246,7 @@ export const getStrategyTraces = async () => {
   return oldSolutions.map(oldSolution => {
     const curSolution = curSolutionsMap[oldSolution.taskName] || {};
     return {
-      taskName: curSolution.taskName,
+      taskName: oldSolution.taskName,
       oldBestSolverName: oldSolution.solverName,
       oldBestSolverEnergy: oldSolution.energySpent,
       bestSolverName: curSolution.solverName,
@@ -161,74 +269,11 @@ const getAllSolutionsWithMinimalEnergy = () => {
   }).then(x => x.json());
 };
 
-const searchSolutionsForProblem = async problemName => {
-  const result = await makeRequest({
-    size: 1000,
-    query: {
-      bool: {
-        filter: [{ term: { "taskName.keyword": problemName } }]
-      }
-    },
-    _source: ["energySpent", "taskName", "solverName"]
-  }).then(x => x.json());
-
-  return result;
-};
-
 const getLeaderBoard = () => fetch(`/api/leaderboard`).then(x => x.json());
 
 export const getTotals = () => {
   return getLeaderBoard().then(x => x.filter(y => y.probNum === "total"));
 };
-
-function selectData(taskNameGroup, leadersGroupped) {
-  const result = {};
-  const taskNames = new Set();
-  const solverNames = new Set();
-
-  for (const taskName in taskNameGroup) {
-    const solverGroup = taskNameGroup[taskName];
-    result[taskName] = {};
-    taskNames.add(taskName);
-
-    for (const solverName in solverGroup) {
-      const solverResults = solverGroup[solverName];
-      result[taskName][solverName] = minBy(
-        x => (x.energySpent ? x.energySpent : Infinity),
-        solverResults
-      ).energySpent;
-      solverNames.add(solverName);
-    }
-
-    solverNames.add(LEADERS_NAME);
-    if (taskName in leadersGroupped) {
-      result[taskName][LEADERS_NAME] = minBy(
-        x => x.energy,
-        leadersGroupped[taskName]
-      ).energy;
-    }
-  }
-
-  return { result, taskNames, solverNames, leadersGroupped };
-}
-
-function groupTasks(solutions) {
-  const taskNameGroup = {};
-  for (const group of solutions) {
-    for (const solution of group) {
-      if (!taskNameGroup[solution.name]) {
-        taskNameGroup[solution.name] = {};
-      }
-
-      if (!taskNameGroup[solution.name][solution.solverName]) {
-        taskNameGroup[solution.name][solution.solverName] = [];
-      }
-
-      taskNameGroup[solution.name][solution.solverName].push(solution);
-    }
-  }
-  return taskNameGroup;
-}
 
 function groupLeaders(leaderboard) {
   const leadersGroup = {};
@@ -288,30 +333,22 @@ export const getNotSolvedProblems = async () => {
 };
 
 export const getSolutionResults = async () => {
-  const solutionsWithMinimalEnergy = await getAllSolutionsWithMinimalEnergy();
-
-  const problemNames = solutionsWithMinimalEnergy.aggregations.task_name.buckets
-    .map(x => x.key)
-    .filter(x => !x.startsWith("LA") && !x.includes("_tgt"));
-
-  const searchResults = await Promise.all(
-    problemNames.map(searchSolutionsForProblem)
-  );
-
-  const solutions = searchResults.map(result => {
-    return result.hits.hits.map(({ _source: x }) => ({
-      name: x.taskName,
-      solverName: x.solverName,
-      energySpent: x.energySpent
-    }));
-  });
-
   const leaderboard = await getLeaderBoard();
 
-  const { result, taskNames, solverNames, leadersGroupped } = selectData(
-    groupTasks(solutions),
-    groupLeaders(leaderboard)
-  );
+  const { result, taskNames, solverNames } = await getDashboardData();
+
+  const leadersGroupped = groupLeaders(leaderboard);
+
+  solverNames.push(LEADERS_NAME);
+
+  for (const taskName of taskNames) {
+    if (taskName in leadersGroupped) {
+      result[taskName][LEADERS_NAME] = minBy(
+        x => x.energy,
+        leadersGroupped[taskName]
+      ).energy;
+    }
+  }
 
   return {
     result,

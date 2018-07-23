@@ -14,10 +14,17 @@ export class StrategyDashboard extends React.Component {
 
   componentDidMount() {
     this.fetchData();
+
+    this.interval = setInterval(this.fetchData, 30000)
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval)
   }
 
   fetchData = async () => {
     try {
+      console.log('FETCHING DASHBOARD')
       this.setState({ loading: true });
       const data = await getSolutionResults();
       console.log(denormalizeData(data));
@@ -59,7 +66,7 @@ export class StrategyDashboard extends React.Component {
         {!this.props.old && (
           <DataTable
             data={this.state.denormalizedData.filter(this.filterData)}
-            loading={this.state.loading}
+            // loading={this.state.loading}
           />
         )}
         {this.props.old && this.renderOldTable()}
