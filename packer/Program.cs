@@ -38,7 +38,7 @@ namespace packer
             
             Console.WriteLine("Downloading solutions from Elastic...");
             var elasticStats = DownloadSolutionsFromElastic();
-            Console.WriteLine($"  {elasticStats.Item1} solutions, {elasticStats.Item2} errors");
+            Console.WriteLine($"  {elasticStats.successCount} solutions, {elasticStats.errorsCount} errors, {elasticStats.totalEnergy} total energy");
 
             Console.WriteLine("Creating submission ZIP...");
             var fileName = CreateSubmissionZip(secretKey);
@@ -68,7 +68,7 @@ namespace packer
             Environment.Exit(elasticStats.Item2);
         }
 
-        private static Tuple<int, int> DownloadSolutionsFromElastic()
+        private static (int successCount, int errorsCount, long totalEnergy) DownloadSolutionsFromElastic()
         {
             var client = new ElasticClient(
                 new ConnectionSettings(new Uri(elasticUrl))
@@ -99,6 +99,7 @@ namespace packer
 
             var errorsCount = 0;
             var successCount = 0;
+            long totalEnergy = 0;
             foreach (var bucket in searchResponse.Aggregations.Terms("task_name").Buckets)
             {
                 var taskName = bucket.Key;
@@ -166,10 +167,11 @@ namespace packer
                 Console.WriteLine($"Saving solution for task {document.TaskName} to {targetSolutionPath}");
 
                 successCount++;
+                totalEnergy += document.EnergySpent;
                 File.WriteAllBytes(targetSolutionPath, solutionContent);
             }
 
-            return new Tuple<int, int>(successCount, errorsCount);
+            return (successCount: successCount, errorsCount: errorsCount, totalEnergy: totalEnergy);
         }
 
         private static string CreateSubmissionZip(string secretKey)
