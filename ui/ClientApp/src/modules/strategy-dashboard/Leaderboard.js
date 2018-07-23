@@ -6,6 +6,8 @@ import sad from "./sad.wav";
 
 import "./Leaderboard.css";
 
+import ReactTable from "react-table";
+
 export class Leaderboard extends React.Component {
   state = {
     records: [],
@@ -53,6 +55,8 @@ export class Leaderboard extends React.Component {
           <thead>{this.renderHead()}</thead>
           <tbody>{this.state.records.map(this.renderRow)}</tbody>
         </table>
+        <hr />
+        <ReactTable data={this.state.records} columns={columns} />
         <audio src={happy} ref={a => (this.happy = a)} />
         <audio src={sad} ref={a => (this.sad = a)} />
       </React.Fragment>
@@ -86,7 +90,7 @@ export class Leaderboard extends React.Component {
     return (
       <tr
         key={record.name}
-        className={record.name === KONTUR_NAME ? 'Leaderboard__isKontur' : ''}
+        className={record.name === KONTUR_NAME ? "Leaderboard__isKontur" : ""}
       >
         <td>{index + 1}</td>
         <td>{record.name}</td>
@@ -115,3 +119,9 @@ function getDiffs(newRecords, curRecords, curDiffs) {
 
   return diffs;
 }
+
+const columns = [
+  { Header: "Name", accessor: "name" },
+  { Header: "Energy", accessor: "energy" },
+  { Header: "Score", accessor: "score" }
+];

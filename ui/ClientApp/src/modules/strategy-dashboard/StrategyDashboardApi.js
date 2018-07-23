@@ -22,6 +22,131 @@ const makeRequest = (query, retries = 0) => {
     });
 };
 
+function bestSolutionsMorpher({
+  aggregations: {
+    taskName: { buckets }
+  }
+}) {
+  return buckets.map(x => ({
+    taskName: x.key,
+    solverName: x.solverName.buckets[0].key,
+    energySpent: x.energySpent.value
+  }));
+}
+
+const getBestSolutions = (start, end) => {
+  return makeRequest({
+    size: 0,
+    _source: {
+      excludes: []
+    },
+    aggs: {
+      taskName: {
+        terms: {
+          field: "taskName.keyword",
+          size: 10000,
+          order: {
+            energySpent: "desc"
+          }
+        },
+        aggs: {
+          energySpent: {
+            min: {
+              field: "energySpent"
+            }
+          },
+          solverName: {
+            terms: {
+              field: "solverName.keyword",
+              size: 1,
+              order: {
+                energySpent: "asc"
+              }
+            },
+            aggs: {
+              energySpent: {
+                min: {
+                  field: "energySpent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    stored_fields: ["*"],
+    script_fields: {},
+    docvalue_fields: ["startedAt"],
+    query: {
+      bool: {
+        must: [
+          {
+            match_all: {}
+          },
+          {
+            match_phrase: {
+              isSuccess: {
+                query: true
+              }
+            }
+          },
+          {
+            range: {
+              startedAt: {
+                gte: start,
+                lte: end,
+                format: "epoch_millis"
+              }
+            }
+          }
+        ],
+        filter: [],
+        should: [],
+        must_not: []
+      }
+    }
+  })
+    .then(x => x.json())
+    .then(bestSolutionsMorpher);
+};
+
+const getLastBestSolutions = () => {
+  const tenMinsBefore = Date.now() - 10 * 60 * 1000;
+  return getBestSolutions(tenMinsBefore, Date.now());
+};
+
+const getOldBestSolutions = () => {
+  const tenMinsBefore = Date.now() - 10 * 60 * 1000;
+  const weekAgo = Date.now() - 4 * 24 * 60 * 60 * 1000;
+  return getBestSolutions(weekAgo, tenMinsBefore);
+};
+
+export const getStrategyTraces = async () => {
+  const [oldSolutions, curSolutions] = await Promise.all([
+    getOldBestSolutions(),
+    getBestSolutions()
+  ]);
+
+  console.log('oldSolutions', oldSolutions)
+  console.log('curSolutions', curSolutions)
+
+  const curSolutionsMap = curSolutions.reduce((acc, x) => {
+    acc[x.taskName] = x;
+    return acc;
+  }, {});
+
+  return oldSolutions.map(oldSolution => {
+    const curSolution = curSolutionsMap[oldSolution.taskName] || {};
+    return {
+      taskName: curSolution.taskName,
+      oldBestSolverName: oldSolution.solverName,
+      oldBestSolverEnergy: oldSolution.energySpent,
+      bestSolverName: curSolution.solverName,
+      bestSolverEnergy: curSolution.energySpent
+    };
+  });
+};
+
 const getAllSolutionsWithMinimalEnergy = () => {
   return makeRequest({
     size: "0",
@@ -46,15 +171,15 @@ const searchSolutionsForProblem = async problemName => {
     },
     _source: ["energySpent", "taskName", "solverName"]
   }).then(x => x.json());
-  
+
   return result;
 };
 
 const getLeaderBoard = () => fetch(`/api/leaderboard`).then(x => x.json());
 
 export const getTotals = () => {
-  return getLeaderBoard().then(x => x.filter(y => y.probNum === 'total'))
-}
+  return getLeaderBoard().then(x => x.filter(y => y.probNum === "total"));
+};
 
 function selectData(taskNameGroup, leadersGroupped) {
   const result = {};
@@ -69,7 +194,7 @@ function selectData(taskNameGroup, leadersGroupped) {
     for (const solverName in solverGroup) {
       const solverResults = solverGroup[solverName];
       result[taskName][solverName] = minBy(
-        x => x.energySpent ? x.energySpent : Infinity,
+        x => (x.energySpent ? x.energySpent : Infinity),
         solverResults
       ).energySpent;
       solverNames.add(solverName);
@@ -82,8 +207,6 @@ function selectData(taskNameGroup, leadersGroupped) {
         leadersGroupped[taskName]
       ).energy;
     }
-
-
   }
 
   return { result, taskNames, solverNames, leadersGroupped };
@@ -93,7 +216,6 @@ function groupTasks(solutions) {
   const taskNameGroup = {};
   for (const group of solutions) {
     for (const solution of group) {
-      
       if (!taskNameGroup[solution.name]) {
         taskNameGroup[solution.name] = {};
       }
@@ -223,7 +345,12 @@ function raterFactory(solverSolutions, solverNames) {
     rates.indexOf(solverName) / Math.max(rates.length - 1, 1);
 }
 
-export function denormalizeData({ result, taskNames, solverNames, leadersGroupped }) {
+export function denormalizeData({
+  result,
+  taskNames,
+  solverNames,
+  leadersGroupped
+}) {
   const data = [];
 
   for (const taskName of taskNames) {
@@ -238,11 +365,13 @@ export function denormalizeData({ result, taskNames, solverNames, leadersGrouppe
       const isSolved = energy !== 0 && energy !== undefined;
       const leaderEnergy = result[taskName][LEADERS_NAME] || Infinity;
 
-      let konturScore
-      let bestScore
+      let konturScore;
+      let bestScore;
       if (leadersGroupped[taskName]) {
-        konturScore = leadersGroupped[taskName].find(x => x.name === KONTUR_NAME).score
-        bestScore = maxBy(x => x.score, leadersGroupped[taskName]).score
+        konturScore = leadersGroupped[taskName].find(
+          x => x.name === KONTUR_NAME
+        ).score;
+        bestScore = maxBy(x => x.score, leadersGroupped[taskName]).score;
       }
 
       const record = {
