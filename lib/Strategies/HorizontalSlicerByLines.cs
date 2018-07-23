@@ -79,6 +79,13 @@ namespace lib.Strategies
             }
         }
 
+        private int GetPartnerId(int id)
+        {
+            if (id < grid.CountX)
+                return id + grid.CountX;
+            return id - grid.CountX;
+        }
+
         public IEnumerable<ICommand> Solve()
         {
             buildingMatrix = new CorrectComponentTrackingMatrix(new bool[N, N, N]);
@@ -148,26 +155,20 @@ namespace lib.Strategies
                 }
                 bool[] shouldWait = new bool[botCount];
                 firstHigh = false;
+
                 for (var i = 0; i < botQueues.Count; i++)
                 {
-                    if (botQueues[i].Count == 0 || shouldWait[i])
+                    if (botQueues[i].Count == 0)
                     {
-                        commands.Add(new Wait());
                         continue;
                     }
                     if (botQueues[i].Peek() is Fill fillCommand)
                     {
                         var fillPosition = botsToEvaluate[i] + fillCommand.Shift;
-                        if (CanFill(buildingMatrix.Voxels, fillPosition) || isHighEnergy)
+                        if (!CanFill(buildingMatrix.Voxels, fillPosition) && !isHighEnergy)
                         {
-                            buildingMatrix[fillPosition] = true;
-                            commands.Add(botQueues[i].Dequeue());
-                        }
-                        else
-                        {
-                            if (i < botCount / 2)
-                                shouldWait[i + botCount / 2] = true;
-                            commands.Add(new Wait());
+                            shouldWait[i] = true;
+                            shouldWait[GetPartnerId(i)] = true;
                         }
                     }
                     else if (botQueues[i].Peek() is GFill gFillCommand)
@@ -179,34 +180,54 @@ namespace lib.Strategies
                                 filledCells.Add(cell);
                             buildingMatrix[cell] = true;
                         }
-                        if (shouldWait[i] || buildingMatrix.HasNonGroundedVoxels && !isHighEnergy)
+                        if (buildingMatrix.HasNonGroundedVoxels && !isHighEnergy)
                         {
                             foreach (var filledCell in filledCells)
                             {
                                 buildingMatrix[filledCell] = false;
                             }
-                            if (i < botCount / 2)
-                                shouldWait[i + botCount / 2] = true;
-                            commands.Add(new Wait());
+                            shouldWait[i] = true;
+                            shouldWait[GetPartnerId(i)] = true;
                         }
-                        else
-                            commands.Add(botQueues[i].Dequeue());
                     }
                     else if (botQueues[i].Peek() is Voidd voidCommand)
                     {
                         var voidPosition = botsToEvaluate[i] + voidCommand.Shift;
 
-                        if (buildingMatrix.CanVoidCell(voidPosition) || isHighEnergy)
+                        if (!buildingMatrix.CanVoidCell(voidPosition) && !isHighEnergy)
                         {
-                            buildingMatrix[voidPosition] = false;
-                            commands.Add(botQueues[i].Dequeue());
+                            shouldWait[i] = true;
+                            shouldWait[GetPartnerId(i)] = true;
                         }
-                        else
+                    }
+                }
+
+                for (var i = 0; i < botQueues.Count; i++)
+                {
+                    if (botQueues[i].Count == 0 || shouldWait[i])
+                    {
+                        commands.Add(new Wait());
+                        continue;
+                    }
+                    if (botQueues[i].Peek() is Fill fillCommand)
+                    {
+                        var fillPosition = botsToEvaluate[i] + fillCommand.Shift;
+                        buildingMatrix[fillPosition] = true;
+                        commands.Add(botQueues[i].Dequeue());
+                    }
+                    else if (botQueues[i].Peek() is GFill gFillCommand)
+                    {
+                        foreach (var cell in Cuboid.FromPoints(botsToEvaluate[i] + gFillCommand.NearShift, botsToEvaluate[i] + gFillCommand.NearShift + gFillCommand.FarShift).AllPoints())
                         {
-                            if (i < botCount / 2)
-                                shouldWait[i + botCount / 2] = true;
-                            commands.Add(new Wait());
+                            buildingMatrix[cell] = true;
                         }
+                        commands.Add(botQueues[i].Dequeue());
+                    }
+                    else if (botQueues[i].Peek() is Voidd voidCommand)
+                    {
+                        var voidPosition = botsToEvaluate[i] + voidCommand.Shift;
+                        buildingMatrix[voidPosition] = false;
+                        commands.Add(botQueues[i].Dequeue());
                     }
                     else
                     {
