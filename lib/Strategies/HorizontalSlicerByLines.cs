@@ -9,6 +9,7 @@ using JetBrains.Annotations;
 using lib.Commands;
 using lib.Models;
 using lib.Primitives;
+using lib.Strategies.Features;
 using lib.Utils;
 
 using MoreLinq;
@@ -24,6 +25,7 @@ namespace lib.Strategies
         private int minX, minZ, maxX, maxZ;
         private readonly bool useBoundingBox;
         private CorrectComponentTrackingMatrix buildingMatrix;
+        private int maxY;
 
         public HorizontalSlicerByLines(Matrix targetMatrix, int gridCountX, int gridCountZ, bool useBoundingBox)
         {
@@ -33,6 +35,7 @@ namespace lib.Strategies
             this.useBoundingBox = useBoundingBox;
             gridCountX = Math.Min(gridCountX, N / 2); // todo (mpivko, 23.07.2018): 
             CalcBoundingBox(gridCountX, gridCountZ);
+            gridCountX = Math.Min(gridCountX, (maxX - minX + 1));
             grid = new Grid(gridCountX, gridCountZ, minX, minZ, maxX, maxZ);
         }
 
@@ -51,6 +54,7 @@ namespace lib.Strategies
                             minZ = Math.Min(minZ, z);
                             maxX = Math.Max(maxX, x);
                             maxZ = Math.Max(maxZ, z);
+                            maxY = Math.Max(maxY, y);
                         }
                     }
                 }
@@ -89,7 +93,7 @@ namespace lib.Strategies
 
             var botsToGenerateCommands = initialBots.ToList();
             var botCount = botsToGenerateCommands.Count;
-            for (var y = 0; y < N - 1; y++)
+            for (var y = 0; y <= maxY; y++)
             {
                 for (var botId = 0; botId < botCount / 2; botId++)
                 {
@@ -225,7 +229,7 @@ namespace lib.Strategies
             }
             foreach (var command in GoHome(botsToEvaluate))
                 yield return command;
-            yield return new Halt();
+            //yield return new Halt();
         }
 
         private bool CanFill(bool[,,] buildingMatrix, [NotNull] Vec vec)
@@ -475,38 +479,53 @@ namespace lib.Strategies
             return (result, botPositions);
         }
 
+        private DeluxeState CreateState(List<Vec> bots)
+        {
+            var state = new DeluxeState(targetMatrix, targetMatrix);
+            state.Bots.Clear();
+            for (var i = 0; i < bots.Count; i++)
+            {
+                var bot = bots[i];
+                state.Bots.Add(new Bot { Bid = i + 1, Position = bot, Seeds = new List<int>() });
+            }
+            return state;
+        }
+
         private IEnumerable<ICommand> GoHome([NotNull] List<Vec> bots)
         {
-            var first = true;
-            Vec firstBot = null;
+            var state = CreateState(bots);
+            return new Finalize(state).Run(state);
 
-            foreach (var (currentBot, i) in bots.Select((x, i) => (x, i)).OrderBy(x => (x.x.X, x.x.Z)))
-            {
-                if (first)
-                    firstBot = currentBot;
-                var commands = new List<ICommand>();
-                if (currentBot.Y != N - 1)
-                    throw new Exception("Bot should be at the N - 1 y-coord");
-                var zCoord = first ? 0 : 1;
-                commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord)));
-                foreach (var command in commands)
-                {
-                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
-                    toApply[bots.IndexOf(currentBot)] = command;
-                    foreach (var currentTickCommand in toApply)
-                        yield return currentTickCommand;
-                }
-                if (!first)
-                {
-                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
-                    toApply[bots.IndexOf(firstBot)] = new FusionP(new NearDifference(new Vec(0, 0, 1)));
-                    toApply[bots.IndexOf(currentBot)] = new FusionS(new NearDifference(new Vec(0, 0, -1)));
-                    bots.Remove(currentBot);
-                    foreach (var currentTickCommand in toApply)
-                        yield return currentTickCommand;
-                }
-                first = false;
-            }
+            //var first = true;
+            //Vec firstBot = null;
+
+            //foreach (var (currentBot, i) in bots.Select((x, i) => (x, i)).OrderBy(x => (x.x.X, x.x.Z)))
+            //{
+            //    if (first)
+            //        firstBot = currentBot;
+            //    var commands = new List<ICommand>();
+            //    if (currentBot.Y != N - 1)
+            //        throw new Exception("Bot should be at the N - 1 y-coord");
+            //    var zCoord = first ? 0 : 1;
+            //    commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord)));
+            //    foreach (var command in commands)
+            //    {
+            //        var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
+            //        toApply[bots.IndexOf(currentBot)] = command;
+            //        foreach (var currentTickCommand in toApply)
+            //            yield return currentTickCommand;
+            //    }
+            //    if (!first)
+            //    {
+            //        var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
+            //        toApply[bots.IndexOf(firstBot)] = new FusionP(new NearDifference(new Vec(0, 0, 1)));
+            //        toApply[bots.IndexOf(currentBot)] = new FusionS(new NearDifference(new Vec(0, 0, -1)));
+            //        bots.Remove(currentBot);
+            //        foreach (var currentTickCommand in toApply)
+            //            yield return currentTickCommand;
+            //    }
+            //    first = false;
+            //}
         }
 
         [NotNull]

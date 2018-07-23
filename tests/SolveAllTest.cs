@@ -182,7 +182,7 @@ namespace tests
             var problem = ProblemSolutionFactory.LoadProblem("FA011");
             //var solver = new DivideAndConquer(problem.SourceMatrix, false);
             var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
-            var solver = new Solver(state, new AssembleOneBox(state));
+            var solver = new Solver(state, new AssembleFA11(state));
             List<ICommand> commands = new List<ICommand>();
             try
             {

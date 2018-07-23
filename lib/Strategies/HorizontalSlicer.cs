@@ -9,6 +9,7 @@ using JetBrains.Annotations;
 using lib.Commands;
 using lib.Models;
 using lib.Primitives;
+using lib.Strategies.Features;
 using lib.Utils;
 
 using MoreLinq;
@@ -427,32 +428,46 @@ namespace lib.Strategies
 
         private IEnumerable<ICommand> GoHome([NotNull] List<Vec> bots)
         {
-            var remainBotsCount = bots.Count;
+            var state = CreateState(bots);
+            return new Finalize(state).Run(state);
+            //var remainBotsCount = bots.Count;
+            //for (var i = 0; i < bots.Count; i++)
+            //{
+            //    var currentBot = bots[i];
+            //    var commands = new List<ICommand>();
+            //    if (currentBot.Y != N - 1)
+            //        throw new Exception("Bot should be at the N - 1 y-coord");
+            //    var zCoord = i == 0 ? 0 : 1;
+            //    commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord)));
+            //    foreach (var command in commands)
+            //    {
+            //        var toApply = Enumerable.Repeat<ICommand>(new Wait(), remainBotsCount).ToArray();
+            //        toApply[i == 0 ? 0 : 1] = command;
+            //        foreach (var currentTickCommand in toApply)
+            //            yield return currentTickCommand;
+            //    }
+            //    if (i != 0)
+            //    {
+            //        var toApply = new ICommand[] {new FusionP(new NearDifference(new Vec(0, 0, 1))), new FusionS(new NearDifference(new Vec(0, 0, -1)))}
+            //            .Concat(Enumerable.Repeat<ICommand>(new Wait(), remainBotsCount - 2))
+            //            .ToArray();
+            //        foreach (var currentTickCommand in toApply)
+            //            yield return currentTickCommand;
+            //        remainBotsCount--;
+            //    }
+            //}
+        }
+
+        private DeluxeState CreateState(List<Vec> bots)
+        {
+            var state = new DeluxeState(targetMatrix, targetMatrix);
+            state.Bots.Clear();
             for (var i = 0; i < bots.Count; i++)
             {
-                var currentBot = bots[i];
-                var commands = new List<ICommand>();
-                if (currentBot.Y != N - 1)
-                    throw new Exception("Bot should be at the N - 1 y-coord");
-                var zCoord = i == 0 ? 0 : 1;
-                commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord)));
-                foreach (var command in commands)
-                {
-                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), remainBotsCount).ToArray();
-                    toApply[i == 0 ? 0 : 1] = command;
-                    foreach (var currentTickCommand in toApply)
-                        yield return currentTickCommand;
-                }
-                if (i != 0)
-                {
-                    var toApply = new ICommand[] {new FusionP(new NearDifference(new Vec(0, 0, 1))), new FusionS(new NearDifference(new Vec(0, 0, -1)))}
-                        .Concat(Enumerable.Repeat<ICommand>(new Wait(), remainBotsCount - 2))
-                        .ToArray();
-                    foreach (var currentTickCommand in toApply)
-                        yield return currentTickCommand;
-                    remainBotsCount--;
-                }
+                var bot = bots[i];
+                state.Bots.Add(new Bot {Bid = i + 1, Position = bot, Seeds = new List<int>()});
             }
+            return state;
         }
 
         [NotNull]
