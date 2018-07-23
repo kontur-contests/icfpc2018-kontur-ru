@@ -38,7 +38,9 @@ namespace packer
             
             Console.WriteLine("Downloading solutions from Elastic...");
             var elasticStats = DownloadSolutionsFromElastic();
-            Console.WriteLine($"  {elasticStats.successCount} solutions, {elasticStats.errorsCount} errors, {elasticStats.totalEnergy} total energy");
+            var stats = $"{elasticStats.successCount} solutions, {elasticStats.errorsCount} errors, {elasticStats.totalEnergy:N1} total energy";
+            Console.WriteLine($"  {stats}");
+            Console.WriteLine($"##teamcity[progressMessage '{stats}']");
 
             Console.WriteLine("Creating submission ZIP...");
             var fileName = CreateSubmissionZip(secretKey);
