@@ -216,6 +216,7 @@ namespace lib.Utils
 //                    });
             var disassemblers = new[]
                 {
+                    (name: "nw", solver: noWallDeconstructor.Solver),
                     (name: "bd", solver: blockDeconstructor.Solver),
                     (name: "d8", solver: disassembler8.Solver),
                 };
