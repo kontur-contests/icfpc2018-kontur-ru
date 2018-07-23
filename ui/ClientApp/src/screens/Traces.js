@@ -34,17 +34,25 @@ export default class App extends Component {
       const q = `${search}&count=${CHUNK_SIZE}&startTick=${x}`;
       return fetch(`/api/matrix/trace${q}`).then(x => x.json());
     });
+
+    this.setState({ loading: true });
     const results = await Promise.all(promises);
+
     const flattened = results.reduce(
       (acc, x) => {
         acc.r = x.r;
         acc.ticks = acc.ticks.concat(x.ticks);
+        return acc;
       },
       { r: 0, ticks: [] }
     );
 
     const { steps } = applyChanges(flattened);
-    this.setState({ steps });
+    this.setState({ steps, step: 0, loading: false });
+  }
+
+  setMaxSteps() {
+    this.fetchTrace();
   }
 
   render() {
@@ -52,16 +60,21 @@ export default class App extends Component {
 
     return (
       <div style={{ maxWidth: "1200px", margin: "auto" }}>
-        <label>
-          Max tick{" "}
-          <input
-            type="number"
-            value={this.state.maxSteps}
-            onChange={({ target }) => this.setState({ maxSteps: target.value })}
-            min={0}
-          />
-        </label>
-        {!this.state.index && !stepData && <h2>Loading...</h2>}
+        <div>
+          <label>
+            Max tick{" "}
+            <input
+              type="number"
+              value={this.state.maxSteps}
+              onChange={({ target }) =>
+                this.setState({ maxSteps: target.value })
+              }
+              min={0}
+            />
+          </label>
+          <button onClick={this.setMaxSteps}>Apply</button>
+        </div>
+        {this.state.loading && <h2>Loading...</h2>}
         {stepData && (
           <React.Fragment>
             <Visualizer model={stepData.model} bots={stepData.bots} />
@@ -72,7 +85,7 @@ export default class App extends Component {
               onChange={this.handleStepChange}
               min={0}
               value={this.state.step}
-              max={this.state.steps.length}
+              max={this.state.steps.length - 1}
               disabled={this.state.loading}
             />
             <center>Step: {this.state.step}</center>
