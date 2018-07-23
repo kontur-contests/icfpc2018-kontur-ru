@@ -7,6 +7,11 @@ namespace lib.Utils
 {
     public class Region : IEnumerable<Vec>, IEquatable<Region>
     {
+        public override string ToString()
+        {
+            return $"{Start}-{End}";
+        }
+
         public bool Equals(Region other)
         {
             if (ReferenceEquals(null, other)) return false;

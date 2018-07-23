@@ -76,6 +76,32 @@ namespace tests
                        filename);
         }
 
+        [TestCaseSource(nameof(GetModels))]
+        [Explicit]
+        public void TestHorizontalSlicerByLines(string filename)
+        {
+            DoRealTest(model => new HorizontalSlicerByLines(model, 20, 1, useBoundingBox : true), 
+                       (solver, commands, model) =>
+                           {
+                               var state = new DeluxeState(new Matrix(model.R), model);
+                               var queue = new Queue<ICommand>();
+                               var interpreter = new Interpreter(state);
+                               foreach (var command in solver.Solve())
+                               {
+                                   commands.Add(command);
+                                   queue.Enqueue(command);
+                                   if (state.Bots.Count <= queue.Count)
+                                       interpreter.Tick(queue);
+                               }
+                               interpreter.EnsureIsFinal();
+                               return state.Energy;
+                           },
+                       "horizontal-slicer",
+                       "bbox-slicer-remove-sticks-lmoves-lines",
+                       filename);
+        }
+
+
         [TestCaseSource(nameof(GetDeconstructionModels))]
         [Explicit]
         public void TestFastDeconstructor(string filename)
@@ -168,11 +194,11 @@ namespace tests
 
             const string elasticUrl = "http://efk2-elasticsearch9200.efk2.10.217.14.7.xip.io";
 
-            var client = new ElasticClient(new ConnectionSettings(new Uri(elasticUrl)).DefaultMappingFor<ElasticTestResult>(x => x.IndexName("localrunresults")));
+            var client = new ElasticClient(new ConnectionSettings(new Uri(elasticUrl)).DisableDirectStreaming().DefaultMappingFor<ElasticTestResult>(x => x.IndexName("localrunresults")));
 
             client.IndexDocument(testResult);
 
-            var searchResponse = client.Search<ElasticTestResult>(s => s.Query(q => q.Match(m => m.Field(f => f.TestName).Query(shortname))));
+            var searchResponse = client.Search<ElasticTestResult>(s => s.Size(10000).Query(q => q.Bool(b => b.Filter(bs => bs.Term(t => t.Field("testName.keyword").Value(shortname))))));
 
             var results = (searchResponse?.Documents?.ToList() ?? new List<ElasticTestResult>()).Where(d => d.ScopeName == scopeName).ToList();
 
@@ -184,7 +210,7 @@ namespace tests
             }
             else if (a?.Energy > energy)
             {
-                Assert.Pass($"New best energy ({a.Energy} > {energy} prev in {a.AlgoVersion})");
+                Assert.Pass($"New best energy ({a.Energy * 1.0 / energy:##.00} : {a.Energy} > {energy} - prev in {a.AlgoVersion})");
             }
 
             Console.WriteLine($"Energy: {energy}");
