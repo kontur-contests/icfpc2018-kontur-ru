@@ -188,23 +188,23 @@ namespace lib.Utils
 
         public static readonly Solution slicerWithLines5 = new Solution
             {
-                Name = "SlicerWithLines5",
+                Name = "SlicerWithLines5F",
                 ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 5, 1, true),
+                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 5, 1, true, fast: true),
             };
 
         public static readonly Solution slicerWithLines10 = new Solution
             {
-                Name = "SlicerWithLines10",
+                Name = "SlicerWithLines10F",
                 ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 10, 1, true),
+                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 10, 1, true, fast: true),
             };
 
         public static readonly Solution slicerWithLines20 = new Solution
             {
-                Name = "SlicerWithLines20",
+                Name = "SlicerWithLines20F",
                 ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 20, 1, true),
+                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 20, 1, true, fast: true),
             };
 
         private static Solution[] GetSolutions(Problem problem1)
@@ -274,10 +274,11 @@ namespace lib.Utils
                     //blockDeconstructor,
                     //disassembler8,
                     //noWallDeconstructor,
-                    slicerWithLines5,
-                    slicerWithLines10,
+                    //slicerWithLines5,
+                    //slicerWithLines10,
                     slicerWithLines20,
-                }.Concat(raSolutions)
+                }
+                   //.Concat(raSolutions)
                  .ToArray();
         }
 
