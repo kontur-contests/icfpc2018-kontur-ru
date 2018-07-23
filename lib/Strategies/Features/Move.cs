@@ -14,9 +14,14 @@ namespace lib.Strategies.Features
             this.target = target;
         }
 
+        public override string ToString()
+        {
+            return $"{base.ToString()}, {nameof(target)}: {target}";
+        }
+
         protected override async StrategyTask<bool> Run()
         {
-            var commands = new PathFinder(state, bot.Position, target).TryFindPath();
+            var commands = new PathFinder(state, bot, target).TryFindPath();
             commands?.Reverse();
             if (commands == null)
                 return false;
@@ -33,7 +38,7 @@ namespace lib.Strategies.Features
                     if (commands[commands.Count - 1].HasVolatileConflicts(bot, state) ||
                         !commands[commands.Count - 1].AllPositionsAreValid(state.Matrix, bot))
                     {
-                        commands = new PathFinder(state, bot.Position, target).TryFindPath();
+                        commands = new PathFinder(state, bot, target).TryFindPath();
                         commands?.Reverse();
                         if (commands == null)
                             return false;

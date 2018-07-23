@@ -17,8 +17,11 @@ namespace lib.Strategies.Features
             var split = new Split(state, state.Bots.Single(), 8);
             await split;
 
-            await new PlanAssembler(state, split.Bots, new GenPlanBuilder(state).CreateGenPlan().DefaultSort());
-            return await Finalize();
+            var plan = new GenPlanBuilder(state).CreateGenPlan();
+            var sorted = new GenPlanSorter(plan, R).Sort();
+            if (!await new PlanAssembler(state, split.Bots, sorted))
+                return false;
+            return await new ReachFinalState(state);
         }
     }
 }

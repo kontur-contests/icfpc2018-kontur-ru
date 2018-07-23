@@ -80,7 +80,9 @@ namespace tests
         [Explicit]
         public void TestHorizontalSlicerByLines(string filename)
         {
-            DoRealTest(model => new HorizontalSlicerByLines(model, 20, 1, useBoundingBox : true), 
+            var fast = true;
+            var suffix = fast ? "-fast" : "";
+            DoRealTest(model => new HorizontalSlicerByLines(model, 20, 1, useBoundingBox : true, fast:fast), 
                        (solver, commands, model) =>
                            {
                                var state = new DeluxeState(new Matrix(model.R), model);
@@ -97,7 +99,7 @@ namespace tests
                                return state.Energy;
                            },
                        "horizontal-slicer",
-                       "bbox-slicer-remove-sticks-lmoves-lines",
+                       "bbox-slicer-remove-sticks-lmoves-lines" + suffix,
                        filename);
         }
 

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -59,10 +58,10 @@ namespace lib.Strategies.Features
             var lowest = candidates.Min(c => c.Y);
             var filtered = candidates.Where(c => c.Y == lowest).ToHashSet();
 
-            foreach (var candidate in candidatesOrdering.Order(filtered, bot.Position).Where(c => !state.VolatileCells.ContainsKey(c)))
+            foreach (var candidate in candidatesOrdering.Order(filtered, bot.Position).Where(c => !state.IsVolatile(bot, c)))
             {
                 var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(state.Matrix.R) && 
-                                                                    (!state.VolatileCells.ContainsKey(n) || n == bot.Position) &&
+                                                                    (!state.IsVolatile(bot, n) || n == bot.Position) &&
                                                                     n.Y >= lowest);
                 foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(bot.Position)))
                 {

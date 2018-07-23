@@ -23,10 +23,10 @@ namespace lib.Strategies.Features
         {
             while (true)
             {
-                var hasPath = new PathFinderNeighbours(state.Matrix, bot.Position, target, x => !state.VolatileCells.ContainsKey(x)).TryFindPath(out var used);
+                var hasPath = new PathFinderNeighbours(state.Matrix, bot.Position, target, x => !state.IsVolatile(bot, x)).TryFindPath(out var used);
                 if (hasPath)
                 {
-                    var commands = new PathFinder(state, bot.Position, target).TryFindPath();
+                    var commands = new PathFinder(state, bot, target).TryFindPath();
                     if (commands == null)
                         throw new InvalidOperationException("WTF??");
                     if (await Move(bot, target))
@@ -36,7 +36,7 @@ namespace lib.Strategies.Features
 
                 var moveTarget = used
                                      .Where(v => new Region(v, target).Dim == 1 
-                                                 && !new Region(v, target).Any(x => x != bot.Position && state.VolatileCells.ContainsKey(x)))
+                                                 && !new Region(v, target).Any(x => x != bot.Position && state.IsVolatile(bot, x)))
                                      .OrderBy(v => v.MDistTo(target)).FirstOrDefault();
                 if (moveTarget == null)
                 {
@@ -47,7 +47,7 @@ namespace lib.Strategies.Features
                     continue;
 
                 var drillTarget = bot.Position.GetMNeighbours(state.Matrix).OrderBy(n => n.MDistTo(target)).First();
-                if (state.VolatileCells.ContainsKey(drillTarget))
+                if (state.IsVolatile(bot, drillTarget))
                 {
                     await WhenNextTurn();
                     continue;

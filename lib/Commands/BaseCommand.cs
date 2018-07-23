@@ -22,7 +22,7 @@ namespace lib.Commands
         public bool HasVolatileConflicts(Bot bot, DeluxeState state)
         {
             var commandPositions = GetVolatileCells(bot);
-            return commandPositions.Any(pos => state.VolatileCells.ContainsKey(pos) && pos != bot.Position);
+            return commandPositions.Any(pos => state.IsVolatile(bot, pos) && pos != bot.Position);
         }
     }
 }

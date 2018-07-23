@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 using JetBrains.Annotations;
 
@@ -67,7 +65,7 @@ namespace lib.Strategies
         public (int, int) GetCellId(Vec position)
         {
             if (position.X < MinX || position.Z < MinZ || position.X >= MinX + XMatrixSize || position.Z > MinZ + ZMatrixSize)
-                throw new Exception("Try to GetCellId for position out of bounding box");
+                throw new Exception($"Try to GetCellId for position out of bounding box {position}");
             return (CalculateCoord(position.X - MinX, SizeX, CountLargeX),
                 CalculateCoord(position.Z - MinZ, SizeZ, CountLargeZ));
         }
@@ -83,6 +81,15 @@ namespace lib.Strategies
         {
             return (cellId.X < CountLargeX ? SizeX + 1 : SizeX,
                 cellId.Z < CountLargeZ ? SizeZ + 1 : SizeZ);
+        }
+
+        public IEnumerable<(int x, int z)> AllCellsStarts()
+        {
+            for (int z = 0; z < CountZ; z++)
+                for (int x = 0; x < CountX; x++)
+                {
+                    yield return GetCellStart((x, z));
+                }
         }
 
         public (int X, int Z) GetCellStart((int X, int Z) cellId)

@@ -49,9 +49,9 @@ namespace lib.Strategies
         }
     }
 
-    public class AssembleOneBox : Strategy
+    public class AssembleFA11 : Strategy
     {
-        public AssembleOneBox(DeluxeState state)
+        public AssembleFA11(DeluxeState state)
             : base(state)
         {
         }
@@ -61,17 +61,17 @@ namespace lib.Strategies
             var split = new Split(state, state.Bots.Single(), 4);
             await split;
 
-            await new Assembler4(state, split.Bots);
+            await new AssembleSingleEmptyBox(state, split.Bots);
             return await Finalize();
         }
     }
 
-    public class Assembler4 : Strategy
+    public class AssembleSingleEmptyBox : Strategy
     {
         private readonly Bot[] bots;
         private Region region;
 
-        public Assembler4(DeluxeState state, IEnumerable<Bot> bots4)
+        public AssembleSingleEmptyBox(DeluxeState state, IEnumerable<Bot> bots4)
             : base(state)
         {
             var minX = state.TargetMatrix.GetFilledVoxels().Min(v => v.X);

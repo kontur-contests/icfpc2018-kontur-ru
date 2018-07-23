@@ -9,7 +9,7 @@ namespace lib.Strategies.Features
 {
     public class GenPlanBuilder
     {
-        private static readonly int[] dists = { 30, 16, 8, 4, 1 };
+        private static readonly int[] dists = { 30, 16, 8, 4, 3, 1 };
         private static readonly int longDist = dists[0];
 
         private readonly DeluxeState state;

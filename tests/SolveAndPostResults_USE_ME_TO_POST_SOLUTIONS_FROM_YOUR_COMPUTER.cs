@@ -38,7 +38,7 @@ namespace tests
                     Solver = p =>
                         {
                             var state = new DeluxeState(p.SourceMatrix, p.TargetMatrix);
-                            return new Solver(state, new AssembleOneBox(state));
+                            return new Solver(state, new AssembleFA11(state));
                         }
                 };
             Evaluate(problem, solution, postToElastic: true);
