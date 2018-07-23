@@ -22,7 +22,7 @@ namespace lib.Models
         public int Tick = 0;
         public int R => Matrix.R;
 
-        private readonly Dictionary<Bot, ICommand> botCommands = new Dictionary<Bot, ICommand>();
+        public readonly Dictionary<Bot, ICommand> botCommands = new Dictionary<Bot, ICommand>();
         private readonly Dictionary<Region, (bool isFill, Dictionary<Vec, Bot> corners)> groupRegions = new Dictionary<Region, (bool isFill, Dictionary<Vec, Bot> corners)>();
 
         public DeluxeState(Matrix sourceMatrix, Matrix targetMatrix)

@@ -9,8 +9,7 @@ namespace lib.Strategies.Features
     {
         public static IEnumerable<ICommand> Run(this IStrategy strategy, DeluxeState startState)
         {
-            var finalize = new Finalize(startState);
-            return new Solver(startState, finalize).Solve();
+            return new Solver(startState, strategy).SolvePartially();
         }
 
     }

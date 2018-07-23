@@ -18,6 +18,29 @@ namespace lib.Strategies
             activeStrategies.Add(rootStrategy);
         }
 
+        public IEnumerable<ICommand> SolvePartially()
+        {
+            while (true)
+            {
+                state.StartTick();
+                for (var i = activeStrategies.Count - 1; i >= 0; i--)
+                {
+                    var strategy = activeStrategies[i];
+                    RecursiveTick(strategy);
+                    if (strategy.Status != StrategyStatus.InProgress)
+                        activeStrategies.RemoveAt(i);
+                }
+                if (state.botCommands.Any())
+                {
+                    foreach (var command in state.EndTick())
+                        yield return command;
+                }
+                if (activeStrategies.Count == 0)
+                    break;
+                Log.For(this).Info($"Tick #{state.Tick} done");
+            }
+        }
+
         public IEnumerable<ICommand> Solve()
         {
             while (state.Bots.Any())

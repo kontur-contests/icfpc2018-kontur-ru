@@ -84,6 +84,7 @@ namespace lib.Strategies
             buildingMatrix = new CorrectComponentTrackingMatrix(new bool[N, N, N]);
             var (transformedTargetMatrix, stickPositions) = TransformMatrix(targetMatrix);
             var (cloneCommands, initialBots) = Clone(2 * grid.CountX, new Grid(grid.CountX, 2, minX, minZ, maxX, maxZ));
+            //var (cloneCommands, initialBots) = Clone2(new Grid(grid.CountX, 2, minX, minZ, maxX, maxZ));
             foreach (var command in cloneCommands)
                 yield return command;
 
@@ -479,53 +480,38 @@ namespace lib.Strategies
             return (result, botPositions);
         }
 
-        private DeluxeState CreateState(List<Vec> bots)
-        {
-            var state = new DeluxeState(targetMatrix, targetMatrix);
-            state.Bots.Clear();
-            for (var i = 0; i < bots.Count; i++)
-            {
-                var bot = bots[i];
-                state.Bots.Add(new Bot { Bid = i + 1, Position = bot, Seeds = new List<int>() });
-            }
-            return state;
-        }
-
         private IEnumerable<ICommand> GoHome([NotNull] List<Vec> bots)
         {
-            var state = CreateState(bots);
-            return new Finalize(state).Run(state);
+            var first = true;
+            Vec firstBot = null;
 
-            //var first = true;
-            //Vec firstBot = null;
-
-            //foreach (var (currentBot, i) in bots.Select((x, i) => (x, i)).OrderBy(x => (x.x.X, x.x.Z)))
-            //{
-            //    if (first)
-            //        firstBot = currentBot;
-            //    var commands = new List<ICommand>();
-            //    if (currentBot.Y != N - 1)
-            //        throw new Exception("Bot should be at the N - 1 y-coord");
-            //    var zCoord = first ? 0 : 1;
-            //    commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord)));
-            //    foreach (var command in commands)
-            //    {
-            //        var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
-            //        toApply[bots.IndexOf(currentBot)] = command;
-            //        foreach (var currentTickCommand in toApply)
-            //            yield return currentTickCommand;
-            //    }
-            //    if (!first)
-            //    {
-            //        var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
-            //        toApply[bots.IndexOf(firstBot)] = new FusionP(new NearDifference(new Vec(0, 0, 1)));
-            //        toApply[bots.IndexOf(currentBot)] = new FusionS(new NearDifference(new Vec(0, 0, -1)));
-            //        bots.Remove(currentBot);
-            //        foreach (var currentTickCommand in toApply)
-            //            yield return currentTickCommand;
-            //    }
-            //    first = false;
-            //}
+            foreach (var (currentBot, i) in bots.Select((x, i) => (x, i)).OrderBy(x => (x.x.X, x.x.Z)))
+            {
+                if (first)
+                    firstBot = currentBot;
+                var commands = new List<ICommand>();
+                if (currentBot.Y != N - 1)
+                    throw new Exception("Bot should be at the N - 1 y-coord");
+                var zCoord = first ? 0 : 1;
+                commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord)));
+                foreach (var command in commands)
+                {
+                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
+                    toApply[bots.IndexOf(currentBot)] = command;
+                    foreach (var currentTickCommand in toApply)
+                        yield return currentTickCommand;
+                }
+                if (!first)
+                {
+                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
+                    toApply[bots.IndexOf(firstBot)] = new FusionP(new NearDifference(new Vec(0, 0, 1)));
+                    toApply[bots.IndexOf(currentBot)] = new FusionS(new NearDifference(new Vec(0, 0, -1)));
+                    bots.Remove(currentBot);
+                    foreach (var currentTickCommand in toApply)
+                        yield return currentTickCommand;
+                }
+                first = false;
+            }
         }
 
         [NotNull]
@@ -594,5 +580,39 @@ namespace lib.Strategies
             }
             return res;
         }
+
+        private DeluxeState CreateState(List<Vec> bots)
+        {
+            var state = new DeluxeState(targetMatrix, targetMatrix);
+            state.Bots.Clear();
+            for (var i = 0; i < bots.Count; i++)
+            {
+                var bot = bots[i];
+                state.Bots.Add(new Bot { Bid = i + 1, Position = bot, Seeds = new List<int>() });
+            }
+            return state;
+        }
+        private IEnumerable<ICommand> GoHome2([NotNull] List<Vec> bots)
+        {
+            var state = CreateState(bots);
+            return new Finalize(state).Run(state);
+        }
+        private (List<ICommand> Commands, List<Vec> Bots) Clone2(Grid botsGrid)
+        {
+            var state = new DeluxeState(null, targetMatrix);
+            var botsCount = botsGrid.CountX * botsGrid.CountZ;
+            var split = new Split(state, state.Bots.Single(), botsCount);
+            var commands = split.Run(state).ToList();
+            var targets = botsGrid.AllCellsStarts().Select(xz => new Vec(xz.x, 1, xz.z)).ToArray();
+            var bots = split.Bots.OrderBy(b => b.Bid).ToList();
+            var spread = new SpreadToPositions(state, bots, targets.ToList());
+            commands.AddRange(spread.Run(state));
+
+            var badGroups = bots.GroupBy(b => botsGrid.GetCellId(b.Position)).Where(g => g.Count() > 1).ToList();
+            if (badGroups.Any())
+                throw new Exception($"Bad group {badGroups.First().Key}");
+            return (commands, split.Bots.Select(b => b.Position).ToList());
+        }
+
     }
 }

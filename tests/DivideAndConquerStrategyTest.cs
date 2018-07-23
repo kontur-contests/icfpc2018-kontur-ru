@@ -97,7 +97,7 @@ namespace tests
                                return state.Energy;
                            },
                        "horizontal-slicer",
-                       "bbox-slicer-remove-sticks-lmoves-lines",
+                       "bbox-slicer-remove-sticks-lmoves-lines-fast",
                        filename);
         }
 
