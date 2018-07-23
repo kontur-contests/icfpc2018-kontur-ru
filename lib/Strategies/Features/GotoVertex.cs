@@ -7,6 +7,8 @@ namespace lib.Strategies.Features
 {
     public class GotoVertex : ReachAnyTarget
     {
+        private readonly Vec vertex;
+
         public GotoVertex(DeluxeState state, Bot bot, Region region, Vec vertex)
             : base(state, bot, () => vertex
                                          .GetNears()
@@ -17,6 +19,12 @@ namespace lib.Strategies.Features
                                          .ThenByDescending(v => v.Y)
                                          .ThenBy(v => v.MDistTo(bot.Position)))
         {
+            this.vertex = vertex;
+        }
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}, {nameof(vertex)}: {vertex}";
         }
     }
 }

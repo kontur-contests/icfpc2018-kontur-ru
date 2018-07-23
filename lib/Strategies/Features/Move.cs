@@ -14,6 +14,11 @@ namespace lib.Strategies.Features
             this.target = target;
         }
 
+        public override string ToString()
+        {
+            return $"{base.ToString()}, {nameof(target)}: {target}";
+        }
+
         protected override async StrategyTask<bool> Run()
         {
             var commands = new PathFinder(state, bot.Position, target).TryFindPath();
