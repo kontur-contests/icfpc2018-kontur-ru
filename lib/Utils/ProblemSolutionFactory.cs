@@ -190,21 +190,21 @@ namespace lib.Utils
             {
                 Name = "SlicerWithLines5",
                 ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = problem => new HorizontalSlicerByLines(problem.SourceMatrix, 5, 1, true),
+                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 5, 1, true),
             };
 
         public static readonly Solution slicerWithLines10 = new Solution
             {
                 Name = "SlicerWithLines10",
                 ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = problem => new HorizontalSlicerByLines(problem.SourceMatrix, 10, 1, true),
+                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 10, 1, true),
             };
 
         public static readonly Solution slicerWithLines20 = new Solution
             {
                 Name = "SlicerWithLines20",
                 ProblemPrioritizer = p => ProblemPriority.High,
-                Solver = problem => new HorizontalSlicerByLines(problem.SourceMatrix, 20, 1, true),
+                Solver = problem => new HorizontalSlicerByLines(problem.TargetMatrix, 20, 1, true),
             };
 
         private static Solution[] GetSolutions(Problem problem1)
@@ -223,10 +223,11 @@ namespace lib.Utils
                     }
                 }
 
-            (string name, Func<Matrix, IAmSolver> solver)[] solvers =
-                slicersParameters.Select(p => ($"s{p.Item1}x{p.Item2}",
-                                                  (Func<Matrix, IAmSolver>)(m => new HorizontalSlicer(m, p.Item1, p.Item2, true))))
-                                 .ToArray();
+            (string name, Func<Matrix, IAmSolver> solver)[] solvers = {
+                    ("sl5", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 5, 1, true))),
+                    ("sl10", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 10, 1, true))),
+                    ("sl20", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 20, 1, true))),
+                };
 
             var raSolutions = new List<Solution>();
 //            var disassemblers = solvers
@@ -270,14 +271,13 @@ namespace lib.Utils
 //                    columns,
 //                    columnsBbx,
 //                    gForLarge,
-                    blockDeconstructor,
-                    disassembler8,
-                    noWallDeconstructor,
+                    //blockDeconstructor,
+                    //disassembler8,
+                    //noWallDeconstructor,
                     slicerWithLines5,
                     slicerWithLines10,
                     slicerWithLines20,
                 }.Concat(raSolutions)
-                 .Concat(slicers)
                  .ToArray();
         }
 
