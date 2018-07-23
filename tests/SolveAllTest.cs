@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using FluentAssertions;
+
 using JetBrains.Annotations;
 
 using lib;
@@ -126,6 +128,24 @@ namespace tests
                 File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
             }
             Console.Out.WriteLine(state.Energy);
+        }
+
+        [Test]
+        public void Test()
+        {
+            var a = new Region(new Vec(7, 0, 7), new Vec(7, 0, 7));
+            var b = new Region(new Vec(7, 1, 7), new Vec(7, 1, 7));
+            GenPlanSorter.Connected(a, b).Should().Be(true);
+        }
+
+        [Test]
+        public void Test2()
+        {
+            var problem = ProblemSolutionFactory.LoadProblem("FA001");
+            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var plan = new GenPlanBuilder(state).CreateGenPlan();
+            var sorted = plan.DefaultSort().ToList();
+            sorted.ToHashSet().SetEquals(plan).Should().BeTrue();
         }
 
         [Test]
