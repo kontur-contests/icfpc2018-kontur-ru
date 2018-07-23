@@ -9,8 +9,9 @@ namespace lib.Strategies.Features
     {
         public GotoVertex(DeluxeState state, Bot bot, Region region, Vec vertex)
             : base(state, bot, () => vertex
-                                         .GetMNeighbours(state.Matrix)
-                                         .Where(v => !v.IsInRegion(region)
+                                         .GetNears()
+                                         .Where(v => v.IsInCuboid(state.R)
+                                                     && !v.IsInRegion(region)
                                                      && !state.VolatileCells.ContainsKey(v))
                                          .OrderBy(v => state.Matrix[v])
                                          .ThenByDescending(v => v.Y)
