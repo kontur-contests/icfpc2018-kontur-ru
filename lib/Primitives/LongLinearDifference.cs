@@ -15,5 +15,17 @@ namespace lib.Primitives
             : base(a, i, 15)
         {
         }
+
+        public static implicit operator Vec([NotNull] LongLinearDifference difference)
+        {
+            return difference.Shift;
+        }
+
+        public static implicit operator LongLinearDifference([NotNull] Vec v)
+        {
+            return new LongLinearDifference(v);
+        }
+
+
     }
 }

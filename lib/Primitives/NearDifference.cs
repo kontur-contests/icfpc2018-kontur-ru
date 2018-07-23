@@ -40,5 +40,9 @@ namespace lib.Primitives
         {
             return difference.Shift;
         }
+        public static implicit operator NearDifference([NotNull] Vec v)
+        {
+            return new NearDifference(v);
+        }
     }
 }

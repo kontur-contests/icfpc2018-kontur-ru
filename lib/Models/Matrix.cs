@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 
 using JetBrains.Annotations;
 
+using lib.Primitives;
 using lib.Utils;
 
 namespace lib.Models
@@ -15,6 +17,10 @@ namespace lib.Models
         {
         }
 
+        public IEnumerable<Vec> GetFilledVoxels()
+        {
+            return new Cuboid(R).AllPoints().Where(v => this[v]);
+        }
 
         public Matrix([NotNull] bool[,,] voxels, int weight)
         {

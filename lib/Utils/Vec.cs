@@ -149,6 +149,10 @@ namespace lib.Utils
             return (this - other).CLen();
         }
 
+        public Vec WithX(int newX) => new Vec(newX, y, z);
+        public Vec WithY(int newY) => new Vec(x, newY, z);
+        public Vec WithZ(int newZ) => new Vec(x, y, newZ);
+
         public IEnumerable<Vec> GetMNeighbours()
         {
             yield return new Vec(x, y, z - 1);

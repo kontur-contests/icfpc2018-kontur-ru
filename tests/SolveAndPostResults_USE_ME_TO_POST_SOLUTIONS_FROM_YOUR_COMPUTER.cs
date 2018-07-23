@@ -29,10 +29,18 @@ namespace tests
 
         [Test]
         [Explicit]
-        public void AssembleAndPost([Values(4)] int problemId)
+        public void AssembleAndPost([Values(11)] int problemId)
         {
             var problem = ProblemSolutionFactory.LoadProblem($"FA{problemId:D3}");
-            var solution = ProblemSolutionFactory.CreateSlicerAssembler(2, 17);
+            var solution = new Solution
+                {
+                    Name = "special",
+                    Solver = p =>
+                        {
+                            var state = new DeluxeState(p.SourceMatrix, p.TargetMatrix);
+                            return new Solver(state, new AssembleOneBox(state));
+                        }
+                };
             Evaluate(problem, solution, postToElastic: true);
         }
 

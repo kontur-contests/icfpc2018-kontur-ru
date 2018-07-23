@@ -159,8 +159,10 @@ namespace tests
         //[Timeout(30000)]
         public void Assemble()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FD116");
-            var solver = new DivideAndConquer(problem.SourceMatrix, false);
+            var problem = ProblemSolutionFactory.LoadProblem("FA011");
+            //var solver = new DivideAndConquer(problem.SourceMatrix, false);
+            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var solver = new Solver(state, new AssembleOneBox(state));
             List<ICommand> commands = new List<ICommand>();
             try
             {
