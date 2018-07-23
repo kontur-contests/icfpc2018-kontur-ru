@@ -250,7 +250,7 @@ namespace lib.Strategies
             }
             foreach (var command in GoHome(botsToEvaluate))
                 yield return command;
-            //yield return new Halt();
+            yield return new Halt();
         }
 
         private bool CanFill(bool[,,] buildingMatrix, [NotNull] Vec vec)
@@ -500,53 +500,38 @@ namespace lib.Strategies
             return (result, botPositions);
         }
 
-        private DeluxeState CreateState(List<Vec> bots)
-        {
-            var state = new DeluxeState(targetMatrix, targetMatrix);
-            state.Bots.Clear();
-            for (var i = 0; i < bots.Count; i++)
-            {
-                var bot = bots[i];
-                state.Bots.Add(new Bot { Bid = i + 1, Position = bot, Seeds = new List<int>() });
-            }
-            return state;
-        }
-
         private IEnumerable<ICommand> GoHome([NotNull] List<Vec> bots)
         {
-            var state = CreateState(bots);
-            return new Finalize(state).Run(state);
+            var first = true;
+            Vec firstBot = null;
 
-            //var first = true;
-            //Vec firstBot = null;
-
-            //foreach (var (currentBot, i) in bots.Select((x, i) => (x, i)).OrderBy(x => (x.x.X, x.x.Z)))
-            //{
-            //    if (first)
-            //        firstBot = currentBot;
-            //    var commands = new List<ICommand>();
-            //    if (currentBot.Y != N - 1)
-            //        throw new Exception("Bot should be at the N - 1 y-coord");
-            //    var zCoord = first ? 0 : 1;
-            //    commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord)));
-            //    foreach (var command in commands)
-            //    {
-            //        var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
-            //        toApply[bots.IndexOf(currentBot)] = command;
-            //        foreach (var currentTickCommand in toApply)
-            //            yield return currentTickCommand;
-            //    }
-            //    if (!first)
-            //    {
-            //        var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
-            //        toApply[bots.IndexOf(firstBot)] = new FusionP(new NearDifference(new Vec(0, 0, 1)));
-            //        toApply[bots.IndexOf(currentBot)] = new FusionS(new NearDifference(new Vec(0, 0, -1)));
-            //        bots.Remove(currentBot);
-            //        foreach (var currentTickCommand in toApply)
-            //            yield return currentTickCommand;
-            //    }
-            //    first = false;
-            //}
+            foreach (var (currentBot, i) in bots.Select((x, i) => (x, i)).OrderBy(x => (x.x.X, x.x.Z)))
+            {
+                if (first)
+                    firstBot = currentBot;
+                var commands = new List<ICommand>();
+                //if (currentBot.Y != N - 1)
+                //    throw new Exception("Bot should be at the N - 1 y-coord");
+                var zCoord = first ? 0 : 1;
+                commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord)));
+                foreach (var command in commands)
+                {
+                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
+                    toApply[bots.IndexOf(currentBot)] = command;
+                    foreach (var currentTickCommand in toApply)
+                        yield return currentTickCommand;
+                }
+                if (!first)
+                {
+                    var toApply = Enumerable.Repeat<ICommand>(new Wait(), bots.Count).ToArray();
+                    toApply[bots.IndexOf(firstBot)] = new FusionP(new NearDifference(new Vec(0, 0, 1)));
+                    toApply[bots.IndexOf(currentBot)] = new FusionS(new NearDifference(new Vec(0, 0, -1)));
+                    bots.Remove(currentBot);
+                    foreach (var currentTickCommand in toApply)
+                        yield return currentTickCommand;
+                }
+                first = false;
+            }
         }
 
         [NotNull]
