@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 using JetBrains.Annotations;
 
@@ -24,15 +22,17 @@ namespace lib.Strategies
         private int[,,] groundDistance;
         private int minX, minZ, maxX, maxZ;
         private readonly bool useBoundingBox;
+        private readonly bool fast;
         private CorrectComponentTrackingMatrix buildingMatrix;
         private int maxY;
 
-        public HorizontalSlicerByLines(Matrix targetMatrix, int gridCountX, int gridCountZ, bool useBoundingBox)
+        public HorizontalSlicerByLines(Matrix targetMatrix, int gridCountX, int gridCountZ, bool useBoundingBox, bool fast = false)
         {
             if (gridCountZ != 1)
                 throw new Exception("Wrong CountZ");
             this.targetMatrix = targetMatrix;
             this.useBoundingBox = useBoundingBox;
+            this.fast = fast;
             gridCountX = Math.Min(gridCountX, N / 2); // todo (mpivko, 23.07.2018): 
             CalcBoundingBox(gridCountX, gridCountZ);
             gridCountX = Math.Min(gridCountX, (maxX - minX + 1));
@@ -79,12 +79,21 @@ namespace lib.Strategies
             }
         }
 
+        private int GetPartnerId(int id)
+        {
+            if (id < grid.CountX)
+                return id + grid.CountX;
+            return id - grid.CountX;
+        }
+
         public IEnumerable<ICommand> Solve()
         {
             buildingMatrix = new CorrectComponentTrackingMatrix(new bool[N, N, N]);
             var (transformedTargetMatrix, stickPositions) = TransformMatrix(targetMatrix);
-            var (cloneCommands, initialBots) = Clone(2 * grid.CountX, new Grid(grid.CountX, 2, minX, minZ, maxX, maxZ));
-            //var (cloneCommands, initialBots) = Clone2(new Grid(grid.CountX, 2, minX, minZ, maxX, maxZ));
+            var (cloneCommands, initialBots) = 
+                fast 
+                ? Clone2(new Grid(grid.CountX, 2, minX, minZ, maxX, maxZ))
+                : Clone(2 * grid.CountX, new Grid(grid.CountX, 2, minX, minZ, maxX, maxZ));
             foreach (var command in cloneCommands)
                 yield return command;
 
@@ -149,26 +158,20 @@ namespace lib.Strategies
                 }
                 bool[] shouldWait = new bool[botCount];
                 firstHigh = false;
+
                 for (var i = 0; i < botQueues.Count; i++)
                 {
-                    if (botQueues[i].Count == 0 || shouldWait[i])
+                    if (botQueues[i].Count == 0)
                     {
-                        commands.Add(new Wait());
                         continue;
                     }
                     if (botQueues[i].Peek() is Fill fillCommand)
                     {
                         var fillPosition = botsToEvaluate[i] + fillCommand.Shift;
-                        if (CanFill(buildingMatrix.Voxels, fillPosition) || isHighEnergy)
+                        if (!CanFill(buildingMatrix.Voxels, fillPosition) && !isHighEnergy)
                         {
-                            buildingMatrix[fillPosition] = true;
-                            commands.Add(botQueues[i].Dequeue());
-                        }
-                        else
-                        {
-                            if (i < botCount / 2)
-                                shouldWait[i + botCount / 2] = true;
-                            commands.Add(new Wait());
+                            shouldWait[i] = true;
+                            shouldWait[GetPartnerId(i)] = true;
                         }
                     }
                     else if (botQueues[i].Peek() is GFill gFillCommand)
@@ -180,34 +183,54 @@ namespace lib.Strategies
                                 filledCells.Add(cell);
                             buildingMatrix[cell] = true;
                         }
-                        if (shouldWait[i] || buildingMatrix.HasNonGroundedVoxels && !isHighEnergy)
+                        if (buildingMatrix.HasNonGroundedVoxels && !isHighEnergy)
                         {
                             foreach (var filledCell in filledCells)
                             {
                                 buildingMatrix[filledCell] = false;
                             }
-                            if (i < botCount / 2)
-                                shouldWait[i + botCount / 2] = true;
-                            commands.Add(new Wait());
+                            shouldWait[i] = true;
+                            shouldWait[GetPartnerId(i)] = true;
                         }
-                        else
-                            commands.Add(botQueues[i].Dequeue());
                     }
                     else if (botQueues[i].Peek() is Voidd voidCommand)
                     {
                         var voidPosition = botsToEvaluate[i] + voidCommand.Shift;
 
-                        if (buildingMatrix.CanVoidCell(voidPosition) || isHighEnergy)
+                        if (!buildingMatrix.CanVoidCell(voidPosition) && !isHighEnergy)
                         {
-                            buildingMatrix[voidPosition] = false;
-                            commands.Add(botQueues[i].Dequeue());
+                            shouldWait[i] = true;
+                            shouldWait[GetPartnerId(i)] = true;
                         }
-                        else
+                    }
+                }
+
+                for (var i = 0; i < botQueues.Count; i++)
+                {
+                    if (botQueues[i].Count == 0 || shouldWait[i])
+                    {
+                        commands.Add(new Wait());
+                        continue;
+                    }
+                    if (botQueues[i].Peek() is Fill fillCommand)
+                    {
+                        var fillPosition = botsToEvaluate[i] + fillCommand.Shift;
+                        buildingMatrix[fillPosition] = true;
+                        commands.Add(botQueues[i].Dequeue());
+                    }
+                    else if (botQueues[i].Peek() is GFill gFillCommand)
+                    {
+                        foreach (var cell in Cuboid.FromPoints(botsToEvaluate[i] + gFillCommand.NearShift, botsToEvaluate[i] + gFillCommand.NearShift + gFillCommand.FarShift).AllPoints())
                         {
-                            if (i < botCount / 2)
-                                shouldWait[i + botCount / 2] = true;
-                            commands.Add(new Wait());
+                            buildingMatrix[cell] = true;
                         }
+                        commands.Add(botQueues[i].Dequeue());
+                    }
+                    else if (botQueues[i].Peek() is Voidd voidCommand)
+                    {
+                        var voidPosition = botsToEvaluate[i] + voidCommand.Shift;
+                        buildingMatrix[voidPosition] = false;
+                        commands.Add(botQueues[i].Dequeue());
                     }
                     else
                     {
@@ -228,9 +251,8 @@ namespace lib.Strategies
                     yield return commands[i];
                 }
             }
-            foreach (var command in GoHome(botsToEvaluate))
+            foreach (var command in fast ? GoHome2(botsToEvaluate) : GoHome(botsToEvaluate))
                 yield return command;
-            //yield return new Halt();
         }
 
         private bool CanFill(bool[,,] buildingMatrix, [NotNull] Vec vec)
@@ -490,8 +512,8 @@ namespace lib.Strategies
                 if (first)
                     firstBot = currentBot;
                 var commands = new List<ICommand>();
-                if (currentBot.Y != N - 1)
-                    throw new Exception("Bot should be at the N - 1 y-coord");
+                //if (currentBot.Y != N - 1)
+                //    throw new Exception("Bot should be at the N - 1 y-coord");
                 var zCoord = first ? 0 : 1;
                 commands.AddRange(GoToVerticalLast(currentBot, new Vec(0, 0, zCoord)));
                 foreach (var command in commands)
@@ -512,6 +534,7 @@ namespace lib.Strategies
                 }
                 first = false;
             }
+            yield return new Halt();
         }
 
         [NotNull]

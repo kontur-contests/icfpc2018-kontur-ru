@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using lib.Models;
+using lib.Primitives;
 using lib.Strategies.Features.Async;
 using lib.Utils;
 
@@ -26,19 +27,16 @@ namespace lib.Strategies.Features
             for (int attempt = 0; attempt < state.Bots.Count; attempt++)
             {
                 var targets = getTargets().ToList();
-
-                if (prevTargets != null && SetsAreEqual(prevTargets, targets))
-                {
-                    await WhenNextTurn();
-                    continue;
-                }
-                prevTargets = targets;
-
                 foreach (var target in targets)
                 {
-                    if (await Move(bot, target))
+                    if (await new ReachTarget(state, bot, target))
                         return true;
                 }
+
+                if (prevTargets != null && SetsAreEqual(prevTargets, targets))
+                    await WhenNextTurn();
+
+                prevTargets = targets;
             }
             return false;
         }

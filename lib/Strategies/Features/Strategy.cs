@@ -67,5 +67,10 @@ namespace lib.Strategies.Features
             state.SetBotCommand(state.Bots.First(), new Halt());
             return new StrategyTask(null);
         }
+
+        public override string ToString()
+        {
+            return GetType().Name;
+        }
     }
 }

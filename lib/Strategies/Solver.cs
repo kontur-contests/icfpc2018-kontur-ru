@@ -67,7 +67,9 @@ namespace lib.Strategies
             const int maxAttempts = 1_000;
             for (attempts = 0; attempts < maxAttempts; attempts++)
             {
+                Log.For(this).Info($"{strategy} TICK");
                 var children = strategy.Tick();
+                Log.For(this).Info($"{strategy} TICK RESULT: {strategy.Status} - {string.Join(", ", children?.Select(c => c.ToString()) ?? new string[0])}");
                 if (children == null)
                     break;
                 if (strategy.Status != StrategyStatus.InProgress)
