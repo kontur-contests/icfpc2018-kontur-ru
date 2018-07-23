@@ -224,9 +224,9 @@ namespace lib.Utils
                 }
 
             (string name, Func<Matrix, IAmSolver> solver)[] solvers = {
-                    ("sl5", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 5, 1, true))),
-                    ("sl10", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 10, 1, true))),
-                    ("sl20", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 20, 1, true))),
+                    //("sl5", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 5, 1, true))),
+                    //("sl10", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 10, 1, true))),
+                    ("slF20", (Func<Matrix, IAmSolver>)(m => new HorizontalSlicerByLines(m, 20, 1, true, fast:true))),
                 };
 
             var raSolutions = new List<Solution>();
@@ -239,7 +239,7 @@ namespace lib.Utils
 //                    });
             var disassemblers = new[]
                 {
-                    (name: "nw", solver: noWallDeconstructor.Solver),
+                    //(name: "nw", solver: noWallDeconstructor.Solver),
                     (name: "bd", solver: blockDeconstructor.Solver),
                     (name: "d8", solver: disassembler8.Solver),
                 };
@@ -260,7 +260,8 @@ namespace lib.Utils
 
                     });
                 }
-            return new[]
+            return raSolutions.ToArray();
+                var x = new[]
                 {
 //                    stupidDisassembler,
 //                    invertorDisassembler,
@@ -278,7 +279,7 @@ namespace lib.Utils
                     //slicerWithLines10,
                     slicerWithLines20,
                 }
-                   //.Concat(raSolutions)
+                   .Concat(raSolutions)
                  .ToArray();
         }
 
