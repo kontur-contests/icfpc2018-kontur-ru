@@ -13,6 +13,7 @@ To actually solve something (for example, get a trace for the model assembly) yo
 ## What is what in the source code
 
 You can find the code for our strategies in the `lib` project. As you can see in the `lib/Strategies` folder we're got pretty lots of them. Let me describe a few I can name just now:
-— for assembling: a simple one-volxel-by-one-from-bottom-to-top assembler, a greedy assembler which tries to build the nearest to the bot unbuilt part of the model, a slicer assembler which makes bots to build horizontal slices of the model going bottom to top
-— for disassembling: a simple one-volxel-by-one disassembler, an invertor disassembler which takes an assembly trace and reverses it, a disassembler which builds cuboids 3-voxel-thick walls around parts of the model, GVoid-s everything inside those cuboids and then GVoid-s the walls
-— for reassembling: our reassemblers are basically the combinations of our assemblers and disassemblers
+
+* for assembling: a simple one-volxel-by-one-from-bottom-to-top assembler, a greedy assembler which tries to build the nearest to the bot unbuilt part of the model, a slicer assembler which makes bots to build horizontal slices of the model going bottom to top
+* for disassembling: a simple one-volxel-by-one disassembler, an invertor disassembler which takes an assembly trace and reverses it, a disassembler which builds cuboids 3-voxel-thick walls around parts of the model, GVoid-s everything inside those cuboids and then GVoid-s the walls
+* for reassembling: our reassemblers are basically the combinations of our assemblers and disassemblers
