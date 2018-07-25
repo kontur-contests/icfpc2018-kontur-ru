@@ -11,9 +11,9 @@ namespace lib.Models
 {
     public class Interpreter
     {
-        private readonly DeluxeState state;
+        private readonly State state;
 
-        public Interpreter(DeluxeState state)
+        public Interpreter(State state)
         {
             this.state = state;
         }

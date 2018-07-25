@@ -9,7 +9,7 @@ namespace lib.Strategies.Features
     {
         private readonly Vec vertex;
 
-        public GotoVertex(DeluxeState state, Bot bot, Region region, Vec vertex)
+        public GotoVertex(State state, Bot bot, Region region, Vec vertex)
             : base(state, bot, () => vertex
                                          .GetNears()
                                          .Where(v => v.IsInCuboid(state.R)

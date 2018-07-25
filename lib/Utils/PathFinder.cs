@@ -25,7 +25,7 @@ namespace lib.Utils
             this.isAllowedPosition = isAllowedPosition;
         }
 
-        public PathFinder(DeluxeState state, Bot bot, Vec target)
+        public PathFinder(State state, Bot bot, Vec target)
             : this(state.Matrix.Voxels, bot.Position, target, vec => !state.IsVolatile(bot, vec))
         {
         }

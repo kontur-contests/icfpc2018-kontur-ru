@@ -18,7 +18,7 @@ namespace tests
         {
             var content = File.ReadAllBytes(commandFilename);
             var commands = CommandSerializer.Load(content);
-            var state = new DeluxeState(null, Matrix.Load(File.ReadAllBytes(problemFilename)));
+            var state = new State(null, Matrix.Load(File.ReadAllBytes(problemFilename)));
             new Interpreter(state).Run(commands);
         }
 

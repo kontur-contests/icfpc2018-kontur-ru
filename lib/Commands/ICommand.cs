@@ -8,11 +8,11 @@ namespace lib.Commands
     public interface ICommand
     {
         byte[] Encode();
-        void Apply([NotNull] DeluxeState state, [NotNull] Bot bot);
+        void Apply([NotNull] State state, [NotNull] Bot bot);
         bool AllPositionsAreValid([NotNull] IMatrix matrix, [NotNull] Bot bot);
         [NotNull]
         Vec[] GetVolatileCells([NotNull] Bot bot);
 
-        bool HasVolatileConflicts(Bot bot, DeluxeState state);
+        bool HasVolatileConflicts(Bot bot, State state);
     }
 }

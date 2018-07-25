@@ -29,7 +29,7 @@ namespace lib.Strategies
             CalcBoundingBox();
         }
 
-        public DeluxeState State { get; private set; }
+        public State State { get; private set; }
 
         private List<ICommand> Commands { get; } = new List<ICommand>();
 
@@ -67,7 +67,7 @@ namespace lib.Strategies
 
         public IEnumerable<ICommand> Solve()
         {
-            State = new DeluxeState(null, targetMatrix);
+            State = new State(null, targetMatrix);
             Commands.Clear();
             Clone(State);
             foreach (var command in Commands)
@@ -134,7 +134,7 @@ namespace lib.Strategies
             new Interpreter(State).EnsureIsFinal();
         }
 
-        private void Clone([NotNull] DeluxeState state)
+        private void Clone([NotNull] State state)
         {
             for (int i = 0; i < N - 1; i++)
             {
@@ -152,7 +152,7 @@ namespace lib.Strategies
             }
         }
 
-        private void GoHome([NotNull] DeluxeState state)
+        private void GoHome([NotNull] State state)
         {
             for (int i = 0; i < N; i++)
             {
@@ -177,7 +177,7 @@ namespace lib.Strategies
             }
         }
 
-        private void ApplyCommand([NotNull] DeluxeState state, [NotNull] params ICommand[] commands)
+        private void ApplyCommand([NotNull] State state, [NotNull] params ICommand[] commands)
         {
             if (state.Bots.Count != commands.Length)
                 throw new ArgumentException();
@@ -185,7 +185,7 @@ namespace lib.Strategies
             Commands.AddRange(commands);
         }
 
-        private bool CanFill([NotNull] DeluxeState state, [NotNull] Vec vec)
+        private bool CanFill([NotNull] State state, [NotNull] Vec vec)
         {
             return vec.Y == 0 || vec.GetMNeighbours().Where(x => x.IsInCuboid(state.Matrix.R)).Any(x => !state.Matrix.IsVoidVoxel(x));
         }

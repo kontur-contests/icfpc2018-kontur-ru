@@ -30,4 +30,7 @@
       <HintPath>..\Assemblies\metrics\Metrics.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Habr\" />
+  </ItemGroup>
 </Project>

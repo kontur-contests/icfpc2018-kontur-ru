@@ -10,7 +10,7 @@ using MoreLinq.Extensions;
 
 namespace lib.Models
 {
-    public class DeluxeState
+    public class State
     {
         public Matrix SourceMatrix { get; }
         public Matrix TargetMatrix { get; }
@@ -55,7 +55,7 @@ namespace lib.Models
         public readonly Dictionary<Bot, ICommand> botCommands = new Dictionary<Bot, ICommand>();
         private readonly Dictionary<Region, (bool isFill, Dictionary<Vec, Bot> corners)> groupRegions = new Dictionary<Region, (bool isFill, Dictionary<Vec, Bot> corners)>();
 
-        public DeluxeState(Matrix sourceMatrix, Matrix targetMatrix)
+        public State(Matrix sourceMatrix, Matrix targetMatrix)
         {
             SourceMatrix = sourceMatrix ?? new Matrix(targetMatrix.R);
             TargetMatrix = targetMatrix ?? new Matrix(sourceMatrix.R);

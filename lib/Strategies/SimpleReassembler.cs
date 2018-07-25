@@ -28,7 +28,7 @@ namespace lib.Strategies
 
         public IEnumerable<ICommand> Solve()
         {
-            var state = new DeluxeState(source, target);
+            var state = new State(source, target);
             var disassembleCommands = disassembler.Solve().Where(c => !(c is Halt)).ToList();
             new Interpreter(state).RunPartially(disassembleCommands);
             var idMap = GetIdMap(state);
@@ -39,7 +39,7 @@ namespace lib.Strategies
         private IEnumerable<ICommand> GetAssembleCommands(int[] idMap)
         {
             var ticks = new List<List<(int bid, ICommand command)>>();
-            var state = new DeluxeState(null, target);
+            var state = new State(null, target);
             var originalTrace = new Queue<ICommand>(assembler.Solve());
             while (originalTrace.Any())
             {
@@ -57,7 +57,7 @@ namespace lib.Strategies
             return ticks.SelectMany(t => t.Select(botCommand => botCommand.command));
         }
 
-        private static int[] GetIdMap(DeluxeState state)
+        private static int[] GetIdMap(State state)
         {
             var idMap = new int[41];
             var bot = state.Bots.Single();

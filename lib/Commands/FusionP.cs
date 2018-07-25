@@ -38,7 +38,7 @@ namespace lib.Commands
             return true;
         }
 
-        public override void Apply(DeluxeState state, Bot bot)
+        public override void Apply(State state, Bot bot)
         {
             var secondaryBot = GetSecondaryBot(state, bot);
             state.Bots.Remove(secondaryBot);
@@ -55,7 +55,7 @@ namespace lib.Commands
         }
 
         [NotNull]
-        private Bot GetSecondaryBot([NotNull] DeluxeState state, [NotNull] Bot bot)
+        private Bot GetSecondaryBot([NotNull] State state, [NotNull] Bot bot)
         {
             var pos = bot.Position + shift;
             return state.Bots.Single(x => x.Position == pos);

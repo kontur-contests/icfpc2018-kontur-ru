@@ -15,7 +15,7 @@ namespace lib.Strategies.Features
     {
         private readonly Func<IEnumerable<Vec>> getTargets;
 
-        public ReachAnyTarget(DeluxeState state, Bot bot, Func<IEnumerable<Vec>> getTargets)
+        public ReachAnyTarget(State state, Bot bot, Func<IEnumerable<Vec>> getTargets)
             : base(state, bot)
         {
             this.getTargets = getTargets;

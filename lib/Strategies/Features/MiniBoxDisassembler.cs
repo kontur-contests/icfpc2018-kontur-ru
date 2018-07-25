@@ -14,7 +14,7 @@ namespace lib.Strategies.Features
         private readonly Bot[] bots;
         private readonly Region miniBox;
 
-        public MiniBoxDisassembler(DeluxeState state, Bot[] bots, Region miniBox)
+        public MiniBoxDisassembler(State state, Bot[] bots, Region miniBox)
             : base(state)
         {
             this.bots = bots;

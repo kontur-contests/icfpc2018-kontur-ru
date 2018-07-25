@@ -100,7 +100,7 @@ namespace tests
                 var bytes = CommandSerializer.Save(commands.ToArray());
                 File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
             }
-            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var state = new State(problem.SourceMatrix, problem.TargetMatrix);
             new Interpreter(state).Run(commands);
         }
 
@@ -110,7 +110,7 @@ namespace tests
         public void AssembleKung()
         {
             var problem = ProblemSolutionFactory.LoadProblem("FA060");
-            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var state = new State(problem.SourceMatrix, problem.TargetMatrix);
             var solver = new Solver(state, new ParallelGredyFill(state, state.Bots.First()));
             List<ICommand> commands = new List<ICommand>();
             try
@@ -142,7 +142,7 @@ namespace tests
         public void Test2()
         {
             var problem = ProblemSolutionFactory.LoadProblem("FA001");
-            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var state = new State(problem.SourceMatrix, problem.TargetMatrix);
             var plan = new GenPlanBuilder(state).CreateGenPlan();
             var sorted = new GenPlanSorter(plan, state.R).Sort();
             sorted.ToHashSet().SetEquals(plan).Should().BeTrue();
@@ -154,7 +154,7 @@ namespace tests
         public void AssembleSpaceorc()
         {
             var problem = ProblemSolutionFactory.LoadProblem("FA001");
-            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var state = new State(problem.SourceMatrix, problem.TargetMatrix);
             var solver = new Solver(state, new Assembler(state));
             List<ICommand> commands = new List<ICommand>();
             try
@@ -181,7 +181,7 @@ namespace tests
         {
             var problem = ProblemSolutionFactory.LoadProblem("FA011");
             //var solver = new DivideAndConquer(problem.SourceMatrix, false);
-            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var state = new State(problem.SourceMatrix, problem.TargetMatrix);
             var solver = new Solver(state, new AssembleFA11(state));
             List<ICommand> commands = new List<ICommand>();
             try
@@ -223,7 +223,7 @@ namespace tests
                 var bytes = CommandSerializer.Save(commands.ToArray());
                 File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
             }
-            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var state = new State(problem.SourceMatrix, problem.TargetMatrix);
             new Interpreter(state).Run(commands);
         }
 
@@ -340,7 +340,7 @@ namespace tests
 
         private long Validate([NotNull] Matrix problem, [NotNull] ICommand[] solution)
         {
-            var state = new DeluxeState(null, problem);
+            var state = new State(null, problem);
             new Interpreter(state).Run(solution);
             return state.Energy;
         }

@@ -14,7 +14,7 @@ namespace lib.Strategies
     public class StupidDisassembler : IAmSolver
     {
         private readonly Matrix source;
-        private DeluxeState state;
+        private State state;
 
         public StupidDisassembler(Matrix source)
         {
@@ -22,7 +22,7 @@ namespace lib.Strategies
         }
         public IEnumerable<ICommand> Solve()
         {
-            state = new DeluxeState(source, new Matrix(source.R));
+            state = new State(source, new Matrix(source.R));
             var bot = state.Bots.First();
             while (true)
             {

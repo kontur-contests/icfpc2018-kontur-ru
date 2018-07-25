@@ -160,7 +160,7 @@ namespace lib.Utils
             ProblemPrioritizer = p => ProblemPriority.Normal,
             Solver = problem =>
                 {
-                    var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+                    var state = new State(problem.SourceMatrix, problem.TargetMatrix);
                     var solver = new Solver(state, new Disassembler(state));
                     return solver;
                 },
@@ -180,7 +180,7 @@ namespace lib.Utils
             ProblemPrioritizer = p => ProblemPriority.Normal,
             Solver = problem =>
             {
-                var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+                var state = new State(problem.SourceMatrix, problem.TargetMatrix);
                 var solver = new Solver(state, new ParallelGredyFill(state, state.Bots.First()));
                 return solver;
             }

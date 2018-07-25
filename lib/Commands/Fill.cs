@@ -31,7 +31,7 @@ namespace lib.Commands
             return GetPosition(bot).IsInCuboid(matrix.R);
         }
 
-        public override void Apply(DeluxeState state, Bot bot)
+        public override void Apply(State state, Bot bot)
         {
             var pos = GetPosition(bot);
             if (state.Matrix.IsVoidVoxel(pos))

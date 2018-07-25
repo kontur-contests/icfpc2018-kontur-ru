@@ -7,7 +7,7 @@ namespace lib.Strategies.Features
 {
     public class Disassembler : Strategy
     {
-        public Disassembler(DeluxeState state)
+        public Disassembler(State state)
             : base(state)
         {
         }

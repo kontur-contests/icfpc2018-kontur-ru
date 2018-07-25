@@ -11,7 +11,7 @@ namespace lib.Strategies.Features
     {
         private readonly Vec target;
 
-        public ReachTarget(DeluxeState state, Bot bot, Vec target)
+        public ReachTarget(State state, Bot bot, Vec target)
             : base(state, bot)
         {
             this.target = target;

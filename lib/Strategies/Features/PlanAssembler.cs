@@ -17,7 +17,7 @@ namespace lib.Strategies.Features
         private readonly Region[] plan;
         private readonly Bot[] bots;
 
-        public PlanAssembler(DeluxeState state, IEnumerable<Bot> bots, IEnumerable<Region> plan)
+        public PlanAssembler(State state, IEnumerable<Bot> bots, IEnumerable<Region> plan)
             : base(state)
         {
             this.plan = plan.ToArray();

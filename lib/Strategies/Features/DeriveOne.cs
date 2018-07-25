@@ -10,7 +10,7 @@ namespace lib.Strategies.Features
 {
     public class DeriveOne : BotStrategy
     {
-        public DeriveOne(DeluxeState state, Bot bot)
+        public DeriveOne(State state, Bot bot)
             : base(state, bot)
         {
         }

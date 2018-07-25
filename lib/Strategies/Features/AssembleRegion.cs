@@ -15,7 +15,7 @@ namespace lib.Strategies.Features
         private Region region;
         private Bot[] bots;
 
-        public AssembleRegion(DeluxeState state, Region region, IEnumerable<Bot> bots)
+        public AssembleRegion(State state, Region region, IEnumerable<Bot> bots)
             : base(state)
         {
             this.region = region;

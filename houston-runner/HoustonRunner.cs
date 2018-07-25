@@ -120,7 +120,7 @@ namespace houston
 
                         exceptionDispatchInfo?.Throw();
 
-                        var state = new DeluxeState(task.Problem.SourceMatrix, task.Problem.TargetMatrix);
+                        var state = new State(task.Problem.SourceMatrix, task.Problem.TargetMatrix);
                         new Interpreter(state).Run(commands);
 
                         result.SecondsSpent = (int)timer.Elapsed.TotalSeconds;

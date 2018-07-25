@@ -31,7 +31,7 @@ namespace lib.Commands
             return matrix.IsInside(GetPosition(bot));
         }
 
-        public override void Apply(DeluxeState state, Bot bot)
+        public override void Apply(State state, Bot bot)
         {
             var pos = GetPosition(bot);
             if (state.Matrix.IsFilledVoxel(pos))

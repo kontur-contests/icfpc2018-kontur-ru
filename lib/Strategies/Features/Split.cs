@@ -10,7 +10,7 @@ namespace lib.Strategies.Features
     {
         private readonly int count;
 
-        public Split(DeluxeState state, Bot bot, int count = int.MaxValue)
+        public Split(State state, Bot bot, int count = int.MaxValue)
             : base(state, bot)
         {
             this.count = Math.Min(count, bot.Seeds.Count + 1);

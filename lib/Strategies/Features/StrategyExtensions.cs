@@ -7,7 +7,7 @@ namespace lib.Strategies.Features
 {
     public static class StrategyExtensions
     {
-        public static IEnumerable<ICommand> Run(this IStrategy strategy, DeluxeState startState)
+        public static IEnumerable<ICommand> Run(this IStrategy strategy, State startState)
         {
             return new Solver(startState, strategy).SolvePartially();
         }

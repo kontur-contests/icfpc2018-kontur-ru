@@ -12,7 +12,7 @@ namespace lib.Strategies.Features
         private readonly Bot master;
         private readonly Bot slave;
 
-        public MergeTwoNears(DeluxeState state, Bot master, Bot slave)
+        public MergeTwoNears(State state, Bot master, Bot slave)
             : base(state)
         {
             this.master = master;

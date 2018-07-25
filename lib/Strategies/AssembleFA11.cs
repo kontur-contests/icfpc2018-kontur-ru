@@ -16,7 +16,7 @@ namespace lib.Strategies
         private readonly Bot[] bots;
         private readonly Region plane;
 
-        public PlaneAssembler(DeluxeState state, Bot[] bots, Region plane)
+        public PlaneAssembler(State state, Bot[] bots, Region plane)
             : base(state)
         {
             this.bots = bots;
@@ -51,7 +51,7 @@ namespace lib.Strategies
 
     public class AssembleFA11 : Strategy
     {
-        public AssembleFA11(DeluxeState state)
+        public AssembleFA11(State state)
             : base(state)
         {
         }
@@ -71,7 +71,7 @@ namespace lib.Strategies
         private readonly Bot[] bots;
         private Region region;
 
-        public AssembleSingleEmptyBox(DeluxeState state, IEnumerable<Bot> bots4)
+        public AssembleSingleEmptyBox(State state, IEnumerable<Bot> bots4)
             : base(state)
         {
             var minX = state.TargetMatrix.GetFilledVoxels().Min(v => v.X);

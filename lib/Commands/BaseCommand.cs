@@ -15,11 +15,11 @@ namespace lib.Commands
         [NotNull]
         public abstract Vec[] GetVolatileCells(Bot bot);
 
-        public abstract void Apply(DeluxeState state, Bot bot);
+        public abstract void Apply(State state, Bot bot);
 
         public abstract bool AllPositionsAreValid([NotNull] IMatrix matrix, [NotNull] Bot bot);
 
-        public bool HasVolatileConflicts(Bot bot, DeluxeState state)
+        public bool HasVolatileConflicts(Bot bot, State state)
         {
             var commandPositions = GetVolatileCells(bot);
             return commandPositions.Any(pos => state.IsVolatile(bot, pos) && pos != bot.Position);

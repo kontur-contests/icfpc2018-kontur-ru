@@ -14,7 +14,7 @@ namespace lib.Strategies.Features
         private readonly ICandidatesOrdering candidatesOrdering;
         private readonly HashSet<Vec> candidates;
 
-        public CooperativeGreedyFill(DeluxeState state, Bot bot, HashSet<Vec> candidates, ICandidatesOrdering candidatesOrdering = null)
+        public CooperativeGreedyFill(State state, Bot bot, HashSet<Vec> candidates, ICandidatesOrdering candidatesOrdering = null)
             : base(state, bot)
         {
             this.candidates = candidates;

@@ -7,7 +7,7 @@ namespace lib.Strategies.Features
 {
     public class Assembler : Strategy
     {
-        public Assembler(DeluxeState state)
+        public Assembler(State state)
             : base(state)
         {
         }

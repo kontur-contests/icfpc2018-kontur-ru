@@ -31,7 +31,7 @@ namespace lib.Utils
                             Fill(new Vec(x,y,z));
         }
 
-        public bool CanFill(Vec cell, Vec bot, DeluxeState state)
+        public bool CanFill(Vec cell, Vec bot, State state)
         {
             if (filled[cell] || filled[bot])
                 return false;

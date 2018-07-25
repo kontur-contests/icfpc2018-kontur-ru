@@ -27,7 +27,7 @@ namespace lib.Models
             var solver = solution.Solver(problem);
 
             var commands = solver.Solve().ToArray();
-            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var state = new State(problem.SourceMatrix, problem.TargetMatrix);
             new Interpreter(state).Run(commands);
 
             result.SecondsSpent = (int)timer.Elapsed.TotalSeconds;

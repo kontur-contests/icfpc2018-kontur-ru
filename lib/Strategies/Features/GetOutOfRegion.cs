@@ -12,7 +12,7 @@ namespace lib.Strategies.Features
         private readonly Region[] regions;
         private readonly Bot[] bots;
 
-        public GetOutOfRegion(DeluxeState state, IEnumerable<Bot> bots, params Region[] regions)
+        public GetOutOfRegion(State state, IEnumerable<Bot> bots, params Region[] regions)
             : base(state)
         {
             this.regions = regions;

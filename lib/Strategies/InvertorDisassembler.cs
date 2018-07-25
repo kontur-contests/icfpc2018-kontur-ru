@@ -33,7 +33,7 @@ namespace lib.Strategies
         public static IEnumerable<ICommand> ReverseCommands(Queue<ICommand> commands, Matrix initialMatrix, Matrix finalMatrix)
         {
             var ticks = new List<List<(Vec botPos, ICommand command)>>();
-            var state = new DeluxeState(initialMatrix, finalMatrix);
+            var state = new State(initialMatrix, finalMatrix);
             while (commands.Any())
             {
                 state.StartTick();
@@ -95,7 +95,7 @@ namespace lib.Strategies
                 state.EndTick();
             }
             ticks.Reverse();
-            state = new DeluxeState(finalMatrix, initialMatrix);
+            state = new State(finalMatrix, initialMatrix);
             var result = new List<ICommand>();
             foreach (var tick in ticks)
             {

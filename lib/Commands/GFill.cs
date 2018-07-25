@@ -41,7 +41,7 @@ namespace lib.Commands
             // * It is also an error if any coordinate boti.pos is a member of region r.
         }
 
-        public override void Apply(DeluxeState state, Bot bot)
+        public override void Apply(State state, Bot bot)
         {
             var range = GetRegion(bot.Position);
             foreach (var pos in range)

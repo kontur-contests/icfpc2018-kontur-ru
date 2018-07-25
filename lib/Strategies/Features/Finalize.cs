@@ -8,7 +8,7 @@ namespace lib.Strategies.Features
 {
     public class Finalize : Strategy
     {
-        public Finalize(DeluxeState state)
+        public Finalize(State state)
             : base(state)
         {
         }

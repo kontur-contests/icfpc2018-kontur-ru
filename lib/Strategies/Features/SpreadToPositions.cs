@@ -12,7 +12,7 @@ namespace lib.Strategies.Features
         private readonly List<Vec> targets;
         private readonly List<Bot> bots;
 
-        public SpreadToPositions(DeluxeState state, List<Bot> bots, List<Vec> targets)
+        public SpreadToPositions(State state, List<Bot> bots, List<Vec> targets)
             : base(state)
         {
             this.targets = targets;

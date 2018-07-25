@@ -13,7 +13,7 @@ namespace lib.Strategies.Features
         const int longDist = 30;
         private readonly Bot[] bots;
 
-        public Disassembler8(DeluxeState state, IEnumerable<Bot> bots8)
+        public Disassembler8(State state, IEnumerable<Bot> bots8)
             : base(state)
         {
             bots = bots8.ToArray();

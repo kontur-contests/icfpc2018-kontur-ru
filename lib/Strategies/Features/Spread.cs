@@ -11,7 +11,7 @@ namespace lib.Strategies.Features
     {
         private readonly Bot[] bots;
 
-        public Spread(DeluxeState state, IEnumerable<Bot> bots)
+        public Spread(State state, IEnumerable<Bot> bots)
             : base(state)
         {
             this.bots = bots.ToArray();

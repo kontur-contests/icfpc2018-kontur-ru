@@ -604,9 +604,9 @@ namespace lib.Strategies
             return res;
         }
 
-        private DeluxeState CreateState(List<Vec> bots)
+        private State CreateState(List<Vec> bots)
         {
-            var state = new DeluxeState(targetMatrix, targetMatrix);
+            var state = new State(targetMatrix, targetMatrix);
             state.Bots.Clear();
             for (var i = 0; i < bots.Count; i++)
             {
@@ -622,7 +622,7 @@ namespace lib.Strategies
         }
         private (List<ICommand> Commands, List<Vec> Bots) Clone2(Grid botsGrid)
         {
-            var state = new DeluxeState(null, targetMatrix);
+            var state = new State(null, targetMatrix);
             var botsCount = botsGrid.CountX * botsGrid.CountZ;
             var split = new Split(state, state.Bots.Single(), botsCount);
             var commands = split.Run(state).ToList();

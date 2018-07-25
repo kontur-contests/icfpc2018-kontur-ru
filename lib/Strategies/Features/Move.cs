@@ -8,7 +8,7 @@ namespace lib.Strategies.Features
     {
         private readonly Vec target;
         
-        public Move(DeluxeState state, Bot bot, Vec target)
+        public Move(State state, Bot bot, Vec target)
             : base(state, bot)
         {
             this.target = target;

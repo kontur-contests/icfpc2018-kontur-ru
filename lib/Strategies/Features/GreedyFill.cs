@@ -14,7 +14,7 @@ namespace lib.Strategies.Features
         private readonly IOracle oracle;
         private readonly ICandidatesOrdering candidatesOrdering;
 
-        public GreedyFill(DeluxeState state, Bot bot, IOracle oracle, ICandidatesOrdering candidatesOrdering = null)
+        public GreedyFill(State state, Bot bot, IOracle oracle, ICandidatesOrdering candidatesOrdering = null)
             : base(state, bot)
         {
             this.oracle = oracle;

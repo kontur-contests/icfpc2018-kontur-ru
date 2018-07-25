@@ -8,7 +8,7 @@ namespace lib.Strategies.Features
     {
         protected readonly Bot bot;
 
-        protected BotStrategy(DeluxeState state, Bot bot)
+        protected BotStrategy(State state, Bot bot)
             : base(state)
         {
             this.bot = bot;

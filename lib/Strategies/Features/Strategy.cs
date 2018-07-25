@@ -10,10 +10,10 @@ namespace lib.Strategies.Features
 {
     public abstract class Strategy : IStrategy
     {
-        protected readonly DeluxeState state;
+        protected readonly State state;
         private readonly AsyncTicker ticker;
 
-        protected Strategy(DeluxeState state)
+        protected Strategy(State state)
         {
             this.state = state;
             ticker = new AsyncTicker(Run);

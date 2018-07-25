@@ -9,7 +9,7 @@ namespace lib.Strategies.Features
 {
     public class ParallelGredyFill : BotStrategy
     {
-        public ParallelGredyFill(DeluxeState state, Bot bot)
+        public ParallelGredyFill(State state, Bot bot)
             : base(state, bot)
         {
         }

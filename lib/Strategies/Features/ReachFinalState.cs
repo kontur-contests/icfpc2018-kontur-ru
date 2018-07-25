@@ -8,7 +8,7 @@ namespace lib.Strategies.Features
 {
     public class ReachFinalState : Strategy
     {
-        public ReachFinalState(DeluxeState state)
+        public ReachFinalState(State state)
             : base(state)
         {
         }

@@ -39,7 +39,7 @@ namespace lib.Commands
             return obstacle == null;
         }
 
-        public override void Apply(DeluxeState state, Bot bot)
+        public override void Apply(State state, Bot bot)
         {
             bot.Position = bot.Position + Shift;
             state.Energy += 2 * Shift.Shift.MLen();

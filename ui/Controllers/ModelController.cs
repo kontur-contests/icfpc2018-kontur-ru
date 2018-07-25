@@ -51,7 +51,7 @@ namespace ui.Controllers
             var problem = ProblemSolutionFactory.CreateProblem($"../data/problemsF/{problemName}_tgt.mdl");
             var solution = CommandSerializer.Load(System.IO.File.ReadAllBytes($"../data/solutions/{problemName}.nbt"));
 
-            var state = new DeluxeState(problem.SourceMatrix, problem.TargetMatrix);
+            var state = new State(problem.SourceMatrix, problem.TargetMatrix);
             var queue = new Queue<ICommand>(solution);
             var results = new List<TickResult>();
             var filledVoxels = new HashSet<Vec>(state.GetFilledVoxels());

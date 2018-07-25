@@ -13,7 +13,7 @@ namespace lib.Strategies.Features
     {
         private readonly Vec target;
 
-        public Drill(DeluxeState state, Bot bot, Vec target)
+        public Drill(State state, Bot bot, Vec target)
             : base(state, bot)
         {
             this.target = target;

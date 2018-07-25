@@ -9,10 +9,10 @@ namespace lib.Strategies
 {
     public class Solver : IAmSolver
     {
-        private readonly DeluxeState state;
+        private readonly State state;
         private readonly List<IStrategy> activeStrategies = new List<IStrategy>();
 
-        public Solver(DeluxeState state, IStrategy rootStrategy)
+        public Solver(State state, IStrategy rootStrategy)
         {
             this.state = state;
             activeStrategies.Add(rootStrategy);

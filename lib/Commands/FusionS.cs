@@ -36,7 +36,7 @@ namespace lib.Commands
             return true;
         }
 
-        public override void Apply(DeluxeState state, Bot bot)
+        public override void Apply(State state, Bot bot)
         {
             // The whole work is done in FusionP
         }

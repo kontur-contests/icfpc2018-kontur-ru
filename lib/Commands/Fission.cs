@@ -41,7 +41,7 @@ namespace lib.Commands
             return true;
         }
 
-        public override void Apply(DeluxeState state, Bot bot)
+        public override void Apply(State state, Bot bot)
         {
             var bids = bot.Seeds.Take(m + 1).ToArray();
 

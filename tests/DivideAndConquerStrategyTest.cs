@@ -58,7 +58,7 @@ namespace tests
             DoRealTest(model => new HorizontalSlicer(model, 6, 6, useBoundingBox : true),
                        (solver, commands, model) =>
                            {
-                               var state = new DeluxeState(new Matrix(model.R), model);
+                               var state = new State(new Matrix(model.R), model);
                                var queue = new Queue<ICommand>();
                                var interpreter = new Interpreter(state);
                                foreach (var command in solver.Solve())
@@ -85,7 +85,7 @@ namespace tests
             DoRealTest(model => new HorizontalSlicerByLines(model, 20, 1, useBoundingBox : true, fast:fast), 
                        (solver, commands, model) =>
                            {
-                               var state = new DeluxeState(new Matrix(model.R), model);
+                               var state = new State(new Matrix(model.R), model);
                                var queue = new Queue<ICommand>();
                                var interpreter = new Interpreter(state);
                                foreach (var command in solver.Solve())
@@ -111,7 +111,7 @@ namespace tests
             DoRealTest(model => new FastDeconstructor(model), 
                        (solver, commands, model) =>
                            {
-                               var state = new DeluxeState(model, new Matrix(model.R));
+                               var state = new State(model, new Matrix(model.R));
                                var queue = new Queue<ICommand>();
                                var interpreter = new Interpreter(state);
                                foreach (var command in solver.Solve())
@@ -136,7 +136,7 @@ namespace tests
             DoRealTest(model => new NoWallsDeconstructor(model), 
                        (solver, commands, model) =>
                            {
-                               var state = new DeluxeState(model, new Matrix(model.R));
+                               var state = new State(model, new Matrix(model.R));
                                var queue = new Queue<ICommand>();
                                var interpreter = new Interpreter(state);
                                foreach (var command in solver.Solve())

@@ -12,10 +12,10 @@ namespace lib.Strategies.Features
         private static readonly int[] dists = { 30, 16, 8, 4, 1 };
         private static readonly int longDist = dists[0];
 
-        private readonly DeluxeState state;
+        private readonly State state;
         private readonly int R;
 
-        public GenPlanBuilder(DeluxeState state)
+        public GenPlanBuilder(State state)
         {
             this.state = state;
             R = state.R;

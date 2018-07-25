@@ -18,7 +18,7 @@ namespace lib.Commands
             return "Wait()";
         }
 
-        public override void Apply(DeluxeState state, Bot bot)
+        public override void Apply(State state, Bot bot)
         {
             // Just wait
         }
