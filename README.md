@@ -17,3 +17,9 @@ You can find the code for our strategies in the `lib` project. As you can see in
 * for assembling: a simple one-volxel-by-one-from-bottom-to-top assembler, a greedy assembler which tries to build the nearest to the bot unbuilt part of the model, a slicer assembler which makes bots to build horizontal slices of the model going bottom to top
 * for disassembling: a simple one-volxel-by-one disassembler, an invertor disassembler which takes an assembly trace and reverses it, a disassembler which builds cuboids 3-voxel-thick walls around parts of the model, GVoid-s everything inside those cuboids and then GVoid-s the walls
 * for reassembling: our reassemblers are basically the combinations of our assemblers and disassemblers
+
+## Elastic backup
+
+We saved run results for every version of every algorithm (or combination of algorithms) to an Elastic index. You can install an Elastic node and try our solutions with provided backup:
+
+https://yadi.sk/d/80lSmtDh3ZWyD9 (instructions inside).
