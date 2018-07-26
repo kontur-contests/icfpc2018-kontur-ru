@@ -24,10 +24,10 @@ namespace lib.Strategies.Features
             if (master.Position.GetNears().All(n => n != slave.Position))
                 return false;
 
-            state.SetBotCommand(master, new FusionP(new NearDifference(slave.Position - master.Position)));
-            state.SetBotCommand(slave, new FusionS(new NearDifference(master.Position - slave.Position)));
-            await WhenNextTurn();
-            return true;
+            return await WhenAll(
+               Do(master, new FusionP(new NearDifference(slave.Position - master.Position))), 
+               Do(slave, new FusionS(new NearDifference(master.Position - slave.Position)))
+            );
         }
     }
 }

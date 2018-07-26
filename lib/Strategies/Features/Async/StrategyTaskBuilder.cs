@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 
@@ -38,7 +39,7 @@ namespace lib.Strategies.Features.Async
         {
             var aw = awaiter;
             var sm = stateMachine;
-            Task.Strategies = (awaiter as StrategyAwaiter)?.Strategies;
+            Task.Strategies = (awaiter as StrategyAwaiter)?.Strategies?.ToList();
             Task.Continue = () =>
                 {
                     Task.Continue = null;

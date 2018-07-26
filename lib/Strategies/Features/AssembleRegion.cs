@@ -40,21 +40,16 @@ namespace lib.Strategies.Features
             {
                 if (state.IsVolatile(bots[0], vertices[0]))
                     return false;
-                state.SetBotCommand(bots[0], new Fill(new NearDifference(vertices[0] - bots[0].Position)));
+                return await Do(bots[0], new Fill(new NearDifference(vertices[0] - bots[0].Position)));
             }
-            else
-            {
-                if (region.Any(v => state.IsVolatile(bots[0], v)))
-                    return false;
-                for (var i = 0; i < indices.Length; i++)
+            if (region.Any(v => state.IsVolatile(bots[0], v)))
+                return false;
+            return await WhenAll(indices.Select((index, i) =>
                 {
-                    var bot = bots[indices[i]];
+                    var bot = bots[index];
                     var vertex = vertices[i];
-                    state.SetBotCommand(bot, new GFill(new NearDifference(vertex - bot.Position), new FarDifference(region.Opposite(vertex) - vertex)));
-                }
-            }
-            await WhenNextTurn();
-            return true;
+                    return Do(bot, new GFill(new NearDifference(vertex - bot.Position), new FarDifference(region.Opposite(vertex) - vertex)));
+                }));
         }
 
         private int[] GetBestPermutation()

@@ -6,26 +6,46 @@ namespace lib.Strategies.Features.Async
     public class AsyncTicker
     {
         private readonly Func<StrategyTask<bool>> run;
+        private readonly int attempts;
         private StrategyTask<bool> task;
 
-        public AsyncTicker(Func<StrategyTask<bool>> run)
+        public AsyncTicker(Func<StrategyTask<bool>> run, int attempts)
         {
             this.run = run;
+            this.attempts = attempts;
         }
 
-        public StrategyResult Tick()
+        public StrategyStatus Tick()
         {
-            if (task?.Strategies != null && task.Strategies.Any(s => s.Status == StrategyStatus.InProgress))
-                return new StrategyResult(StrategyStatus.InProgress, null);
-
-            if (task == null)
-                task = run();
-            else
-                task.Continue();
-
-            if (task.IsComplete)
-                return task.Result ? new StrategyResult(StrategyStatus.Done, null) : new StrategyResult(StrategyStatus.Failed, null);
-            return new StrategyResult(StrategyStatus.InProgress, task.Strategies);
+            for (int i = 0; i < attempts; i++)
+            {
+                if (task?.Strategies != null)
+                {
+                    foreach (var strategy in task.Strategies)
+                        strategy.Tick();
+                    switch (task.WaitType)
+                    {
+                        case WaitType.WaitAll:
+                            task.Strategies.RemoveAll(s => s.Status != StrategyStatus.InProgress);
+                            if (task.Strategies.Any())
+                                return StrategyStatus.InProgress;
+                            break;
+                        case WaitType.WaitAny:
+                            if (task.Strategies.All(s => s.Status == StrategyStatus.InProgress))
+                                return StrategyStatus.InProgress;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+                if (task == null)
+                    task = run();
+                else
+                    task.Continue();
+                if (task.IsComplete)
+                    return task.Result ? StrategyStatus.Done : StrategyStatus.Failed;
+            }
+            return StrategyStatus.InProgress;
         }
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using lib.Commands;
 using lib.Models;
 using lib.Strategies.Features.Async;
 using lib.Utils;
@@ -47,8 +46,8 @@ namespace lib.Strategies.Features
                 if (!any)
                     throw new Exception("Can't move");
             }
-            await new Move(state, bot, Vec.Zero);
-            await Do(new Halt());
+            await Move(Vec.Zero);
+            await Halt();
             return true;
         }
 

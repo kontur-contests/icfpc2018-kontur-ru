@@ -41,9 +41,10 @@ namespace lib.Strategies.Features
 
             // todo High if problems
 
-            for (int i = 0; i < bots.Length; i++)
-                state.SetBotCommand(bots[i], new GVoid(new NearDifference(vertices[i] - bots[i].Position), new FarDifference(miniBox.Opposite(vertices[i]) - vertices[i])));
-            return await WhenNextTurn();
+            return await WhenAll(
+                bots.Select((bot, i) => Do(bot, 
+                                           new GVoid(new NearDifference(vertices[i] - bot.Position), 
+                                                     new FarDifference(miniBox.Opposite(vertices[i]) - vertices[i])))));
         }
     }
 }

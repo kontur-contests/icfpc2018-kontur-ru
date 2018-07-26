@@ -16,33 +16,46 @@ namespace lib.Strategies.Features
         protected Strategy(State state)
         {
             this.state = state;
-            ticker = new AsyncTicker(Run);
+            ticker = new AsyncTicker(Run, 1000);
         }
 
         protected abstract StrategyTask<bool> Run();
 
         public StrategyStatus Status { get; private set; }
 
-        public IStrategy[] Tick()
+        public void Tick()
         {
-            var tickerResult = ticker.Tick();
-            Status = tickerResult.Status;
-            return tickerResult.Strategies;
+            Status = ticker.Tick();
         }
 
         protected StrategyTask WhenAll(params IStrategy[] strategies)
         {
-            return new StrategyTask(strategies);
+            return new StrategyTask(strategies, WaitType.WaitAll);
         }
 
         protected StrategyTask WhenAll(IEnumerable<IStrategy> strategies)
         {
-            return new StrategyTask(strategies.ToArray());
+            return new StrategyTask(strategies.ToArray(), WaitType.WaitAll);
+        }
+
+        protected StrategyTask WhenAny(params IStrategy[] strategies)
+        {
+            return new StrategyTask(strategies, WaitType.WaitAny);
+        }
+
+        protected StrategyTask WhenAny(IEnumerable<IStrategy> strategies)
+        {
+            return new StrategyTask(strategies.ToArray(), WaitType.WaitAny);
         }
 
         protected StrategyTask WhenNextTurn()
         {
-            return new StrategyTask(null);
+            return new StrategyTask(null, default);
+        }
+
+        protected IStrategy Do(Bot bot, ICommand command)
+        {
+            return new Do(state, bot, command);
         }
 
         protected int R => state.R;
@@ -62,10 +75,9 @@ namespace lib.Strategies.Features
             return new Finalize(state);
         }
 
-        protected StrategyTask Halt()
+        protected IStrategy Halt()
         {
-            state.SetBotCommand(state.Bots.First(), new Halt());
-            return new StrategyTask(null);
+            return Do(state.Bots.First(), new Halt());
         }
 
         public override string ToString()

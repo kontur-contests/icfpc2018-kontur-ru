@@ -1,6 +1,6 @@
 using lib.Commands;
 using lib.Models;
-using lib.Strategies.Features.Async;
+using lib.Utils;
 
 namespace lib.Strategies.Features
 {
@@ -14,10 +14,14 @@ namespace lib.Strategies.Features
             this.bot = bot;
         }
 
-        protected StrategyTask Do(ICommand command)
+        protected IStrategy Do(ICommand command)
         {
-            state.SetBotCommand(bot, command);
-            return WhenNextTurn();
+            return Do(bot, command);
+        }
+
+        protected IStrategy Move(Vec target)
+        {
+            return Move(bot, target);
         }
 
         public override string ToString()
