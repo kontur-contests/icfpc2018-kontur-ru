@@ -93,7 +93,7 @@ namespace lib.Strategies.Features
 
         private static long Eval(Region r)
         {
-            return r.Volume * 1000 + r.Start.Y; // r.Start.X * 1000 + r.Start.Z;
+            return ((30*30*30) - r.Volume) * 1000 + r.Start.Y; // r.Start.X * 1000 + r.Start.Z;
         }
     }
 }

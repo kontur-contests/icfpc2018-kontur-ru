@@ -142,7 +142,7 @@ namespace tests
 
         [Test]
         [Explicit]
-        [Timeout(180000)]
+        //[Timeout(180000)]
         public void AssembleSpaceorc()
         {
             var problem = ProblemSolutionFactory.LoadProblem("FA186");
@@ -154,7 +154,17 @@ namespace tests
             List<ICommand> commands = new List<ICommand>();
             try
             {
-                commands.AddRange(solver.Solve());
+                var sw = Stopwatch.StartNew();
+                foreach (var command in solver.Solve())
+                {
+                    commands.Add(command);
+                    if (sw.Elapsed.TotalSeconds > 30)
+                    {
+                        var bytes = CommandSerializer.Save(commands.ToArray());
+                        File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
+                        sw.Restart();
+                    }
+                }
             }
             catch (Exception e)
             {

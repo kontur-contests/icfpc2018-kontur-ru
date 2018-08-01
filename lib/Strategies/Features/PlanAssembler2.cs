@@ -33,10 +33,9 @@ namespace lib.Strategies.Features
                 while (true)
                 {
                     var nextRegion = plan.GetNextRegion(r =>
-                        r.Vertices().Count() <= freeBots.Count
-                        && !buildingRegions.Contains(r)
+                        !buildingRegions.Contains(r)
                         && !buildingRegions.Any(br => RegionsAreTooNear(r, br)));
-                    if (nextRegion == null)
+                    if (nextRegion == null || freeBots.Count < nextRegion.Vertices().Count())
                         break;
                     var brigade = freeBots.Take(nextRegion.Vertices().Count()).ToList();
                     freeBots.ExceptWith(brigade);

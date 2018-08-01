@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 using lib.Commands;
 using lib.Models;
@@ -10,6 +11,7 @@ namespace lib.Strategies.Features
 {
     public abstract class Strategy : IStrategy
     {
+        private static readonly AsyncLocal<int> level = new AsyncLocal<int>();
         protected readonly State state;
         private readonly AsyncTicker ticker;
 
@@ -25,7 +27,10 @@ namespace lib.Strategies.Features
 
         public void Tick()
         {
+            level.Value++;
+            Log.For(this).Info($"{new string(' ', level.Value * 2)}{ToString()}");
             Status = ticker.Tick();
+            level.Value--;
         }
 
         protected StrategyTask WhenAll(params IStrategy[] strategies)

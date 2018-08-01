@@ -19,5 +19,10 @@ namespace lib.Strategies.Features
             state.SetBotCommand(Bot, command);
             return await WhenNextTurn();
         }
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}, {command}";
+        }
     }
 }
