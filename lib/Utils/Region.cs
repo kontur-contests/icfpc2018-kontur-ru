@@ -69,11 +69,11 @@ namespace lib.Utils
         public IEnumerator<Vec> GetEnumerator()
         {
             for (var x = Start.X; x <= End.X; ++x)
-            for (var y = Start.Y; y <= End.Y; ++y)
-            for (var z = Start.Z; z <= End.Z; ++z)
-            {
-                yield return new Vec(x, y, z);
-            }
+                for (var y = Start.Y; y <= End.Y; ++y)
+                    for (var z = Start.Z; z <= End.Z; ++z)
+                    {
+                        yield return new Vec(x, y, z);
+                    }
         }
 
         public IEnumerable<Vec> Vertices()
@@ -107,5 +107,23 @@ namespace lib.Utils
         }
 
         public int Dim => (Start.X == End.X ? 0 : 1) + (Start.Y == End.Y ? 0 : 1) + (Start.Z == End.Z ? 0 : 1);
+
+        public Region Expand()
+        {
+            var one = new Vec(1, 1, 1);
+            return new Region(Start - one, End + one);
+        }
+
+        public bool Intersects(Region other)
+        {
+            var min1 = Start;
+            var min2 = other.Start;
+            var max1 = End;
+            var max2 = other.End;
+
+            var min = new Vec(Math.Max(min1.X, min2.X), Math.Max(min1.Y, min2.Y), Math.Max(min1.Z, min2.Z));
+            var max = new Vec(Math.Min(max1.X, max2.X), Math.Min(max1.Y, max2.Y), Math.Min(max1.Z, max2.Z));
+            return min.X <= max.X && min.Y <= max.Y && min.Z <= max.Z;
+        }
     }
 }

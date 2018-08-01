@@ -38,12 +38,12 @@ namespace lib.Strategies.Features
 
             if (Bots.Length == 1)
             {
-                if (state.IsVolatile(bots[0], vertices[0]))
-                    return false;
-                return await Do(bots[0], new Fill(new NearDifference(vertices[0] - bots[0].Position)));
+                while (state.IsVolatile(Bots[0], vertices[0]))
+                    await WhenNextTurn();
+                return await Do(Bots[0], new Fill(new NearDifference(vertices[0] - Bots[0].Position)));
             }
-            if (region.Any(v => state.IsVolatile(bots[0], v)))
-                return false;
+            while (Region.Any(v => state.IsVolatile(Bots[0], v)))
+                await WhenNextTurn();
             return await WhenAll(indices.Select((index, i) =>
                 {
                     var bot = Bots[index];
@@ -60,10 +60,10 @@ namespace lib.Strategies.Features
         private int Score(int[] indices)
         {
             var maxDist = int.MinValue;
-            var vertices = region.Vertices().ToList();
+            var vertices = Region.Vertices().ToList();
             for (var i = 0; i < indices.Length; i++)
             {
-                var bot = bots[indices[i]];
+                var bot = Bots[indices[i]];
                 var vertex = vertices[i];
                 maxDist = Math.Max(maxDist, bot.Position.MDistTo(vertex));
             }
@@ -72,7 +72,7 @@ namespace lib.Strategies.Features
 
         private IEnumerable<int[]> GetAllPermutations()
         {
-            var indices = Enumerable.Range(0, bots.Length).ToArray();
+            var indices = Enumerable.Range(0, Bots.Length).ToArray();
             do
             {
                 yield return indices.ToArray();
