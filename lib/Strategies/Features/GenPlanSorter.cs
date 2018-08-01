@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -42,26 +43,38 @@ namespace lib.Strategies.Features
                     //    throw new Exception("duplicate!");
                     regionIndex[vec] = i;
                 }
+
+            GroundRegion(new Region(new Vec(-1, -1, -1), new Vec(n, -1, n)));
         }
 
         public IEnumerable<Region> Sort()
         {
-            var resultSet = new List<Region>();
-
-            Build(new Region(new Vec(-1, -1, -1), new Vec(n, -1, n)));
-            
-            while (toGroundSet.Any())
+            while (!IsComplete())
             {
-                var nextItem = toGroundSet.First();
-                resultSet.Add(nextItem);
-                Build(nextItem);
-                toGroundSet.Remove(nextItem);
+                yield return GetNextRegion(region => true);
             }
-
-            return resultSet;
         }
 
-        private void Build(Region region)
+        public Region GetNextRegion(Predicate<Region> isAcceptableRegion)
+        {
+            foreach (var region in toGroundSet)
+            {
+                if (isAcceptableRegion(region))
+                {
+                    toGroundSet.Remove(region);
+                    return region;
+                }
+            }
+
+            return null;
+        }
+
+        public bool IsComplete()
+        {
+            return !toGroundSet.Any();
+        }
+
+        public void GroundRegion(Region region)
         {
             var nears = region.SelectMany(v => v.GetMNeighbours())
                               .Where(v => v.IsInCuboid(n))
