@@ -30,6 +30,7 @@ namespace lib.Strategies.Features
             level.Value++;
             Log.For(this).Info($"{new string(' ', level.Value * 2)}{ToString()}");
             Status = ticker.Tick();
+            Log.For(this).Info($"{new string(' ', level.Value * 2)}{ToString()} => {Status}");
             level.Value--;
         }
 

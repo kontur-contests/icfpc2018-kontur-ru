@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 using lib.Commands;
 using lib.Primitives;
@@ -81,7 +82,7 @@ namespace lib.Models
         {
             try
             {
-                Log.For(this).Info($"\tSetBotCommand {bot.Bid} at {bot.Position}: {command}");
+                //Log.For(this).Info($"{new string(' ', logLevel.Value * 2)}\tSetBotCommand {bot.Bid} at {bot.Position}: {command}");
                 if (!Bots.Contains(bot))
                     throw new InvalidOperationException($"Unknown bot {bot}; Command: {command}");
                 if (botCommands.TryGetValue(bot, out var duplicateCommand))

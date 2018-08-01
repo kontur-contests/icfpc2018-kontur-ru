@@ -41,15 +41,15 @@ namespace lib.Utils
 
         private static int GetDefaultHeuristicEfficiency(int r)
         {
-            // max = 250 * 250 * 250 -> 6
+            // max = 200 * 200 * 200 -> 5
             // min = 20 * 20 * 20 -> 1
             // count = r * r * r -> x
             
             var count = r * r * r;
             const int min = 20*20*20;
-            const int max = 250*250*250;
+            const int max = 200*200*200;
 
-            return 1 + (count - min) * (6 - 1) / (max - min);
+            return 2 + (count - min) * (5 - 2) / (max - min);
         }
 
         public DrillerPathFinder(State state, Bot bot, Vec target, int heuristicEfficiency = 0)
@@ -112,7 +112,7 @@ namespace lib.Utils
                             var next = current.Position + n;
                             if (closed.Contains(next))
                                 continue;
-                            if (next.IsInCuboid(R) && state.Get(next))
+                            if (next.IsInCuboid(R) && state.Get(next) && isAllowedPosition(next))
                             {
                                 if (!bests.TryGetValue(next, out var bestLength) || bestLength > current.Length + 1)
                                 {
@@ -128,7 +128,7 @@ namespace lib.Utils
                             var next = current.Position + n;
                             if (closed.Contains(next))
                                 continue;
-                            if (next.IsInCuboid(R))
+                            if (next.IsInCuboid(R) && isAllowedPosition(next))
                             {
                                 if (!bests.TryGetValue(next, out var bestLength) || bestLength > current.Length + 1)
                                 {
@@ -186,7 +186,7 @@ namespace lib.Utils
                             }
                         }
                     }
-                }
+                }   
             }
         }
 
@@ -208,7 +208,7 @@ namespace lib.Utils
                 if (parent != null)
                 {
                     Length = parent.Length + 1;
-                    if (stepType == StepType.Drill)
+                    if (heuristicEfficiency <= 2 && stepType == StepType.Drill)
                         Length++;
 
                     if (stepType == StepType.DrillOut && parent.StepType != StepType.Drill)
@@ -218,7 +218,8 @@ namespace lib.Utils
                     {
                         if (stepType == StepType.Move)
                             throw new InvalidOperationException($"Couldn't move while parent path ended with {StepType.Drill}");
-                        Length++;
+                        if (heuristicEfficiency <= 2)
+                            Length++;
                     }
                 }
 
