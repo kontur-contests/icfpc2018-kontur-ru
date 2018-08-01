@@ -49,7 +49,7 @@ namespace lib.Utils
             const int min = 20*20*20;
             const int max = 250*250*250;
 
-            return 1 + (count - min) / (max - min) * (6 - 1);
+            return 1 + (count - min) * (6 - 1) / (max - min);
         }
 
         public DrillerPathFinder(State state, Bot bot, Vec target, int heuristicEfficiency = 0)
