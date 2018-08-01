@@ -51,6 +51,8 @@ namespace lib.Strategies.Features.Async
                     enumerator.Dispose();
                     return enumerator.Current.Status;
                 }
+                if (enumerator.Current.Strategies == null)
+                    return StrategyStatus.InProgress;
             }
             return StrategyStatus.InProgress;
         }

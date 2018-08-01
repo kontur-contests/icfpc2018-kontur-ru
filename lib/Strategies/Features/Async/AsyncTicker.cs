@@ -44,6 +44,9 @@ namespace lib.Strategies.Features.Async
                     task.Continue();
                 if (task.IsComplete)
                     return task.Result ? StrategyStatus.Done : StrategyStatus.Failed;
+
+                if (task.Strategies == null)
+                    return StrategyStatus.InProgress;
             }
             return StrategyStatus.InProgress;
         }
