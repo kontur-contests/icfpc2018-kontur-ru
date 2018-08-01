@@ -147,7 +147,10 @@ namespace tests
         {
             var problem = ProblemSolutionFactory.LoadProblem("FA001");
             var state = new State(problem.SourceMatrix, problem.TargetMatrix);
-            var solver = new Solver(state, new Assembler(state));
+
+            var genPlan = new GenPlanBuilder(state).CreateGenPlan();
+            var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R), 8));
+
             List<ICommand> commands = new List<ICommand>();
             try
             {

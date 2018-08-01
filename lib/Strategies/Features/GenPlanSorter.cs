@@ -7,7 +7,7 @@ using lib.Utils;
 
 namespace lib.Strategies.Features
 {
-    public class GenPlanSorter
+    public class GenPlanSorter :IGeneralPlan
     {
         private readonly Matrix<int> regionIndex;
         private readonly List<Region> regions;
@@ -49,7 +49,7 @@ namespace lib.Strategies.Features
 
         public IEnumerable<Region> Sort()
         {
-            while (!IsComplete())
+            while (!IsComplete)
             {
                 yield return GetNextRegion(region => true);
             }
@@ -69,10 +69,7 @@ namespace lib.Strategies.Features
             return null;
         }
 
-        public bool IsComplete()
-        {
-            return !toGroundSet.Any();
-        }
+        public bool IsComplete => !toGroundSet.Any();
 
         public void GroundRegion(Region region)
         {

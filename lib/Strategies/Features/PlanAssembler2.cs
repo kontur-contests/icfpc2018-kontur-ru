@@ -10,16 +10,18 @@ namespace lib.Strategies.Features
     public class PlanAssembler2 : Strategy
     {
         private readonly IGeneralPlan plan;
+        private readonly int maxFreeBots;
 
-        public PlanAssembler2(State state, IGeneralPlan plan)
+        public PlanAssembler2(State state, IGeneralPlan plan, int maxFreeBots)
             : base(state)
         {
             this.plan = plan;
+            this.maxFreeBots = maxFreeBots;
         }
 
         protected override async StrategyTask<bool> Run()
         {
-            var split = new Split(state, state.Bots.Single(), 8);
+            var split = new Split(state, state.Bots.Single(), maxFreeBots);
             await split;
 
             var freeBots = new HashSet<Bot>(split.Bots);
