@@ -30,7 +30,7 @@ namespace lib.Strategies.Features
 
             toGroundSet = new SortedSet<Region>(Comparer<Region>.Create((a, b) =>
                 {
-                    var compare = Comparer<int>.Default.Compare(Eval(a), Eval(b));
+                    var compare = Comparer<long>.Default.Compare(Eval(a), Eval(b));
                     if (compare != 0)
                         return compare;
                     return Comparer<string>.Default.Compare(a.ToString(), b.ToString());
@@ -91,9 +91,9 @@ namespace lib.Strategies.Features
             }
         }
 
-        private static int Eval(Region r)
+        private static long Eval(Region r)
         {
-            return r.Start.X * 1000 + r.Start.Z;
+            return r.Volume * 1000 + r.Start.Y; // r.Start.X * 1000 + r.Start.Z;
         }
     }
 }

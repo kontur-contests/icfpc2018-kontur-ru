@@ -142,14 +142,14 @@ namespace tests
 
         [Test]
         [Explicit]
-        [Timeout(30000)]
+        [Timeout(180000)]
         public void AssembleSpaceorc()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FA001");
+            var problem = ProblemSolutionFactory.LoadProblem("FA186");
             var state = new State(problem.SourceMatrix, problem.TargetMatrix);
 
             var genPlan = new GenPlanBuilder(state).CreateGenPlan();
-            var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R), 8));
+            var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R), 40));
 
             List<ICommand> commands = new List<ICommand>();
             try

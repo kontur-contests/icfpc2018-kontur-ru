@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 using lib.Commands;
@@ -19,93 +20,75 @@ namespace lib.Strategies.Features
 
         protected override sealed async StrategyTask<bool> Run()
         {
-            for (int attempt = 0; attempt < state.Bots.Count; attempt++)
-            {
-                if (Bot.Position == target)
-                    return true;
+            if (Bot.Position == target)
+                return true;
 
-                if (state.IsVolatile(Bot, target))
+            if (state.IsVolatile(Bot, target))
+                return false;
+
+            while (true)
+            {
+                var path = new DrillerPathFinder(state, Bot, target).TryFindPath(state.GetOwner(Bot.Position) == Bot);
+                if (path == null)
                     return false;
 
-                var hasPath = new PathFinderNeighbours(state.Matrix, Bot.Position, target, x => !state.IsVolatile(Bot, x)).TryFindPath(out var used);
-                if (hasPath)
+                while (path.Any())
                 {
-                    if (state.GetOwner(Bot.Position) == Bot)
+                    var step = path[0];
+                    if (step.Type == DrillerPathFinder.StepType.Move)
                     {
-                        var neighbor = Bot.Position.GetNeighbors().First(n => used.Contains(n));
-
-                        var prevPosition = Bot.Position;
-                        await Do(new SMove(neighbor - Bot.Position));
-
-                        state.Unown(Bot, prevPosition);
-                        await Do(new Fill(prevPosition - Bot.Position));
-                    }
-                    if (await Move(Bot, target))
-                        return true;
-                    continue;
-                }
-                
-                var moveTarget = used
-                    .Where(v => new Region(v, target).Dim == 1
-                                && !new Region(v, target).Any(x => x != Bot.Position && state.IsVolatile(Bot, x)))
-                    .OrderBy(v => v.MDistTo(target)).FirstOrDefault();
-                if (moveTarget == null)
-                {
-                    await WhenNextTurn();
-                    continue;
-                }
-
-                if (moveTarget != Bot.Position)
-                {
-                    if (state.GetOwner(Bot.Position) == Bot)
-                    {
-                        var neighbor = Bot.Position.GetNeighbors().First(n => used.Contains(n));
-
-                        var prevPosition = Bot.Position;
-                        await Do(new SMove(neighbor - Bot.Position));
-
-                        state.Unown(Bot, prevPosition);
-                        await Do(new Fill(prevPosition - Bot.Position));
-                    }
-                    if (!await Move(Bot, moveTarget))
+                        if (step.MoveCommand.HasVolatileConflicts(Bot, state) || !step.MoveCommand.AllPositionsAreValid(state.Matrix, Bot))
+                            break;
+                        path.RemoveAt(0);
+                        await Do(step.MoveCommand);
                         continue;
-                }
-
-                var drillTarget = Bot.Position.GetMNeighbours(state.Matrix).OrderBy(n => n.MDistTo(target)).First();
-                if (state.IsVolatile(Bot, drillTarget))
-                {
-                    await WhenNextTurn();
-                    continue;
-                }
-
-                if (!state.Matrix[drillTarget])
-                {
-                    var prevPosition = Bot.Position;
-                    await Do(new SMove(drillTarget - Bot.Position));
-
-                    if (state.GetOwner(prevPosition) == Bot)
-                    {
-                        state.Unown(Bot, prevPosition);
-                        await Do(new Fill(prevPosition - Bot.Position));
                     }
-                }
-                else
-                {
-                    state.Own(Bot, drillTarget);
-                    await Do(new Voidd(drillTarget - Bot.Position));
 
-                    var prevPosition = Bot.Position;
-                    await Do(new SMove(drillTarget - Bot.Position));
-
-                    if (state.GetOwner(prevPosition) == Bot)
+                    if (step.Type == DrillerPathFinder.StepType.Drill)
                     {
-                        state.Unown(Bot, prevPosition);
-                        await Do(new Fill(prevPosition - Bot.Position));
+                        if (state.IsVolatile(Bot, step.Target) || !state.Matrix[step.Target])
+                            break;
+
+                        path.RemoveAt(0);
+
+                        state.Own(Bot, step.Target);
+                        await Do(new Voidd(step.Target - Bot.Position));
+
+                        var prevPosition = Bot.Position;
+                        await Do(step.MoveCommand);
+
+                        if (state.GetOwner(prevPosition) == Bot)
+                        {
+                            state.Unown(Bot, prevPosition);
+                            await Do(new Fill(prevPosition - Bot.Position));
+                        }
+                        continue;
                     }
+
+                    if (step.Type == DrillerPathFinder.StepType.DrillOut)
+                    {
+                        if (state.IsVolatile(Bot, step.Target) || state.Matrix[step.Target])
+                            break;
+
+                        path.RemoveAt(0);
+
+                        var prevPosition = Bot.Position;
+                        await Do(step.MoveCommand);
+
+                        if (state.GetOwner(prevPosition) == Bot)
+                        {
+                            state.Unown(Bot, prevPosition);
+                            await Do(new Fill(prevPosition - Bot.Position));
+                        }
+                        continue;
+                    }
+
+                    throw new InvalidOperationException($"Strange step type {step.Type}");
                 }
+
+                if (!path.Any())
+                    return true;
             }
-
-            return false;
         }
 
         public override string ToString()

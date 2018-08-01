@@ -48,6 +48,8 @@ namespace lib.Utils
         public Vec Start { get; }
         public Vec End { get; }
 
+        public int Volume => (End.X - Start.X + 1) * (End.Y - Start.Y + 1) * (End.Z - Start.Z + 1);
+
         public Region(Vec start, Vec end)
         {
             var minX = Math.Min(start.X, end.X);
