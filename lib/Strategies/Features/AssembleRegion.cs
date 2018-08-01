@@ -12,31 +12,31 @@ namespace lib.Strategies.Features
 {
     public class AssembleRegion : Strategy
     {
-        private Region region;
-        private Bot[] bots;
-
         public AssembleRegion(State state, Region region, IEnumerable<Bot> bots)
             : base(state)
         {
-            this.region = region;
-            this.bots = bots.ToArray();
+            Region = region;
+            Bots = bots.ToArray();
         }
+
+        public Region Region { get; }
+        public Bot[] Bots { get; }
 
         protected override async StrategyTask<bool> Run()
         {
-            var vertices = region.Vertices().ToList();
+            var vertices = Region.Vertices().ToList();
             var indices = GetBestPermutation();
             var strategies = new List<IStrategy>();
             for (var i = 0; i < indices.Length; i++)
             {
-                var bot = bots[indices[i]];
+                var bot = Bots[indices[i]];
                 var vertex = vertices[i];
-                strategies.Add(new GotoVertex(state, bot, region, vertex));
+                strategies.Add(new GotoVertex(state, bot, Region, vertex));
             }
             if (!await WhenAll(strategies))
                 return false;
 
-            if (bots.Length == 1)
+            if (Bots.Length == 1)
             {
                 if (state.IsVolatile(bots[0], vertices[0]))
                     return false;
@@ -46,9 +46,9 @@ namespace lib.Strategies.Features
                 return false;
             return await WhenAll(indices.Select((index, i) =>
                 {
-                    var bot = bots[index];
+                    var bot = Bots[index];
                     var vertex = vertices[i];
-                    return Do(bot, new GFill(new NearDifference(vertex - bot.Position), new FarDifference(region.Opposite(vertex) - vertex)));
+                    return Do(bot, new GFill(new NearDifference(vertex - bot.Position), new FarDifference(Region.Opposite(vertex) - vertex)));
                 }));
         }
 

@@ -29,7 +29,7 @@ namespace lib.Strategies.Features
                 var targets = getTargets().ToList();
                 foreach (var target in targets)
                 {
-                    if (await new ReachTarget(state, bot, target))
+                    if (await new ReachTarget(state, Bot, target))
                         return true;
                 }
 

@@ -16,7 +16,7 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            var split = new Split(state, bot, 40);
+            var split = new Split(state, Bot, 40);
             await split;
 
             await new Spread(state, split.Bots);

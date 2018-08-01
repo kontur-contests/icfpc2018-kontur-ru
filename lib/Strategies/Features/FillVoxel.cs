@@ -24,14 +24,14 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            if (bot.Position != fromPos)
+            if (Bot.Position != fromPos)
             {
-                if (!await new Move(state, bot, fromPos))
+                if (!await new Move(state, Bot, fromPos))
                     return false;
             }
 
             var command = new Fill(new NearDifference(whatToFill - fromPos));
-            if (command.HasVolatileConflicts(bot, state) || state.Matrix[whatToFill] || !canFill())
+            if (command.HasVolatileConflicts(Bot, state) || state.Matrix[whatToFill] || !canFill())
                 return false;
 
             await Do(command);

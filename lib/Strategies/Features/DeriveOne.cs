@@ -19,15 +19,15 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            if (!bot.Seeds.Any())
+            if (!Bot.Seeds.Any())
                 return false;
 
             var to = NearPosition();
             if (to == null)
                 return false;
 
-            var newBid = bot.Seeds[0];
-            await Do(new Fission(new NearDifference(to - bot.Position), bot.Seeds.Count - 1));
+            var newBid = Bot.Seeds[0];
+            await Do(new Fission(new NearDifference(to - Bot.Position), Bot.Seeds.Count - 1));
 
             DerivedBot = state.Bots.Single(b => b.Bid == newBid);
             return true;
@@ -35,10 +35,10 @@ namespace lib.Strategies.Features
 
         private Vec NearPosition()
         {
-            return bot.Position
+            return Bot.Position
                       .GetNears()
                       .Where(n => n.IsInCuboid(state.Matrix.R))
-                      .FirstOrDefault(n => !state.IsVolatile(bot, n));
+                      .FirstOrDefault(n => !state.IsVolatile(Bot, n));
         }
     }
 }

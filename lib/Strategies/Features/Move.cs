@@ -21,7 +21,7 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            var commands = new PathFinder(state, bot, target).TryFindPath();
+            var commands = new PathFinder(state, Bot, target).TryFindPath();
             commands?.Reverse();
             if (commands == null)
                 return false;
@@ -35,10 +35,10 @@ namespace lib.Strategies.Features
                 {
                     // todo (kungurtsev, 22.07.2018): в каких-то стратах возможно лучше сразу вернуть управление и пересчитать глобальные цели
 
-                    if (commands[commands.Count - 1].HasVolatileConflicts(bot, state) ||
-                        !commands[commands.Count - 1].AllPositionsAreValid(state.Matrix, bot))
+                    if (commands[commands.Count - 1].HasVolatileConflicts(Bot, state) ||
+                        !commands[commands.Count - 1].AllPositionsAreValid(state.Matrix, Bot))
                     {
-                        commands = new PathFinder(state, bot, target).TryFindPath();
+                        commands = new PathFinder(state, Bot, target).TryFindPath();
                         commands?.Reverse();
                         if (commands == null)
                             return false;

@@ -29,7 +29,7 @@ namespace lib.Strategies.Features
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
                 {
-                    if (!await new FillVoxel(state, bot, candidate, nearPosition))
+                    if (!await new FillVoxel(state, Bot, candidate, nearPosition))
                         continue;
                     
                     candidates.Remove(candidate);
@@ -45,7 +45,7 @@ namespace lib.Strategies.Features
 
                 if (!any)
                 {
-                    if (!await new Move(state, bot, new Vec(bot.Bid / state.R, bot.Bid % state.R, 0)))
+                    if (!await new Move(state, Bot, new Vec(Bot.Bid / state.R, Bot.Bid % state.R, 0)))
                         await WhenNextTurn();
                 }
             }
@@ -58,12 +58,12 @@ namespace lib.Strategies.Features
             var lowest = candidates.Min(c => c.Y);
             var filtered = candidates.Where(c => c.Y == lowest).ToHashSet();
 
-            foreach (var candidate in candidatesOrdering.Order(filtered, bot.Position).Where(c => !state.IsVolatile(bot, c)))
+            foreach (var candidate in candidatesOrdering.Order(filtered, Bot.Position).Where(c => !state.IsVolatile(Bot, c)))
             {
                 var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(state.Matrix.R) && 
-                                                                    (!state.IsVolatile(bot, n) || n == bot.Position) &&
+                                                                    (!state.IsVolatile(Bot, n) || n == Bot.Position) &&
                                                                     n.Y >= lowest);
-                foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(bot.Position)))
+                foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(Bot.Position)))
                 {
                     yield return (candidate, nearPosition);
                 }

@@ -16,7 +16,7 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            state.SetBotCommand(bot, command);
+            state.SetBotCommand(Bot, command);
             return await WhenNextTurn();
         }
     }

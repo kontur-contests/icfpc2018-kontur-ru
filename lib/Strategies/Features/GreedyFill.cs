@@ -29,7 +29,7 @@ namespace lib.Strategies.Features
                 var any = false;
                 foreach (var (candidate, nearPosition) in candidatesAndPositions)
                 {
-                    if (!await new FillVoxel(state, bot, candidate, nearPosition))
+                    if (!await new FillVoxel(state, Bot, candidate, nearPosition))
                         continue;
 
                     oracle.Fill(candidate);
@@ -53,10 +53,10 @@ namespace lib.Strategies.Features
 
         private IEnumerable<(Vec candidate, Vec nearPosition)> OrderCandidates(HashSet<Vec> candidates)
         {
-            foreach (var candidate in candidatesOrdering.Order(candidates, bot.Position))
+            foreach (var candidate in candidatesOrdering.Order(candidates, Bot.Position))
             {
                 var nearPositions = candidate.GetNears().Where(n => n.IsInCuboid(state.Matrix.R));
-                foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(bot.Position)))
+                foreach (var nearPosition in nearPositions.OrderBy(p => p.MDistTo(Bot.Position)))
                 {
                     if (oracle.CanFill(candidate, nearPosition))
                     {

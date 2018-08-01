@@ -20,8 +20,8 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            Bots.Add(bot);
-            var generator = bot;
+            Bots.Add(Bot);
+            var generator = Bot;
             for (int i = 0; i < count - 1; i++)
             {
                 var deriveOne = new DeriveOne(state, generator);
