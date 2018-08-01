@@ -129,15 +129,7 @@ namespace tests
             }
             Console.Out.WriteLine(state.Energy);
         }
-
-        [Test]
-        public void Test()
-        {
-            var a = new Region(new Vec(7, 0, 7), new Vec(7, 0, 7));
-            var b = new Region(new Vec(7, 1, 7), new Vec(7, 1, 7));
-            GenPlanSorter.Connected(a, b).Should().Be(true);
-        }
-
+        
         [Test]
         public void Test2()
         {
