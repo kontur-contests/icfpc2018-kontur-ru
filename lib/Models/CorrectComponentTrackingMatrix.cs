@@ -97,6 +97,28 @@ namespace lib.Models
             return result;
         }
 
+        public bool CanFillRegion(Region region)
+        {
+            var oldValues = new Dictionary<Vec, bool>();
+            foreach (var cell in region)
+            {
+                if (cell.X == region.Start.X || cell.X == region.End.X
+                    || cell.Y == region.Start.Y || cell.Y == region.End.Y
+                    || cell.Z == region.Start.Z || cell.Z == region.End.Z)
+                {
+                    oldValues[cell] = this[cell];
+                    this[cell] = true;
+                }
+            }
+            var result = !HasNonGroundedVoxels;
+            foreach (var kvp in oldValues)
+            {
+                this[kvp.Key] = kvp.Value;
+            }
+
+            return result;
+        }
+
         public CorrectComponentTrackingMatrix(bool[,,] matrix)
         {
             Voxels = matrix;

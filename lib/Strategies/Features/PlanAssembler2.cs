@@ -36,7 +36,8 @@ namespace lib.Strategies.Features
                 {
                     var nextRegion = plan.GetNextRegion(r =>
                         !buildingRegions.Contains(r)
-                        && !buildingRegions.Any(br => RegionsAreTooNear(r, br)));
+                        && !buildingRegions.Any(br => RegionsAreTooNear(r, br))
+                        && state.Matrix.CanFillRegion(r));
                     if (nextRegion == null || freeBots.Count < nextRegion.Vertices().Count())
                     {
                         if (nextRegion != null)
