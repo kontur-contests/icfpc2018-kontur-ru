@@ -63,7 +63,7 @@ namespace lib.Utils
             if (source == target)
                 return new List<Step>();
 
-            if (!isAllowedPosition(target) || !IsAccessible(target) || !IsAccessible(source))
+            if (!isAllowedPosition(target) || !IsAccessible(target, source) || !IsAccessible(source, target))
                 return null;
 
             var closed = new HashSet<Vec>();
@@ -148,7 +148,7 @@ namespace lib.Utils
             return null; // мы окружены, нет пути!
         }
 
-        private bool IsAccessible(Vec position)
+        private bool IsAccessible(Vec position, Vec other)
         {
             var queue = new Queue<Vec>();
             var used = new HashSet<Vec>();
@@ -162,6 +162,8 @@ namespace lib.Utils
                 foreach (var n in neighbors)
                 {
                     var next = cur + n;
+                    if (next == other)
+                        return true;
                     if (next.IsInCuboid(R) && isAllowedPosition(next))
                         if (used.Add(next))
                             queue.Enqueue(next);
