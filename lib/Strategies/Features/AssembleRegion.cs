@@ -22,6 +22,11 @@ namespace lib.Strategies.Features
         public Region Region { get; }
         public Bot[] Bots { get; }
 
+        public override string ToString()
+        {
+            return $"{base.ToString()}, {nameof(Region)}: {Region}, {nameof(Bots)}: {string.Join(", ", Bots.Select(b => b.Bid))}";
+        }
+
         protected override async StrategyTask<bool> Run()
         {
             var vertices = Region.Vertices().ToList();

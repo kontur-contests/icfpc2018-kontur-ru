@@ -80,6 +80,10 @@ namespace lib.Strategies.Features
                             state.Unown(Bot, prevPosition);
                             await Do(new Fill(prevPosition - Bot.Position));
                         }
+                        else
+                        {
+                            throw new InvalidOperationException("WTF???");
+                        }
                         continue;
                     }
 
