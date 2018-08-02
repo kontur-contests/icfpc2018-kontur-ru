@@ -177,7 +177,7 @@ namespace tests
         //[Timeout(180000)]
         public void AssembleSpaceorc()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FA094");
+            var problem = ProblemSolutionFactory.LoadProblem("FA186");
             var state = new State(problem.SourceMatrix, problem.TargetMatrix);
 
             var genPlan = new GenPlanBuilder2(state).CreateGenPlan();

@@ -63,15 +63,15 @@ namespace lib.Strategies.Features
             var result = new List<Vec>();
 
             var step = 5;
-            var deltas = new List<int>();
-            for (int i = 0; i < 29; i += step)
+            var deltas = new List<int>() {0,1,2,3,4,5};
+            for (int i = 6; i < 29; i += step)
                 deltas.Add(i);
             if (deltas.Last() != 29)
                 deltas.Add(29);
 
-            foreach (var x in deltas)
             foreach (var y in deltas)
-            foreach (var z in deltas)
+                foreach (var x in deltas)
+                    foreach (var z in deltas)
                         result.Add(new Vec(x, y, z));
 
             result = result.OrderByDescending(PerRobot).ToList();
@@ -83,7 +83,7 @@ namespace lib.Strategies.Features
         {
             var area = (vec.X+1) * (vec.Y+1) * (vec.Z+1);
             var robots = new Region(Vec.Zero, vec).Vertices().Count();
-            return 1.0 * area / robots;
+            return 1.0 * area / robots / robots;
         }
     }
 }
