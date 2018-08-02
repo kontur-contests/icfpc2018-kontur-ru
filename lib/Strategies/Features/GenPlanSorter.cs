@@ -51,7 +51,9 @@ namespace lib.Strategies.Features
         {
             while (!IsComplete)
             {
-                yield return GetNextRegion(region => true);
+                var nextRegion = GetNextRegion(region => true);
+                GroundRegion(nextRegion);
+                yield return nextRegion;
             }
         }
 
@@ -93,7 +95,9 @@ namespace lib.Strategies.Features
 
         private static long Eval(Region r)
         {
-            return ((30*30*30) - r.Volume) * 1000 + r.Start.Y; // r.Start.X * 1000 + r.Start.Z;
+            return r.Start.Y * (30 * 30 * 30) * 100 + (30 * 30 * 30 - r.Volume);
+            // return ((30*30*30) - r.Volume) * 1000 + r.Start.Y;
+            // return r.Start.X * 1000 + r.Start.Z;
         }
     }
 }

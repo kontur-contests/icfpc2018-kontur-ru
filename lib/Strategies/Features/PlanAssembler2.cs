@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using lib.Commands;
 using lib.Models;
 using lib.Strategies.Features.Async;
 using lib.Utils;
@@ -21,6 +22,7 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
+            await Do(state.Bots.Single(), new Flip());
             var split = new Split(state, state.Bots.Single(), maxFreeBots);
             await split;
 
@@ -37,7 +39,10 @@ namespace lib.Strategies.Features
                         && !buildingRegions.Any(br => RegionsAreTooNear(r, br)));
                     if (nextRegion == null || freeBots.Count < nextRegion.Vertices().Count())
                         break;
-                    var brigade = freeBots.Take(nextRegion.Vertices().Count()).ToList();
+                    var brigade = freeBots
+                                  .OrderBy(b => nextRegion.Vertices().Min(v => v.MDistTo(b.Position)))
+                                  .Take(nextRegion.Vertices().Count())
+                                  .ToList();
                     freeBots.ExceptWith(brigade);
                     strategies.Add(new AssembleRegion(state, nextRegion, brigade));
                     buildingRegions.Add(nextRegion);

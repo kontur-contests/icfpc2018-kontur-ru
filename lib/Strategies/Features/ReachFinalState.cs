@@ -1,5 +1,6 @@
 using System.Linq;
 
+using lib.Commands;
 using lib.Models;
 using lib.Strategies.Features.Async;
 using lib.Utils;
@@ -22,7 +23,7 @@ namespace lib.Strategies.Features
                 return false;
 
             var botsLeft = state.Bots.Except(new[] { master }).ToList();
-            var fusionPositions = Vec.Zero.GetNears().Where(n => n.IsInCuboid(state.Matrix.R)).ToList();
+            var fusionPositions = Vec.Zero.GetNears().Where(n => n.IsInCuboid(state.Matrix.R)).Take(1).ToList();
             while (botsLeft.Count > 0)
             {
                 await WhenAll(botsLeft.Select((x, i) => new ReachTarget(state, x, fusionPositions[i % fusionPositions.Count])));
@@ -32,6 +33,9 @@ namespace lib.Strategies.Features
                 await MergeNears(master, slave);
                 botsLeft.Remove(slave);
             }
+
+            if (state.Harmonics == Harmonics.High)
+                await Do(state.Bots.Single(), new Flip());
             return await Halt();
         }
     }

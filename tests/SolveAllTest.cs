@@ -133,10 +133,18 @@ namespace tests
         [Test]
         public void Test2()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FA001");
+            var problem = ProblemSolutionFactory.LoadProblem("FA186");
             var state = new State(problem.SourceMatrix, problem.TargetMatrix);
             var plan = new GenPlanBuilder(state).CreateGenPlan();
-            var sorted = new GenPlanSorter(plan, state.R).Sort();
+            var sorter = new GenPlanSorter(plan, state.R);
+            var sorted = new List<Region>();
+            while (!sorter.IsComplete)
+            {
+                var nextRegion = sorter.GetNextRegion(region => true);
+                sorted.Add(nextRegion);
+                sorter.GroundRegion(nextRegion);
+            }
+            //var sorted = sorter.Sort().ToList();
             sorted.ToHashSet().SetEquals(plan).Should().BeTrue();
         }
 
