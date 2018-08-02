@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 
 using lib.Commands;
@@ -23,15 +24,28 @@ namespace lib.Strategies.Features
                 return false;
 
             var botsLeft = state.Bots.Except(new[] { master }).ToList();
-            var fusionPositions = Vec.Zero.GetNears().Where(n => n.IsInCuboid(state.Matrix.R)).Take(1).ToList();
+            var fusionPositions = Vec.Zero.GetNears().Where(n => n.IsInCuboid(state.Matrix.R)).ToList();
+            var targets = botsLeft.Select((bot, i) => (bot, vec: fusionPositions[i % fusionPositions.Count]))
+                                  .ToDictionary(x => x.bot, x => x.vec);
             while (botsLeft.Count > 0)
             {
-                await WhenAll(botsLeft.Select((x, i) => new ReachTarget(state, x, fusionPositions[i % fusionPositions.Count])));
-                var slave = botsLeft.FirstOrDefault(b => fusionPositions.Contains(b.Position));
-                if (slave == null)
-                    return false;
-                await MergeNears(master, slave);
-                botsLeft.Remove(slave);
+                Bot merging = null;
+                var strategies = new List<IStrategy>();
+                for (var i = 0; i < botsLeft.Count; i++)
+                {
+                    var bot = botsLeft[i];
+                    if (!fusionPositions.Contains(bot.Position))
+                        strategies.Add(new ReachTarget(state, bot, targets[bot]));
+                    else if (merging == null)
+                    {
+                        merging = bot;
+                        strategies.Add(MergeNears(master, bot));
+                    }
+                }
+                await WhenAll(strategies);
+               
+                if (merging != null)
+                    botsLeft.Remove(merging);
             }
 
             if (state.Harmonics == Harmonics.High)
