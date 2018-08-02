@@ -177,11 +177,11 @@ namespace tests
         //[Timeout(180000)]
         public void AssembleSpaceorc()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FA054");
+            var problem = ProblemSolutionFactory.LoadProblem("FA097");
             var state = new State(problem.SourceMatrix, problem.TargetMatrix);
 
-            var genPlan = new GenPlanBuilder(state, new [] {6, 3, 1}).CreateGenPlan();
-            var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R), 10));
+            var genPlan = new GenPlanBuilder(state/*, new [] {6, 3, 1}*/).CreateGenPlan();
+            var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R), 40));
 
             List<ICommand> commands = new List<ICommand>();
             try
