@@ -71,6 +71,11 @@ namespace lib.Strategies.Features
             return null;
         }
 
+        public void ReturnRegion(Region region)
+        {
+            toGroundSet.Add(region);
+        }
+
         public bool IsComplete => !toGroundSet.Any();
 
         public void GroundRegion(Region region)
