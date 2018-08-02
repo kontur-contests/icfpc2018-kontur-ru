@@ -22,7 +22,7 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            await Do(state.Bots.Single(), new Flip());
+            //await Do(state.Bots.Single(), new Flip());
             var split = new Split(state, state.Bots.Single(), maxFreeBots);
             await split;
 
@@ -38,7 +38,11 @@ namespace lib.Strategies.Features
                         !buildingRegions.Contains(r)
                         && !buildingRegions.Any(br => RegionsAreTooNear(r, br)));
                     if (nextRegion == null || freeBots.Count < nextRegion.Vertices().Count())
+                    {
+                        if (nextRegion != null)
+                            plan.ReturnRegion(nextRegion);
                         break;
+                    }
                     var brigade = freeBots
                                   .OrderBy(b => nextRegion.Vertices().Min(v => v.MDistTo(b.Position)))
                                   .Take(nextRegion.Vertices().Count())

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using lib.Commands;
 using lib.Models;
@@ -62,7 +63,7 @@ namespace lib.Utils
             if (source == target)
                 return new List<Step>();
 
-            if (!isAllowedPosition(target))
+            if (!isAllowedPosition(target) || !IsAccessible(target) || !IsAccessible(source))
                 return null;
 
             var closed = new HashSet<Vec>();
@@ -145,6 +146,28 @@ namespace lib.Utils
                 }
             }
             return null; // мы окружены, нет пути!
+        }
+
+        private bool IsAccessible(Vec position)
+        {
+            var queue = new Queue<Vec>();
+            var used = new HashSet<Vec>();
+            queue.Enqueue(position);
+            used.Add(position);
+            while (queue.Any())
+            {
+                var cur = queue.Dequeue();
+                if (used.Count > 5*5*5)
+                    return true;
+                foreach (var n in neighbors)
+                {
+                    var next = cur + n;
+                    if (next.IsInCuboid(R) && isAllowedPosition(next))
+                        if (used.Add(next))
+                            queue.Enqueue(next);
+                }
+            }
+            return false;
         }
 
         private IEnumerable<(ICommand command, Vec nextPosition)> IteratePossibleCommands(Vec current)

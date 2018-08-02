@@ -11,5 +11,6 @@ namespace lib.Strategies.Features
         void GroundRegion(Region region);
 
         bool IsComplete { get; }
+        void ReturnRegion(Region region);
     }
 }

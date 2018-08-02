@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using lib.Commands;
@@ -26,9 +27,25 @@ namespace lib.Strategies.Features
             if (state.IsVolatile(Bot, target))
                 return false;
 
+            Vec cannotVoidCell = null;
+            var cannotVoidCells = new HashSet<Vec>();
+            var fakeOwner = new Bot();
             while (true)
             {
+                if (cannotVoidCell != null)
+                {
+                    if (state.GetOwner(cannotVoidCell) == null)
+                        state.Own(fakeOwner, cannotVoidCell);
+
+                }
                 var path = new DrillerPathFinder(state, Bot, target).TryFindPath(state.GetOwner(Bot.Position) == Bot);
+                if (cannotVoidCell != null)
+                {
+                    if (state.GetOwner(cannotVoidCell) == fakeOwner)
+                        state.Unown(fakeOwner, cannotVoidCell);
+                    cannotVoidCell = null;
+                }
+
                 if (path == null)
                     return false;
 
@@ -48,6 +65,15 @@ namespace lib.Strategies.Features
                     {
                         if (state.IsVolatile(Bot, step.Target) || !state.Matrix[step.Target])
                             break;
+
+                        if (!state.Matrix.CanVoidCell(step.Target))
+                        {
+                            cannotVoidCell = step.Target;
+                            if (!cannotVoidCells.Add(cannotVoidCell))
+                                return false;
+                            break;
+                        }
+
 
                         path.RemoveAt(0);
 

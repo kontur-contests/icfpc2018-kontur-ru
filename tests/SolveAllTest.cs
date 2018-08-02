@@ -12,6 +12,7 @@ using JetBrains.Annotations;
 using lib;
 using lib.Commands;
 using lib.Models;
+using lib.Primitives;
 using lib.Strategies;
 using lib.Strategies.Features;
 using lib.Utils;
@@ -129,7 +130,7 @@ namespace tests
             }
             Console.Out.WriteLine(state.Energy);
         }
-        
+
         [Test]
         public void Test2()
         {
@@ -145,7 +146,30 @@ namespace tests
                 sorter.GroundRegion(nextRegion);
             }
             //var sorted = sorter.Sort().ToList();
-            sorted.ToHashSet().SetEquals(plan).Should().BeTrue();
+            //sorted.ToHashSet().SetEquals(plan).Should().BeTrue();
+            var m = state.TargetMatrix.Clone();
+            m.GetFilledVoxels().Count().Should().Be(1068332, "general-before");
+            foreach (var r in plan)
+            {
+                foreach (var vec in r)
+                {
+                    m[vec] = false;
+                }
+            }
+            m.GetFilledVoxels().Count().Should().Be(0, "general");
+            m = state.TargetMatrix.Clone();
+            m.GetFilledVoxels().Count().Should().Be(1068332, "sorted-before");
+            foreach (var r in sorted)
+            {
+                foreach (var vec in r)
+                {
+                    if (vec == new Vec(29, 1, 123))
+                        Console.Out.WriteLine(r);
+                    m[vec] = false;
+                }
+            }
+            m.GetFilledVoxels().Count().Should().Be(0, "sorted");
+
         }
 
         [Test]
@@ -172,6 +196,18 @@ namespace tests
                         File.WriteAllBytes(GetSolutionPath(FileHelper.SolutionsDir, problem.Name), bytes);
                         sw.Restart();
                     }
+                }
+
+                var unmatched = new Cuboid(state.R).AllPoints().Where(vec => state.Matrix[vec] != state.TargetMatrix[vec]).ToList();
+                if (unmatched.Any())
+                {
+                    Log.For(this).Error($"Unmatched count: {unmatched.Count}; " +
+                                        $"Extra: {unmatched.Count(vec => state.Matrix[vec] && !state.TargetMatrix[vec])} ;" +
+                                        $"Missing: {unmatched.Count(vec => !state.Matrix[vec] && state.TargetMatrix[vec])}");
+                    foreach (var vec in unmatched.Where(vec => state.Matrix[vec] && !state.TargetMatrix[vec]).Take(10))
+                        Log.For(this).Error($"Extra: {vec}");
+                    foreach (var vec in unmatched.Where(vec => !state.Matrix[vec] && state.TargetMatrix[vec]).Take(10))
+                        Log.For(this).Error($"Missing: {vec}");
                 }
             }
             catch (Exception e)
