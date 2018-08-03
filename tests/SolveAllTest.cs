@@ -19,6 +19,8 @@ using lib.Utils;
 
 using MoreLinq;
 
+using Newtonsoft.Json;
+
 using NUnit.Framework;
 
 namespace tests
@@ -180,7 +182,12 @@ namespace tests
             var problem = ProblemSolutionFactory.LoadProblem("FA186");
             var state = new State(problem.SourceMatrix, problem.TargetMatrix);
 
-            var genPlan = new GenPlanBuilder2(state).CreateGenPlan();
+            //var genPlan = new GenPlanBuilder2(state).CreateGenPlan();
+            //File.WriteAllText(Path.Combine(FileHelper.DataDir, "plan.json"), JsonConvert.SerializeObject(genPlan));
+            var genPlan0 = JsonConvert.DeserializeObject<List<List<Vec>>>(File.ReadAllText(Path.Combine(FileHelper.DataDir, "plan.json")));
+
+            var genPlan = genPlan0.Select(pts => new Region(pts)).ToList();
+
             var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R), 40));
 
             List<ICommand> commands = new List<ICommand>();

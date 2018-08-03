@@ -63,6 +63,12 @@ namespace lib.Utils
             End = new Vec(maxX, maxY, maxZ);
         }
 
+        public Region(List<Vec> pts)
+        {
+            Start = new Vec(pts.Min(p => p.X), pts.Min(p => p.Y), pts.Min(p => p.Z));
+            End = new Vec(pts.Max(p => p.X), pts.Max(p => p.Y), pts.Max(p => p.Z));
+        }
+
         public static Region ForShift(Vec start, Vec shift)
         {
             return new Region(start, start + shift);
