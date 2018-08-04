@@ -29,9 +29,9 @@ namespace lib.Strategies.Features
             var freeBots = new HashSet<Bot>(split.Bots);
             var buildingRegions = new HashSet<Region>();
 
+            var strategies = new List<IStrategy>();
             while (!plan.IsComplete)
             {
-                var strategies = new List<IStrategy>();
                 while (true)
                 {
                     var nextRegion = plan.GetNextRegion(r =>
@@ -79,7 +79,7 @@ namespace lib.Strategies.Features
                        plan.GroundRegion(strategy.Region);
                 }
             }
-
+            await WhenAll(strategies);
             return await new ReachFinalState(state);
         }
 
