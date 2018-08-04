@@ -74,7 +74,9 @@ namespace lib.Strategies.Features
                     foreach (var z in deltas)
                         result.Add(new Vec(x, y, z));
 
-            result = result.OrderByDescending(PerRobot).ToList();
+            result = result.OrderByDescending(PerRobot)
+                           .ThenBy(v => v.Y)
+                           .ThenBy(v => v.X).ToList();
 
             return result;
         }
