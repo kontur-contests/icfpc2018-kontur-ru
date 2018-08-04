@@ -24,12 +24,12 @@ namespace lib.Strategies.Features
                 return false;
 
             var botsLeft = state.Bots.Except(new[] { master }).ToList();
-            var fusionPositions = Vec.Zero.GetNears().Where(n => n.IsInCuboid(state.Matrix.R)).ToList();
-            var targets = botsLeft.Select((bot, i) => (bot, vec: fusionPositions[i % fusionPositions.Count]))
-                                  .ToDictionary(x => x.bot, x => x.vec);
             while (botsLeft.Count > 0)
             {
                 Bot merging = null;
+                var fusionPositions = Vec.Zero.GetNears().Where(n => n.IsInCuboid(state.Matrix.R) && !state.TargetMatrix[n]).ToList();
+                var targets = botsLeft.Select((bot, i) => (bot, vec: fusionPositions[i % fusionPositions.Count]))
+                                      .ToDictionary(x => x.bot, x => x.vec);
                 var strategies = new List<IStrategy>();
                 for (var i = 0; i < botsLeft.Count; i++)
                 {

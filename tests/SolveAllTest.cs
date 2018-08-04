@@ -179,7 +179,7 @@ namespace tests
         //[Timeout(180000)]
         public void AssembleSpaceorc()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FA186");
+            var problem = ProblemSolutionFactory.LoadProblem("FA001");
             var state = new State(problem.SourceMatrix, problem.TargetMatrix);
 
             //var genPlan = new GenPlanBuilder2(state).CreateGenPlan();
@@ -188,7 +188,7 @@ namespace tests
 
             var genPlan = genPlan0.Select(pts => new Region(pts)).ToList();
 
-            var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R), 40));
+            var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R), 8));
 
             List<ICommand> commands = new List<ICommand>();
             try

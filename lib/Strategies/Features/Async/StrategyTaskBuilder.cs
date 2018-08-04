@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 
@@ -17,10 +16,6 @@ namespace lib.Strategies.Features.Async
             stateMachine.MoveNext();
         }
 
-        public void SetStateMachine(IAsyncStateMachine stateMachine)
-        {
-        }
-
         public void SetException(Exception exception)
         {
             ExceptionDispatchInfo.Capture(exception).Throw();
@@ -28,8 +23,7 @@ namespace lib.Strategies.Features.Async
 
         public void SetResult(T value)
         {
-            Task.Result = value;
-            Task.IsComplete = true;
+            Task.SetResult(value);
         }
 
         public void AwaitOnCompleted<TAwaiter, TStateMachine>(
@@ -37,15 +31,8 @@ namespace lib.Strategies.Features.Async
             where TAwaiter : INotifyCompletion
             where TStateMachine : IAsyncStateMachine
         {
-            var aw = awaiter;
-            var sm = stateMachine;
-            Task.Strategies = (awaiter as StrategyAwaiter)?.Strategies?.ToList();
-            Task.Continue = () =>
-                {
-                    Task.Continue = null;
-                    Task.Strategies = null;
-                    aw.OnCompleted(() => sm.MoveNext());
-                };
+            var strategyAwaiter = awaiter as StrategyAwaiter ?? throw new InvalidOperationException($"{GetType()} supports only awaiters of type {typeof(StrategyAwaiter)}");
+            Task.SetAwaiter(stateMachine, strategyAwaiter);
         }
 
         public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(
@@ -54,6 +41,10 @@ namespace lib.Strategies.Features.Async
             where TStateMachine : IAsyncStateMachine
         {
             throw new NotSupportedException();
+        }
+
+        public void SetStateMachine(IAsyncStateMachine stateMachine)
+        {
         }
     }
 }

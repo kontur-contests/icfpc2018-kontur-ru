@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace lib.Strategies.Features.Async
@@ -17,12 +18,16 @@ namespace lib.Strategies.Features.Async
 
         public StrategyStatus Tick()
         {
+            var handledOnThisTick = new HashSet<IStrategy>();
             for (int i = 0; i < attempts; i++)
             {
                 if (task?.Strategies != null)
                 {
                     foreach (var strategy in task.Strategies)
-                        strategy.Tick();
+                    {
+                        if (handledOnThisTick.Add(strategy))
+                            strategy.Tick();
+                    }
                     switch (task.WaitType)
                     {
                         case WaitType.WaitAll:
