@@ -182,11 +182,11 @@ namespace tests
             var problem = ProblemSolutionFactory.LoadProblem("FA001");
             var state = new State(problem.SourceMatrix, problem.TargetMatrix);
 
-            //var genPlan = new GenPlanBuilder2(state).CreateGenPlan();
+            var genPlan = new GenPlanBuilder2(state).CreateGenPlan();
             //File.WriteAllText(Path.Combine(FileHelper.DataDir, "plan.json"), JsonConvert.SerializeObject(genPlan));
-            var genPlan0 = JsonConvert.DeserializeObject<List<List<Vec>>>(File.ReadAllText(Path.Combine(FileHelper.DataDir, "plan.json")));
+            //var genPlan0 = JsonConvert.DeserializeObject<List<List<Vec>>>(File.ReadAllText(Path.Combine(FileHelper.DataDir, "plan.json")));
 
-            var genPlan = genPlan0.Select(pts => new Region(pts)).ToList();
+            //var genPlan = genPlan0.Select(pts => new Region(pts)).ToList();
 
             var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R), 8));
 
