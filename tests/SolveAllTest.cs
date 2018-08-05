@@ -139,7 +139,7 @@ namespace tests
             var problem = ProblemSolutionFactory.LoadProblem("FA186");
             var state = new State(problem.SourceMatrix, problem.TargetMatrix);
             var plan = new GenPlanBuilder(state).CreateGenPlan();
-            var sorter = new GenPlanSorter(plan, state.R);
+            var sorter = new GenPlanSorter(plan, state.R, state);
             var sorted = new List<Region>();
             while (!sorter.IsComplete)
             {
@@ -179,16 +179,16 @@ namespace tests
         //[Timeout(180000)]
         public void AssembleSpaceorc()
         {
-            var problem = ProblemSolutionFactory.LoadProblem("FA001");
+            var problem = ProblemSolutionFactory.LoadProblem("FR008");
             var state = new State(problem.SourceMatrix, problem.TargetMatrix);
 
-            //var genPlan = new GenPlanBuilder2(state).CreateGenPlan();
+            var genPlan = new GenPlanBuilder2(state).CreateGenPlan();
             //File.WriteAllText(Path.Combine(FileHelper.DataDir, "plan.json"), JsonConvert.SerializeObject(genPlan));
-            var genPlan0 = JsonConvert.DeserializeObject<List<List<Vec>>>(File.ReadAllText(Path.Combine(FileHelper.DataDir, "plan.json")));
+            //var genPlan0 = JsonConvert.DeserializeObject<List<List<Vec>>>(File.ReadAllText(Path.Combine(FileHelper.DataDir, "plan.json")));
 
-            var genPlan = genPlan0.Select(pts => new Region(pts)).ToList();
+            //var genPlan = genPlan0.Select(pts => new Region(pts)).ToList();
 
-            var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R), 8));
+            var solver = new Solver(state, new PlanAssembler2(state, new GenPlanSorter(genPlan, state.R, state), 12));
 
             List<ICommand> commands = new List<ICommand>();
             try

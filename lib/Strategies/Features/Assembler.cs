@@ -18,7 +18,7 @@ namespace lib.Strategies.Features
             await split;
 
             var plan = new GenPlanBuilder(state).CreateGenPlan();
-            var sorted = new GenPlanSorter(plan, R).Sort();
+            var sorted = new GenPlanSorter(plan, R, state).Sort();
             if (!await new PlanAssembler(state, split.Bots, sorted))
                 return false;
             return await new ReachFinalState(state);

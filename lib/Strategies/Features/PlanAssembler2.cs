@@ -22,7 +22,8 @@ namespace lib.Strategies.Features
 
         protected override async StrategyTask<bool> Run()
         {
-            //await Do(state.Bots.Single(), new Flip());
+            await Do(state.Bots.Single(), new Flip());
+            
             var split = new Split(state, state.Bots.Single(), maxFreeBots);
             await split;
 

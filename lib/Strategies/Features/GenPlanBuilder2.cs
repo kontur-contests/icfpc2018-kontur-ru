@@ -38,10 +38,15 @@ namespace lib.Strategies.Features
                             if (!state.Matrix.IsInside(region.End))
                                 continue;
 
-                            bool ok = true;
+                            var ok = true;
+                            var target = state.TargetMatrix[region.First()];
+                            var source = state.SourceMatrix[region.First()];
+                            if (target == source)
+                                continue;
+
                             foreach (var cell in region)
                             {
-                                ok &= state.TargetMatrix[cell] && !used[cell];
+                                ok &= state.TargetMatrix[cell] == target && state.SourceMatrix[cell] == source && !used[cell];
                                 if (!ok)
                                     break;
                             }
@@ -49,6 +54,7 @@ namespace lib.Strategies.Features
                             if (!ok)
                                 continue;
 
+                            region.ToGround = target;
                             result.Add(region);
                             foreach (var cell in region)
                                 used[cell] = true;
@@ -60,14 +66,18 @@ namespace lib.Strategies.Features
 
         private List<Vec> CreateRegions()
         {
+            //return new List<Vec>() {Vec.Zero, };
+
             var result = new List<Vec>();
 
-            var step = 5;
+            var step = 1;
             var deltas = new List<int>() {0,1,2,3,4,5};
             for (int i = 6; i < 29; i += step)
                 deltas.Add(i);
             if (deltas.Last() != 29)
                 deltas.Add(29);
+
+            //deltas = new List<int> {0, 10};
 
             foreach (var y in deltas)
                 foreach (var x in deltas)

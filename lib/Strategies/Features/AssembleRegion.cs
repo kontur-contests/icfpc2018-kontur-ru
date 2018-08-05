@@ -45,7 +45,11 @@ namespace lib.Strategies.Features
             {
                 while (state.IsVolatile(Bots[0], vertices[0]))
                     await WhenNextTurn();
-                return await Do(Bots[0], new Fill(new NearDifference(vertices[0] - Bots[0].Position)));
+
+                if (Region.ToGround)
+                    return await Do(Bots[0], new Fill(new NearDifference(vertices[0] - Bots[0].Position)));
+                else
+                    return await Do(Bots[0], new Voidd(new NearDifference(vertices[0] - Bots[0].Position)));
             }
             while (Region.Any(v => state.IsVolatile(Bots[0], v)))
                 await WhenNextTurn();
@@ -53,7 +57,11 @@ namespace lib.Strategies.Features
                 {
                     var bot = Bots[index];
                     var vertex = vertices[i];
-                    return Do(bot, new GFill(new NearDifference(vertex - bot.Position), new FarDifference(Region.Opposite(vertex) - vertex)));
+
+                    if (Region.ToGround)
+                        return Do(bot, new GFill(new NearDifference(vertex - bot.Position), new FarDifference(Region.Opposite(vertex) - vertex)));
+                    else
+                        return Do(bot, new GVoid(new NearDifference(vertex - bot.Position), new FarDifference(Region.Opposite(vertex) - vertex)));
                 }));
         }
 

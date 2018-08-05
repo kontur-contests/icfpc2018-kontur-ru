@@ -99,6 +99,9 @@ namespace lib.Models
 
         public bool CanFillRegion(Region region)
         {
+            if (!region.ToGround)
+                return true;
+
             var oldValues = new Dictionary<Vec, bool>();
             foreach (var cell in region)
             {

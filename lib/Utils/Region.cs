@@ -47,6 +47,7 @@ namespace lib.Utils
 
         public Vec Start { get; }
         public Vec End { get; }
+        public bool ToGround = true;
 
         public int Volume => (End.X - Start.X + 1) * (End.Y - Start.Y + 1) * (End.Z - Start.Z + 1);
 
